@@ -736,7 +736,7 @@ class BacSeg(QWidget):
 
         shift_image = False
         if active_layer != None:
-            if active_layer.name not in ["Segmentations","Classes"]:
+            if active_layer.name not in ["Segmentations","Classes","center_lines"]:
                 shift_image = True
 
         if shift_image is True:
