@@ -85,3 +85,5 @@ venv/
 /src/napari_bacseg/_dev/
 /src/napari_bacseg/_scripts/data.pickle
 /src/napari_bacseg/_scripts/
+/src/_dev/
+/src/_scripts/
