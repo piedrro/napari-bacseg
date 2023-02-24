@@ -15,7 +15,7 @@ line_length = 79
 
 [project]
 name = "napari-bacseg"
-version = "0.0.1"
+version = "1.0.0"
 authors = [
   { name="Piers Turner", email="piers.turner@physics.ox.ac.uk"},
 ]
@@ -23,7 +23,6 @@ description = "Bacterial segmentation and analysis platform than can inport/expo
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
-"Development Status :: 4 - Beta",
 "Environment :: Plugins",
 "License :: OSI Approved :: BSD License",
 "Programming Language :: Python :: 3.9",
