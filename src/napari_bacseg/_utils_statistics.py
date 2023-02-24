@@ -1,22 +1,24 @@
+# -*- coding: utf-8 -*-
 """
 Created on Wed Apr 27 10:32:45 2022
 
 @author: turnerp
 """
 
+import numpy as np
+import cv2
 import math
+from skimage import exposure
+import pandas as pd
 import os
 import tempfile
-
-import cv2
-import numpy as np
-import pandas as pd
-from skimage import exposure
-
+from qtpy.QtWidgets import QFileDialog
+import shutil
+from functools import partial
+from napari.utils.notifications import show_info
 
 def normalize99(X):
-    """normalize image so 0.0 is 0.01st percentile
-    and 1.0 is 99.99th percentile"""
+    """ normalize image so 0.0 is 0.01st percentile and 1.0 is 99.99th percentile """
 
     if np.max(X) > 0:
         X = X.copy()
@@ -27,17 +29,16 @@ def normalize99(X):
 
 
 def find_contours(img):
-    # finds contours of shapes, only returns the external contours
+    # finds contours of shapes, only returns the external contours of the shapes
 
-    contours, hierarchy = cv2.findContours(
-        img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-    )
+    contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     contours = sorted(contours, key=cv2.contourArea, reverse=True)
     return contours
 
 
 def determine_overlap(cnt_num, contours, image):
     try:
+
         # gets current contour of interest
         cnt = contours[cnt_num]
 
@@ -48,19 +49,13 @@ def determine_overlap(cnt_num, contours, image):
         cnts = contours.copy()
         del cnts[cnt_num]
 
-        # create mask of all contours, without contour of interest.
-        # Contours are filled.
+        # create mask of all contours, without contour of interest. Contours are filled
         cnts_mask = np.zeros(image.shape, dtype=np.uint8)
-        cv2.drawContours(
-            cnts_mask, cnts, contourIdx=-1, color=(1, 1, 1), thickness=-1
-        )
+        cv2.drawContours(cnts_mask, cnts, contourIdx=-1, color=(1, 1, 1), thickness=-1)
 
-        # create mask of contour of interest.
-        # Only the contour outline is drawn.
+        # create mask of contour of interest. Only the contour outline is drawn.
         cnt_mask = np.zeros(image.shape, dtype=np.uint8)
-        cv2.drawContours(
-            cnt_mask, [cnt], contourIdx=-1, color=(1, 1, 1), thickness=1
-        )
+        cv2.drawContours(cnt_mask, [cnt], contourIdx=-1, color=(1, 1, 1), thickness=1)
 
         # dilate the contours mask. Neighbouring contours will now overlap.
         kernel = np.ones((3, 3), np.uint8)
@@ -75,17 +70,18 @@ def determine_overlap(cnt_num, contours, image):
         # calculate the overlap percentage
         overlap_percentage = int((overlap_pixels / cnt_pixels) * 100)
 
-    except Exception:
+    except:
         overlap_percentage = None
 
     return overlap_percentage
 
 
 def get_contour_statistics(cnt, image, pixel_size):
+
     # cell area
     try:
         area = cv2.contourArea(cnt) * pixel_size**2
-    except Exception:
+    except:
         area = None
 
     # convex hull
@@ -93,36 +89,37 @@ def get_contour_statistics(cnt, image, pixel_size):
         hull = cv2.convexHull(cnt)
         hull_area = cv2.contourArea(hull)
         solidity = float(area) / hull_area
-    except Exception:
+    except:
         solidity = None
 
     # perimiter
     try:
         perimeter = cv2.arcLength(cnt, True) * pixel_size
-    except Exception:
+    except:
         perimeter = None
 
         # area/perimeter
     try:
         aOp = area / perimeter
-    except Exception:
+    except:
         aOp = None
 
     # bounding rectangle
     try:
         x, y, w, h = cv2.boundingRect(cnt)
+        rect_area = w * h
         # cell crop
         y1, y2, x1, x2 = y, (y + h), x, (x + w)
-    except Exception:
+    except:
         y1, y2, x1, x2 = None, None, None, None
 
     # calculates moments, and centre of flake coordinates
     try:
         M = cv2.moments(cnt)
-        cx = int(M["m10"] / M["m00"])
-        cy = int(M["m01"] / M["m00"])
+        cx = int(M['m10'] / M['m00'])
+        cy = int(M['m01'] / M['m00'])
         cell_centre = [int(cx), int(cy)]
-    except Exception:
+    except:
         cx = None
         cy = None
         cell_centre = [None, None]
@@ -130,15 +127,13 @@ def get_contour_statistics(cnt, image, pixel_size):
     # cell length and width from PCA analysis
     try:
         cx, cy, lx, ly, wx, wy, data_pts = pca(cnt)
-        length, width, angle = get_pca_points(
-            image, cnt, cx, cy, lx, ly, wx, wy
-        )
-        radius = width / 2
+        length, width, angle = get_pca_points(image, cnt, cx, cy, lx, ly, wx, wy)
+        radius = width/2
         length = length * pixel_size
         width = width * pixel_size
         radius = radius * pixel_size
 
-    except Exception:
+    except:
         length = None
         width = None
         radius = None
@@ -146,23 +141,21 @@ def get_contour_statistics(cnt, image, pixel_size):
     # asepct ratio
     try:
         aspect_ratio = length / width
-    except Exception:
+    except:
         aspect_ratio = None
 
-    contour_statistics = dict(
-        numpy_BBOX=[x1, x2, y1, y2],
-        coco_BBOX=[x1, y1, h, w],
-        pascal_BBOX=[x1, y1, x2, y2],
-        cell_centre=cell_centre,
-        cell_area=area,
-        cell_length=length,
-        cell_width=width,
-        cell_radius=radius,
-        aspect_ratio=aspect_ratio,
-        circumference=perimeter,
-        solidity=solidity,
-        aOp=aOp,
-    )
+    contour_statistics = dict(numpy_BBOX=[x1, x2, y1, y2],
+                              coco_BBOX=[x1, y1, h, w],
+                              pascal_BBOX=[x1, y1, x2, y2],
+                              cell_centre=cell_centre,
+                              cell_area=area,
+                              cell_length=length,
+                              cell_width=width,
+                              cell_radius=radius,
+                              aspect_ratio=aspect_ratio,
+                              circumference=perimeter,
+                              solidity=solidity,
+                              aOp=aOp)
 
     return contour_statistics
 
@@ -195,29 +188,30 @@ def pca(pts):
     data_pts = arr[uniq_cnt == 1]
 
     # Perform PCA analysis
-    mean = np.empty(0)
+    mean = np.empty((0))
     mean, eigenvectors, eigenvalues = cv2.PCACompute2(data_pts, mean)
 
     # Store the center of the object
     cx, cy = (mean[0, 0], mean[0, 1])
-    lx, ly = (
-        cx + 0.02 * eigenvectors[0, 0] * eigenvalues[0, 0],
-        cy + 0.02 * eigenvectors[0, 1] * eigenvalues[0, 0],
-    )
-    wx, wy = (
-        cx - 0.02 * eigenvectors[1, 0] * eigenvalues[1, 0],
-        cy - 0.02 * eigenvectors[1, 1] * eigenvalues[1, 0],
-    )
+    lx, ly = (cx + 0.02 * eigenvectors[0, 0] * eigenvalues[0, 0], cy + 0.02 * eigenvectors[0, 1] * eigenvalues[0, 0])
+    wx, wy = (cx - 0.02 * eigenvectors[1, 0] * eigenvalues[1, 0], cy - 0.02 * eigenvectors[1, 1] * eigenvalues[1, 0])
 
     return cx, cy, lx, ly, wx, wy, data_pts
 
 
 def get_pca_points(img, cnt, cx, cy, lx, ly, wx, wy):
+
     if (lx - cx) == 0 or (wx - cx) == 0:
+
+        pca_error = True
         length = 0
         width = 0
-
+        pca_points = {"lx1": 0, "ly1": 0, "lx2": 0, "ly2": 0,
+                      "wx1": 0, "wy1": 0, "wx2": 0, "wy2": 0, }
     else:
+
+        pca_error = False
+
         # get line slope and intercept
         length_slope = (ly - cy) / (lx - cx)
         length_intercept = cy - length_slope * cx
@@ -237,39 +231,20 @@ def get_pca_points(img, cnt, cx, cy, lx, ly, wx, wy):
         contour_mask = np.zeros(img.shape, dtype=np.uint8)
         length_line_mask = np.zeros(img.shape, dtype=np.uint8)
         width_line_mask = np.zeros(img.shape, dtype=np.uint8)
-        cv2.drawContours(
-            contour_mask,
-            [cnt],
-            contourIdx=-1,
-            color=(255, 255, 255),
-            thickness=-1,
-        )
-        cv2.line(
-            length_line_mask,
-            (int(lx1), int(ly1)),
-            (int(lx2), int(ly2)),
-            (255, 255, 255),
-            2,
-        )
-        cv2.line(
-            width_line_mask,
-            (int(wx1), int(wy1)),
-            (int(wx2), int(wy2)),
-            (255, 255, 255),
-            2,
-        )
+        cv2.drawContours(contour_mask, [cnt], contourIdx=-1, color=(255, 255, 255), thickness=-1)
+        cv2.line(length_line_mask, (int(lx1), int(ly1)), (int(lx2), int(ly2)), (255, 255, 255), 2)
+        cv2.line(width_line_mask, (int(wx1), int(wy1)), (int(wx2), int(wy2)), (255, 255, 255), 2)
 
         Intersection = cv2.bitwise_and(contour_mask, length_line_mask)
         Intersection = np.array(np.where(Intersection.T == 255)).T
-        [[lx1, ly1], [lx2, ly2]] = np.array(
-            [Intersection[0], Intersection[-1]]
-        )
+        [[lx1, ly1], [lx2, ly2]] = np.array([Intersection[0], Intersection[-1]])
 
         Intersection = cv2.bitwise_and(contour_mask, width_line_mask)
         Intersection = np.array(np.where(Intersection.T == 255)).T
-        [[wx1, wy1], [wx2, wy2]] = np.array(
-            [Intersection[0], Intersection[-1]]
-        )
+        [[wx1, wy1], [wx2, wy2]] = np.array([Intersection[0], Intersection[-1]])
+
+        pca_points = {"lx1": lx1, "ly1": ly1, "lx2": lx2, "ly2": ly2,
+                      "wx1": wx1, "wy1": wy1, "wx2": wx2, "wy2": wy2, }
 
         length = euclidian_distance(lx1, ly1, lx2, ly2)
         width = euclidian_distance(wx1, wy1, wx2, wy2)
@@ -280,6 +255,7 @@ def get_pca_points(img, cnt, cx, cy, lx, ly, wx, wy):
 
 
 def rotate_contour(cnt, angle=90, units="DEGREES"):
+
     x = cnt[:, :, 1].copy()
     y = cnt[:, :, 0].copy()
 
@@ -306,6 +282,7 @@ def rotate_contour(cnt, angle=90, units="DEGREES"):
 
 
 def rotate_image(image, shift_xy, angle=90):
+
     x_shift, y_shift = shift_xy
 
     (h, w) = image.shape[:2]
@@ -317,14 +294,13 @@ def rotate_image(image, shift_xy, angle=90):
     return image, shift_xy
 
 
-def get_cell_images(
-    self, image, mask, cell_mask, mask_id, layer_names, colicoords_dir
-):
+def get_cell_images(self, image, mask, cell_mask, mask_id, layer_names, colicoords_dir):
+
     cell_image = image.copy()
 
     inverted_cell_mask = np.zeros(mask.shape, dtype=np.uint8)
     inverted_cell_mask[mask != 0] = 1
-    inverted_cell_mask[mask is mask_id] = 0
+    inverted_cell_mask[mask == mask_id] = 0
 
     cnt = find_contours(cell_mask)[0]
 
@@ -335,9 +311,7 @@ def get_cell_images(
         cell_mask = np.zeros(mask.shape, dtype=np.uint8)
         cnt, shift_xy = rotate_contour(cnt, angle=90)
         cell_image, shift_xy = rotate_image(cell_image, shift_xy, angle=90)
-        inverted_cell_mask, shift_xy = rotate_image(
-            inverted_cell_mask, shift_xy, angle=90
-        )
+        inverted_cell_mask, shift_xy = rotate_image(inverted_cell_mask, shift_xy, angle=90)
         cv2.drawContours(cell_mask, [cnt], -1, 1, -1)
     else:
         vertical = False
@@ -345,6 +319,8 @@ def get_cell_images(
 
     x, y, w, h = cv2.boundingRect(cnt)
     y1, y2, x1, x2 = y, (y + h), x, (x + w)
+
+    m = 5
 
     edge = False
 
@@ -376,9 +352,10 @@ def get_cell_images(
 
     inverted_cell_mask = inverted_cell_mask[y1:y2, x1:x2]
     cell_mask = cell_mask[y1:y2, x1:x2]
-    cell_image = cell_image[:, y1:y2, x1:x2]
+    cell_image = cell_image[:,y1:y2, x1:x2]
 
     for i in range(len(cell_image)):
+
         cell_img = cell_image[i].copy()
         cell_img[inverted_cell_mask == 1] = 0
         cell_img = normalize99(cell_img)
@@ -387,32 +364,30 @@ def get_cell_images(
     offset = [y1, x1]
     box = [y1, y2, x1, x2]
 
-    cell_images = dict(
-        cell_image=cell_image,
-        cell_mask=cell_mask,
-        channels=layer_names,
-        offset=offset,
-        shift_xy=shift_xy,
-        box=box,
-        edge=edge,
-        vertical=vertical,
-        mask_id=mask_id,
-        contour=cnt,
-    )
+    cell_images = dict(cell_image=cell_image,
+                       cell_mask=cell_mask,
+                       channels=layer_names,
+                       offset=offset,
+                       shift_xy=shift_xy,
+                       box=box,
+                       edge=edge,
+                       vertical=vertical,
+                       mask_id=mask_id,
+                       contour=cnt)
 
-    temp_path = tempfile.TemporaryFile(
-        prefix="colicoords", suffix=".npy", dir=colicoords_dir
-    ).name
+    temp_path = tempfile.TemporaryFile(prefix="colicoords", suffix=".npy", dir=colicoords_dir).name
 
-    np.save(temp_path, cell_images)
+    np.save(temp_path,cell_images)
 
     return temp_path
 
 
 def get_layer_statistics(image, cell_mask, box, layer_names):
+
     layer_statistics = {}
 
     for i in range(len(image)):
+
         layer = layer_names[i]
 
         x1, x2, y1, y2 = box
@@ -421,44 +396,30 @@ def get_layer_statistics(image, cell_mask, box, layer_names):
         cell_mask_crop = cell_mask[y1:y2, x1:x2].copy()
 
         try:
-            cell_brightness = int(
-                np.mean(cell_image_crop[cell_mask_crop != 0])
-            )
-            cell_background_brightness = int(
-                np.mean(cell_image_crop[cell_mask_crop == 0])
-            )
+            cell_brightness = int(np.mean(cell_image_crop[cell_mask_crop != 0]))
+            cell_background_brightness = int(np.mean(cell_image_crop[cell_mask_crop == 0]))
             cell_contrast = cell_brightness / cell_background_brightness
-            cell_laplacian = int(
-                cv2.Laplacian(cell_image_crop, cv2.CV_64F).var()
-            )
-        except Exception:
+            cell_laplacian = int(cv2.Laplacian(cell_image_crop, cv2.CV_64F).var())
+        except:
             cell_brightness = None
             cell_contrast = None
             cell_laplacian = None
 
-        stats = {
-            "cell_brightness[" + layer + "]": cell_brightness,
-            "cell_contrast[" + layer + "]": cell_contrast,
-            "cell_laplacian[" + layer + "]": cell_laplacian,
-        }
+        stats = {"cell_brightness[" + layer + "]": cell_brightness,
+                 "cell_contrast[" + layer + "]": cell_contrast,
+                 "cell_laplacian[" + layer + "]": cell_laplacian}
 
         layer_statistics = {**layer_statistics, **stats}
 
-    layer_statistics = {
-        key: value for key, value in sorted(layer_statistics.items())
-    }
+    layer_statistics = {key: value for key, value in sorted(layer_statistics.items())}
 
     return layer_statistics
 
 
-def get_cell_statistics(
-    self, mode, pixel_size, colicoords_dir, progress_callback=None
-):
-    layer_names = [
-        layer.name
-        for layer in self.viewer.layers
-        if layer.name not in ["Segmentations", "Classes"]
-    ]
+
+def get_cell_statistics(self, mode, pixel_size, colicoords_dir, progress_callback=None):
+
+    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
 
     if mode == "active":
         dims = [self.viewer.dims.current_step[0]]
@@ -470,14 +431,14 @@ def get_cell_statistics(
     file_name_stack = []
 
     for i in dims:
+
         image = []
         file_names = []
 
         for layer in layer_names:
+
             image.append(self.viewer.layers[layer].data[i])
-            file_names.append(
-                self.viewer.layers[layer].metadata[i]["image_name"]
-            )
+            file_names.append(self.viewer.layers[layer].metadata[i]["image_name"])
 
         image = np.stack(image, axis=0)
         image_stack.append(image)
@@ -490,6 +451,7 @@ def get_cell_statistics(
     label_stack = self.classLayer.data.copy()
 
     if mode == "active":
+
         current_step = self.viewer.dims.current_step[0]
 
         mask_stack = np.expand_dims(mask_stack[current_step], axis=0)
@@ -498,21 +460,16 @@ def get_cell_statistics(
 
     cell_statistics = []
 
-    cell_dict = {
-        1: "Single",
-        2: "Dividing",
-        3: "Divided",
-        4: "Broken",
-        5: "Vertical",
-        6: "Edge",
-    }
+    cell_dict = {1: "Single", 2: "Dividing", 3: "Divided", 4: "Broken", 5: "Vertical", 6: "Edge"}
 
     for i in range(len(image_stack)):
+
         progress = int(((i + 1) / len(image_stack)) * 100)
         progress_callback.emit(progress)
 
         image = image_stack[i]
         mask = mask_stack[i]
+        meta = meta_stack[i]
         label = label_stack[i]
         file_names = file_name_stack[i]
 
@@ -520,12 +477,8 @@ def get_cell_statistics(
         for j in range(len(image)):
             layer = layer_names[j]
             img = image[j]
-            dat = {
-                "image_brightness[" + layer + "]": int(np.mean(img)),
-                "image_laplacian["
-                + layer
-                + "]": int(cv2.Laplacian(img, cv2.CV_64F).var()),
-            }
+            dat = {"image_brightness[" + layer + "]" : int(np.mean(img)),
+                   "image_laplacian[" + layer + "]": int(cv2.Laplacian(img, cv2.CV_64F).var())}
             image_stats = {**image_stats, **dat}
 
         contours = []
@@ -534,158 +487,107 @@ def get_cell_statistics(
         mask_ids = np.unique(mask)
 
         for j in range(len(mask_ids)):
+
             mask_id = mask_ids[j]
 
             if mask_id != 0:
+
                 cell_mask = np.zeros(mask.shape, dtype=np.uint8)
-                cell_mask[mask is mask_id] = 1
+                cell_mask[mask == mask_id] = 1
 
                 cnt = find_contours(cell_mask)[0]
                 contours.append(cnt)
                 contour_mask_ids.append(mask_id)
 
-                cell_label = np.unique(label[mask is mask_id])[0]
+                cell_label = np.unique(label[mask == mask_id])[0]
 
                 if cell_label in cell_dict.keys():
                     cell_types.append(cell_dict[cell_label])
 
                     try:
                         background = np.zeros(mask.shape, dtype=np.uint8)
-                        cv2.drawContours(
-                            background,
-                            contours,
-                            contourIdx=-1,
-                            color=(1, 1, 1),
-                            thickness=-1,
-                        )
-                    except Exception:
+                        cv2.drawContours(background, contours, contourIdx=-1, color=(1, 1, 1), thickness=-1)
+                    except:
                         background = None
 
         for j in range(len(contours)):
+
             try:
+
                 cnt = contours[j]
                 mask_id = contour_mask_ids[j]
                 cell_type = cell_types[j]
 
                 cell_mask = np.zeros(mask.shape, dtype=np.uint8)
-                cv2.drawContours(
-                    cell_mask,
-                    [cnt],
-                    contourIdx=-1,
-                    color=(1, 1, 1),
-                    thickness=-1,
-                )
+                cv2.drawContours(cell_mask, [cnt], contourIdx=-1, color=(1, 1, 1), thickness=-1)
 
                 overlap_percentage = determine_overlap(j, contours, mask)
 
-                contour_statistics = get_contour_statistics(
-                    cnt, mask, pixel_size
-                )
+                contour_statistics = get_contour_statistics(cnt, mask, pixel_size)
 
                 box = contour_statistics["numpy_BBOX"]
 
-                cell_images_path = get_cell_images(
-                    self,
-                    image,
-                    mask,
-                    cell_mask,
-                    mask_id,
-                    layer_names,
-                    colicoords_dir,
-                )
+                cell_images_path = get_cell_images(self, image, mask, cell_mask, mask_id, layer_names, colicoords_dir)
 
-                layer_stats = get_layer_statistics(
-                    image, cell_mask, box, layer_names
-                )
+                layer_stats = get_layer_statistics(image, cell_mask, box, layer_names)
 
-                morphology_stats = dict(
-                    file_names=file_names,
-                    colicoords=False,
-                    cell_type=cell_type,
-                    pixel_size_um=pixel_size,
-                    length=contour_statistics["cell_length"],
-                    radius=(contour_statistics["cell_radius"]),
-                    area=contour_statistics["cell_area"],
-                    circumference=contour_statistics["circumference"],
-                    aspect_ratio=contour_statistics["aspect_ratio"],
-                    solidity=contour_statistics["solidity"],
-                    overlap_percentage=overlap_percentage,
-                    box=box,
-                    cell_images_path=cell_images_path,
-                )
+                morphology_stats = dict(file_names=file_names,
+                                        colicoords=False,
+                                        cell_type=cell_type,
+                                        pixel_size_um=pixel_size,
+                                        length=contour_statistics["cell_length"],
+                                        radius=(contour_statistics["cell_radius"]),
+                                        area=contour_statistics["cell_area"],
+                                        circumference=contour_statistics["circumference"],
+                                        aspect_ratio=contour_statistics["aspect_ratio"],
+                                        solidity=contour_statistics["solidity"],
+                                        overlap_percentage=overlap_percentage,
+                                        box=box,
+                                        cell_images_path = cell_images_path)
 
                 stats = {**morphology_stats, **image_stats, **layer_stats}
 
                 cell_statistics.append(stats)
 
-            except Exception:
+            except:
                 pass
 
     return cell_statistics
 
 
-def process_cell_statistics(self, cell_statistics, path):
-    if type(cell_statistics) is dict:
+def process_cell_statistics(self,cell_statistics,path):
+
+    if type(cell_statistics) == dict:
         ldist_data = cell_statistics["ldist_data"]
-        ldist_data = pd.DataFrame.from_dict(ldist_data).dropna(how="all")
+        ldist_data = pd.DataFrame.from_dict(ldist_data).dropna(how='all')
         cell_statistics = cell_statistics["cell_statistics"]
     else:
         ldist_data = None
 
-    export_path = os.path.join(path, "statistics.xlsx")
+    export_path = os.path.join(path,'statistics.xlsx')
 
-    drop_columns = [
-        "cell_image",
-        "cell_mask",
-        "offset",
-        "shift_xy",
-        "edge",
-        "vertical",
-        "mask_id",
-        "contour",
-        "edge",
-        "vertical",
-        "mask_id",
-        "cell",
-        "refined_cnt",
-        "oufti",
-        "statistics",
-        "colicoords_channel",
-        "channels",
-        "cell_images_path",
-        "ldist",
-    ]
+    drop_columns = ['cell_image', 'cell_mask','offset', 'shift_xy','edge',
+                    'vertical','mask_id','contour','edge','vertical','mask_id','cell','refined_cnt',
+                    'oufti','statistics','colicoords_channel','channels','cell_images_path', 'ldist']
 
     cell_statistics = pd.DataFrame(cell_statistics)
 
-    cell_statistics = cell_statistics.drop(
-        columns=[col for col in cell_statistics if col in drop_columns]
-    )
+    cell_statistics = cell_statistics.drop(columns=[col for col in cell_statistics if col in drop_columns])
 
-    cell_statistics = cell_statistics.dropna(how="all")
+    cell_statistics = cell_statistics.dropna(how='all')
 
     with pd.ExcelWriter(export_path) as writer:
-        cell_statistics.to_excel(
-            writer,
-            sheet_name="Cell Statistics",
-            index=False,
-            startrow=1,
-            startcol=1,
-        )
+        cell_statistics.to_excel(writer, sheet_name='Cell Statistics', index=False, startrow=1, startcol=1,)
         if isinstance(ldist_data, pd.DataFrame):
-            ldist_data.to_excel(
-                writer,
-                sheet_name="Length Distribution Data",
-                index=False,
-                startrow=1,
-                startcol=1,
-            )
+            ldist_data.to_excel(writer, sheet_name='Length Distribution Data', index=False, startrow=1, startcol=1)
 
     return
 
 
+
 def _compute_simple_cell_stats(self):
-    if self.unfolded is True:
+
+    if self.unfolded == True:
         self.fold_images()
 
     current_fov = self.viewer.dims.current_step[0]
@@ -702,13 +604,13 @@ def _compute_simple_cell_stats(self):
     cell_id = []
 
     for mask_id in mask_ids:
-        if mask_id != 0:
-            cnt_mask = np.zeros(mask.shape, dtype=np.uint8)
-            cnt_mask[mask is mask_id] = 255
 
-            cnt, _ = cv2.findContours(
-                cnt_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-            )
+        if mask_id != 0:
+
+            cnt_mask = np.zeros(mask.shape, dtype=np.uint8)
+            cnt_mask[mask==mask_id] = 255
+
+            cnt, _ = cv2.findContours(cnt_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
             x, y, w, h = cv2.boundingRect(cnt[0])
             y1, y2, x1, x2 = y, (y + h), x, (x + w)
@@ -721,17 +623,14 @@ def _compute_simple_cell_stats(self):
                 (_, _), (width, height), _ = cv2.minAreaRect(cnt[0])
                 aspect_ratio = max(width, height) / min(width, height)
 
-            except Exception:
+            except:
                 area = 0
                 solidity = 0
                 aspect_ratio = 0
 
             centre = (0, y1 + (y2 - y1) // 2, x1 + (x2 - x1) // 2)
 
-            zoom = (
-                min((mask.shape[0] / (y2 - y1)), (mask.shape[1] / (x2 - x1)))
-                / 2
-            )
+            zoom = min((mask.shape[0]/(y2-y1)), (mask.shape[1]/(x2-x1)))/2
 
             cell_area.append(area)
             cell_solidity.append(solidity)
@@ -740,18 +639,17 @@ def _compute_simple_cell_stats(self):
             cell_zoom.append(zoom)
             cell_id.append(mask_id)
 
-    cell_stats = {
-        "cell_area": cell_area,
-        "cell_solidity": cell_solidity,
-        "cell_aspect_ratio": cell_aspect_ratio,
-        "cell_centre": cell_centre,
-        "cell_zoom": cell_zoom,
-        "mask_id": cell_id,
-    }
+    cell_stats = {'cell_area': cell_area,
+                  'cell_solidity':cell_solidity,
+                  'cell_aspect_ratio':cell_aspect_ratio,
+                  'cell_centre': cell_centre,
+                  'cell_zoom': cell_zoom,
+                  'mask_id': cell_id}
 
     layer_names = [layer.name for layer in self.viewer.layers if layer.name]
 
     for layer in layer_names:
+
         meta = self.viewer.layers[layer].metadata[current_fov]
-        meta["simple_cell_stats"] = cell_stats
+        meta['simple_cell_stats'] = cell_stats
         self.viewer.layers[layer].metadata[current_fov] = meta

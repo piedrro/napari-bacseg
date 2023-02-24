@@ -1,14 +1,18 @@
+
+
 import numpy as np
-from tiler import Merger
+from tiler import Tiler, Merger
 
 
 def unfold_images(self):
-    if self.unfolded is False:
+
+    if self.unfolded == False:
+
         current_step = list(self.viewer.dims.current_step)
         current_step = [0] * len(current_step)
         self.viewer.dims.current_step = tuple(current_step)
 
-        from tiler import Tiler
+        from tiler import Tiler, Merger
 
         layer_names = [layer.name for layer in self.viewer.layers]
 
@@ -17,19 +21,20 @@ def unfold_images(self):
         overlap = int(self.unfold_tile_overlap.currentText())
 
         for layer in layer_names:
+
             image = self.viewer.layers[layer].data.copy()
             metadata_stack = self.viewer.layers[layer].metadata.copy()
 
-            self.tiler_object = Tiler(
-                data_shape=image[0].shape,
-                tile_shape=tile_shape,
-                overlap=overlap,
-            )
+            self.tiler_object = Tiler(data_shape=image[0].shape,
+                                      tile_shape=tile_shape,
+                                      overlap=overlap)
 
             if self.unfold_mode.currentIndex() == 0:
+
                 tiled_image = []
 
                 for i in range(image.shape[0]):
+
                     tiles = []
 
                     for tile_id, tile in self.tiler_object.iterate(image[i]):
@@ -48,25 +53,21 @@ def unfold_images(self):
                 self._autoContrast()
 
             if self.unfold_mode.currentIndex() == 1:
+
                 from napari_bacseg._utils import get_hash
 
                 tiled_images = []
                 tiled_metadata = {}
 
                 for i in range(image.shape[0]):
+
                     num_image_tiles = 0
 
                     for tile_id, tile in self.tiler_object.iterate(image[i]):
-                        bbox = np.array(
-                            self.tiler_object.get_tile_bbox(tile_id=tile_id)
-                        )
+
+                        bbox = np.array(self.tiler_object.get_tile_bbox(tile_id=tile_id))
                         bbox = bbox[..., [-2, -1]]
-                        y1, x1, y2, x2 = (
-                            bbox[0][0],
-                            bbox[0][1],
-                            bbox[1][0],
-                            bbox[1][1],
-                        )
+                        y1, x1, y2, x2 = bbox[0][0], bbox[0][1], bbox[1][0], bbox[1][1]
 
                         if y2 > image.shape[-2]:
                             y2 = image.shape[-2]
@@ -78,7 +79,8 @@ def unfold_images(self):
                         y2 = y2 - y1
                         y1 = 0
 
-                        if (y2 - y1, x2 - x1) is tile_shape:
+                        if (y2 - y1, x2 - x1) == tile_shape:
+
                             num_image_tiles += 1
                             tiled_images.append(tile)
 
@@ -87,28 +89,13 @@ def unfold_images(self):
                                 image_name = meta["image_name"]
 
                                 tile_meta = dict(meta)
-                                tile_name = (
-                                    str(image_name).split(".")[0]
-                                    + "_tile"
-                                    + str(num_image_tiles)
-                                    + ".tif"
-                                )
+                                tile_name = str(image_name).split(".")[0] + "_tile" + str(num_image_tiles) + ".tif"
                                 tile_meta["akseg_hash"] = get_hash(img=tile)
                                 tile_meta["image_name"] = tile_name
-                                tile_meta["dims"] = [
-                                    tile.shape[-1],
-                                    tile.shape[-2],
-                                ]
-                                tile_meta["crop"] = [
-                                    int(y1),
-                                    int(y2),
-                                    int(x1),
-                                    int(x2),
-                                ]
+                                tile_meta["dims"] = [tile.shape[-1], tile.shape[-2]]
+                                tile_meta["crop"] = [int(y1), int(y2), int(x1), int(x2)]
 
-                                tiled_metadata[
-                                    len(tiled_images) - 1
-                                ] = tile_meta
+                                tiled_metadata[len(tiled_images) - 1] = tile_meta
 
                 image = np.stack(tiled_images)
                 self.viewer.layers[layer].data = image
@@ -123,8 +110,14 @@ def unfold_images(self):
     self._updateFileName()
 
 
+
+
+
+
 def fold_images(self):
-    if self.unfolded is True:
+
+    if self.unfolded == True:
+
         current_step = list(self.viewer.dims.current_step)
         current_step = [0] * len(current_step)
         self.viewer.dims.current_step = tuple(current_step)
@@ -132,6 +125,7 @@ def fold_images(self):
         layer_names = [layer.name for layer in self.viewer.layers]
 
         for layer in layer_names:
+
             image = self.viewer.layers[layer].data.copy()
 
             merger = Merger(self.tiler_object)
@@ -139,6 +133,7 @@ def fold_images(self):
             merged_image = []
 
             for i in range(image.shape[0]):
+
                 merger.reset()
 
                 for j in range(image.shape[1]):
@@ -158,9 +153,11 @@ def fold_images(self):
             self._autoContrast()
 
 
-def update_image_folds(self, mask_ids=None, image_index=None):
-    if self.unfolded is True:
-        from tiler import Merger
+def update_image_folds(self, mask_ids = None, image_index = None):
+
+    if self.unfolded == True:
+
+        from tiler import Tiler, Merger
 
         layer_names = ["Segmentations", "Classes"]
 
@@ -172,6 +169,7 @@ def update_image_folds(self, mask_ids=None, image_index=None):
         target_tile_id = self.viewer.dims.current_step[1]
 
         for layer in layer_names:
+
             image = self.viewer.layers[layer].data.copy()
 
             frame = image[target_img_id]
@@ -184,23 +182,18 @@ def update_image_folds(self, mask_ids=None, image_index=None):
             overwrite_tile_img = []
 
             for j in range(frame.shape[0]):
+
                 img = frame[j].copy()
 
-                if j is target_tile_id:
-                    overwrite_tile_box = np.array(
-                        self.tiler_object.get_tile_bbox(target_tile_id)
-                    )
+                if j == target_tile_id:
+                    overwrite_tile_box = np.array(self.tiler_object.get_tile_bbox(target_tile_id))
                     overwrite_tile_box = overwrite_tile_box[..., [-2, -1]]
                     overwrite_tile_img = img
 
                 merger.add(j, img.data)
 
-            y1, x1, y2, x2 = (
-                overwrite_tile_box[0][0],
-                overwrite_tile_box[0][1],
-                overwrite_tile_box[1][0],
-                overwrite_tile_box[1][1],
-            )
+            y1, x1, y2, x2 = overwrite_tile_box[0][0], overwrite_tile_box[0][1], \
+                             overwrite_tile_box[1][0], overwrite_tile_box[1][1]
 
             frame = merger.merge(dtype=img.dtype)
 
@@ -213,11 +206,12 @@ def update_image_folds(self, mask_ids=None, image_index=None):
             if x2 > frame.shape[1]:
                 x2 = frame.shape[1]
 
-            frame[y1:y2, x1:x2] = overwrite_tile_img[: y2 - y1, : x2 - x1]
+            frame[y1:y2, x1:x2] = overwrite_tile_img[:y2 - y1, :x2 - x1]
 
             if mask_ids is not None:
+
                 for mask_id in mask_ids:
-                    frame[frame is mask_id] = 0
+                    frame[frame==mask_id] = 0
 
             tiles = []
 
@@ -228,3 +222,5 @@ def update_image_folds(self, mask_ids=None, image_index=None):
 
             image[target_img_id] = tiles
             self.viewer.layers[layer].data = image
+
+

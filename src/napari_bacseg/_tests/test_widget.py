@@ -3,8 +3,8 @@ import numpy as np
 from napari_bacseg import ExampleQWidget, example_magic_widget
 
 
-# make_napari_viewer is a pytest fixture that returns a napari viewer object
-# capsys is a pytest fixture that captures stdout and stderr output streams
+# make_napari_viewer==a pytest fixture that returns a napari viewer object
+# capsys==a pytest fixture that captures stdout and stderr output streams
 def test_example_q_widget(make_napari_viewer, capsys):
     # make viewer and add an image layer using our fixture
     viewer = make_napari_viewer()
@@ -33,4 +33,4 @@ def test_example_magic_widget(make_napari_viewer, capsys):
 
     # read captured output and check that it's as we expected
     captured = capsys.readouterr()
-    assert captured.out is f"you have selected {layer}\n"
+    assert captured.out==f"you have selected {layer}\n"

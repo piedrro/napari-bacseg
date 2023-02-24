@@ -1,11 +1,15 @@
-import cv2
-import numpy as np
-from napari.utils.notifications import show_info
-from roifile import ImagejRoi, roiread
-from tifffile import imsave
 
+import numpy as np
+from tifffile import TiffFile, imwrite, imsave
+from roifile import roiread, ImagejRoi
+import ast
+import os
+import cv2
+import tifffile
+from napari.utils.notifications import show_info
 
 def read_imagej_file(path, image):
+
     contours = []
     mask = np.zeros_like(image)
 
@@ -24,25 +28,23 @@ def read_imagej_file(path, image):
             contours.append(cnt)
 
         for i in range(len(contours)):
+
             cnt = contours[i]
-            cv2.drawContours(
-                mask,
-                [cnt],
-                contourIdx=-1,
-                color=(i + 1, i + 1, i + 1),
-                thickness=-1,
-            )
-    except Exception:
+            cv2.drawContours(mask, [cnt], contourIdx=-1, color=(i+1, i+1, i+1), thickness=-1)
+    except:
         show_info("Image does not contain ImageJ Overlays")
 
     return mask
 
 
 def export_imagej(image, contours, metadata, file_path):
+
     overlays = []
 
     for i in range(len(contours) - 1):
+
         try:
+
             cnt = contours[i]
             cnt = np.vstack(cnt).squeeze()
             roi = ImagejRoi.frompoints(cnt)
@@ -50,12 +52,8 @@ def export_imagej(image, contours, metadata, file_path):
 
             overlays.append(roi)
 
-        except Exception:
+        except:
             pass
 
-    imsave(
-        file_path,
-        image,
-        imagej=True,
-        metadata={"Overlays": overlays, "metadata": metadata},
-    )
+    imsave(file_path, image, imagej=True, metadata={'Overlays': overlays, 'metadata': metadata})
+
