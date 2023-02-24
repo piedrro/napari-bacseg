@@ -121,7 +121,7 @@ def _process_cellpose(self, segmentation_data):
         if self.cellpose_resetimage.isChecked() == True:
             self.viewer.reset_view()
 
-        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
         # ensures segmentation and classes is in correct order in the viewer
         for layer in layer_names:

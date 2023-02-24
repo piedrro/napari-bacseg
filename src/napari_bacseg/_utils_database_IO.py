@@ -208,7 +208,7 @@ def generate_multichannel_stack(self):
                     usermeta2=usermeta2,
                     usermeta3=usermeta3)
 
-    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
     layer_names.reverse()
 
@@ -620,7 +620,7 @@ def _upload_bacseg_database(self, progress_callback, mode):
                 user_metadata = pd.DataFrame(columns=self.metadata_columns)
 
             channel_labels = ["modality", "light_source", "stain", "stain_target"]
-            channel_metadata = [layer.metadata[0] for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+            channel_metadata = [layer.metadata[0] for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
             metalabels = []
 
@@ -641,7 +641,7 @@ def _upload_bacseg_database(self, progress_callback, mode):
 
                 segChannel = self.cellpose_segchannel.currentText()
                 channel_list = [layer.name for layer in self.viewer.layers if
-                               layer.name not in ["Segmentations", "Classes"]]
+                               layer.name not in ["Segmentations", "Classes","center_lines"]]
 
                 if segChannel == "":
 

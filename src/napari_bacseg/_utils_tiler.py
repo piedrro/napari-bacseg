@@ -159,7 +159,7 @@ def update_image_folds(self, mask_ids = None, image_index = None):
 
         from tiler import Tiler, Merger
 
-        layer_names = ["Segmentations", "Classes"]
+        layer_names = ["Segmentations", "Classes","center_lines"]
 
         if image_index is not None:
             target_img_id = image_index

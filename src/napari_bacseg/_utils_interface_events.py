@@ -416,7 +416,7 @@ def _segmentationEvents(self, viewer, event):
 
         if self.segmentation_mode == "refine":
 
-            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
             self.segLayer.mode == "pan_zoom"
             self.segLayer.brush_size = 1
@@ -966,7 +966,7 @@ def _viewerControls(self, key, viewer=None):
 
     if key == "c":
 
-        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
         if len(layer_names) != 0:
 
@@ -1050,7 +1050,7 @@ def _clear_images(self):
     layer_names = [layer.name for layer in self.viewer.layers]
 
     for layer_name in layer_names:
-        if layer_name not in ["Segmentations", "Classes"]:
+        if layer_name not in ["Segmentations", "Classes","center_lines"]:
             self.viewer.layers.remove(self.viewer.layers[layer_name])
 
 

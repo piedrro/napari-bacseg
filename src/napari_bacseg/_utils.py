@@ -1605,7 +1605,7 @@ def get_hash(img_path=None, img=None):
 
 def align_image_channels(self):
 
-    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
     if self.import_align.isChecked() and len(layer_names) > 1:
 
@@ -1927,7 +1927,7 @@ def import_masks(self, file_paths, file_extension = ""):
     mask_files = [path.split("\\")[-1] for path in mask_paths]
     mask_search = [file.split(file.split(".")[-1])[0][:-1] for file in mask_files]
 
-    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
     matching_masks = []
 
@@ -2092,7 +2092,7 @@ def automatic_brightness_and_contrast(image, clip_hist_percent=0.1):
 
 def generate_export_image(self, export_channel, dim, normalize=False, invert=False, autocontrast=False):
 
-    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
 
     layer_names.reverse()
 
@@ -2103,8 +2103,6 @@ def generate_export_image(self, export_channel, dim, normalize=False, invert=Fal
     else:
         mode = "single"
         layer_names = [export_channel]
-
-    image_shape = self.viewer.layers[layer_names[0]].data.shape
 
     if mode == "rgb":
         layer_names = layer_names[:3]

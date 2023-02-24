@@ -548,7 +548,7 @@ class BacSeg(QWidget):
             selected_layer = selected_layers[0]
             all_layers.pop(all_layers.index(selected_layer))
 
-            if selected_layer not in ["Segmentations", "Classes"]:
+            if selected_layer not in ["Segmentations", "Classes","center_lines"]:
 
                 metadata = self.viewer.layers[selected_layer].metadata.copy()
 
@@ -882,7 +882,7 @@ class BacSeg(QWidget):
 
     def _updateSegChannels(self):
 
-        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
         segChannel = self.cellpose_segchannel.currentText()
 
@@ -1103,7 +1103,7 @@ class BacSeg(QWidget):
 
     def _updateSegmentationCombo(self):
 
-        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
         self.cellpose_segchannel.clear()
         self.cellpose_segchannel.addItems(layer_names)
@@ -1143,7 +1143,7 @@ class BacSeg(QWidget):
             if self.autocontrast.isChecked():
 
                 layer_names = [layer.name for layer in self.viewer.layers if
-                               layer.name not in ["Segmentations", "Classes"]]
+                               layer.name not in ["Segmentations", "Classes","center_lines"]]
 
                 if len(layer_names) != 0:
 
@@ -1213,7 +1213,7 @@ class BacSeg(QWidget):
 
     def _process_import(self, imported_data, rearrange=True):
 
-        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
         if self.clear_previous.isChecked() == True:
             # removes all layers (except segmentation layer)
@@ -1298,7 +1298,7 @@ class BacSeg(QWidget):
                 self.classLayer.data = new_class_stack
                 self.segLayer.metadata = new_metadata
 
-        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
         # ensures segmentation and classes is in correct order in the viewer
         for layer in layer_names:

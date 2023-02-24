@@ -419,7 +419,7 @@ def get_layer_statistics(image, cell_mask, box, layer_names):
 
 def get_cell_statistics(self, mode, pixel_size, colicoords_dir, progress_callback=None):
 
-    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes"]]
+    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
     if mode == "active":
         dims = [self.viewer.dims.current_step[0]]
