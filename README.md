@@ -25,6 +25,10 @@ https://napari.org/stable/plugins/index.html
 
 You can install `napari-bacseg` via [pip]:
 
+    pip install napari-bacseg
+
+## Installing BacSeg From GitHub
+
     conda create –-name napari-bacseg python==3.9
     conda activate napari-bacseg
     conda install -c anaconda git
@@ -34,7 +38,7 @@ You can install `napari-bacseg` via [pip]:
 
     pip install git+https://github.com/piedrro/napari-bacseg.git
 
-## Updating BacSeg
+## Updating BacSeg From Github
 Once you have installed the plugin, you can update the plugin by running the following commands:
 
     pip install git+https://github.com/piedrro/napari-bacseg.git
