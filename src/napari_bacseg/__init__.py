@@ -4,3 +4,5 @@ except ImportError:
     __version__ = "unknown"
 
 __all__ = "BacSeg"
+
+from napari_bacseg._widget import BacSeg
