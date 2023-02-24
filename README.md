@@ -23,9 +23,21 @@ https://napari.org/stable/plugins/index.html
 
 ## Installing BacSeg
 
-You can install `napari-bacseg` via [pip]:
+Create a virtual environment and then activate it:
+
+    conda create –-name napari-bacseg python==3.9
+    conda activate napari-bacseg
+
+Install `napari-bacseg` via [pip]:
 
     pip install napari-bacseg
+
+Launch Napari:
+
+    Napari
+
+Select **napari-bacseg** from the **Plugins** dropdown menu
+
 
 ## Installing BacSeg From GitHub
 
