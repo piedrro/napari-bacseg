@@ -82,3 +82,6 @@ venv/
 
 # written by setuptools_scm
 **/_version.py
+/src/napari_bacseg/_dev/
+/src/napari_bacseg/_scripts/data.pickle
+/src/napari_bacseg/_scripts/
