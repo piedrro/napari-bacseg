@@ -375,6 +375,9 @@ def get_cell_images(self, image, mask, cell_mask, mask_id, layer_names, colicoor
                        mask_id=mask_id,
                        contour=cnt)
 
+    if os.path.isdir(colicoords_dir) is False:
+        os.mkdir(colicoords_dir)
+
     temp_path = tempfile.TemporaryFile(prefix="colicoords", suffix=".npy", dir=colicoords_dir).name
 
     np.save(temp_path,cell_images)

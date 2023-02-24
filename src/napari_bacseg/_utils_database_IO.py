@@ -554,6 +554,9 @@ def generate_upload_tempfiles(user_metadata, image_stack, meta_stack, mask_stack
                                json_dir=json_dir,
                                class_dir=class_dir)
 
+            if os.path.isdir(upload_dir) is False:
+                os.mkdir(upload_dir)
+
             temp_path = tempfile.TemporaryFile(prefix="BacSeg", suffix=".npy", dir=upload_dir).name
 
             np.save(temp_path, upload_data)

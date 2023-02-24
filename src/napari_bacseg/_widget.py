@@ -639,6 +639,8 @@ class BacSeg(QWidget):
                 worker.signals.result.connect(partial(self.process_cell_statistics, path=path))
                 self.threadpool.start(worker)
 
+
+
     def update_import_limit(self):
 
         if self.import_filemode.currentIndex() == 0:
