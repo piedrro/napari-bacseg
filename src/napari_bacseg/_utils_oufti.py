@@ -19,64 +19,67 @@ import matplotlib.pyplot as plt
 
 def centre_oufti_midlines(self, mode="all"):
 
-    layer_names = [layer.name for layer in self.viewer.layers]
+    def _event(viewer):
 
-    if "center_lines" in layer_names:
+        layer_names = [layer.name for layer in self.viewer.layers]
 
-        from napari_bacseg._utils_oufti import get_mask_polygons, get_contour_index, centre_midline, \
-            get_midline_boundary_lines, interpolate_data
+        if "center_lines" in layer_names:
 
-        meta_stack = self.segLayer.metadata.copy()
-        mask_stack = self.segLayer.data.copy()
+            from napari_bacseg._utils_oufti import get_mask_polygons, get_contour_index, centre_midline, \
+                get_midline_boundary_lines, interpolate_data
 
-        if mode == "active":
+            meta_stack = self.segLayer.metadata.copy()
+            mask_stack = self.segLayer.data.copy()
 
-            current_step = self.viewer.dims.current_step[0]
+            if mode == "active":
 
-            dim_range = [current_step]
-        else:
+                current_step = self.viewer.dims.current_step[0]
 
-            dim_range = np.arange(mask_stack.shape[0])
+                dim_range = [current_step]
+            else:
 
-        for i in dim_range:
+                dim_range = np.arange(mask_stack.shape[0])
 
-            mask = mask_stack[i]
-            meta = meta_stack[i]
+            for i in dim_range:
 
-            polygons, contours, contour_ids = get_mask_polygons(mask)
+                mask = mask_stack[i]
+                meta = meta_stack[i]
 
-            if "midlines" in meta.keys():
+                polygons, contours, contour_ids = get_mask_polygons(mask)
 
-                mid_lines = meta["midlines"]
+                if "midlines" in meta.keys():
 
-                for j in range(len(mid_lines)):
-                    mid_line = mid_lines[j]
+                    mid_lines = meta["midlines"]
 
-                    mid_line = np.flip(mid_line)
+                    for j in range(len(mid_lines)):
+                        mid_line = mid_lines[j]
 
-                    index = get_contour_index(mid_line, polygons, contour_ids)
+                        mid_line = np.flip(mid_line)
 
-                    cnt = contours[index]
+                        index = get_contour_index(mid_line, polygons, contour_ids)
 
-                    left_line, right_line, _, _, _ = get_midline_boundary_lines(mid_line, cnt, smooth=False)
+                        cnt = contours[index]
 
-                    mid_line = centre_midline(left_line, right_line, mid_line, export_segments=len(mid_line))
+                        left_line, right_line, _, _, _ = get_midline_boundary_lines(mid_line, cnt, smooth=False)
 
-                    mid_line = interpolate_data(mid_line, export_segments=len(mid_line))
+                        mid_line = centre_midline(left_line, right_line, mid_line, export_segments=len(mid_line))
 
-                    mid_line = np.flip(mid_line)
+                        mid_line = interpolate_data(mid_line, export_segments=len(mid_line))
 
-                    mid_lines[j] = mid_line
+                        mid_line = np.flip(mid_line)
 
-                meta["midlines"] = mid_lines
+                        mid_lines[j] = mid_line
 
-                meta_stack[i] = meta
+                    meta["midlines"] = mid_lines
 
-        self.segLayer.metadata = meta_stack
+                    meta_stack[i] = meta
 
-        current_fov = self.viewer.dims.current_step[0]
-        self._sliderEvent(current_fov)
+            self.segLayer.metadata = meta_stack
 
+            current_fov = self.viewer.dims.current_step[0]
+            self._sliderEvent(current_fov)
+
+    return _event
 
 def update_midlines(self):
 
@@ -113,83 +116,87 @@ def midline_edit_toggle(self, viewer=None):
 
 def generate_midlines(self, mode="all"):
 
-    vertexes = int(self.oufti_midline_vertexes.currentText())
+    def _event(viewer):
 
-    layer_names = [layer.name for layer in self.viewer.layers]
+        vertexes = int(self.oufti_midline_vertexes.currentText())
 
-    meta = self.segLayer.metadata.copy()
+        layer_names = [layer.name for layer in self.viewer.layers]
 
-    if "center_lines" not in layer_names:
-        self.shapeLayer = self.viewer.add_shapes(shape_type='path',
-                                                 edge_width=0.5,
-                                                 opacity=0.5,
-                                                 edge_color='red',
-                                                 face_color='black',
-                                                 name="center_lines")
+        meta = self.segLayer.metadata.copy()
 
-        self.shapeLayer.mouse_drag_callbacks.append(self._segmentationEvents)
+        if "center_lines" not in layer_names:
+            self.shapeLayer = self.viewer.add_shapes(shape_type='path',
+                                                     edge_width=0.5,
+                                                     opacity=0.5,
+                                                     edge_color='red',
+                                                     face_color='black',
+                                                     name="center_lines")
 
-        self.shapeLayer.events.data.connect(self.update_midlines)
+            self.shapeLayer.mouse_drag_callbacks.append(self._segmentationEvents)
 
-    mask_stack = self.segLayer.data.copy()
-    polygon_ids = []
+            self.shapeLayer.events.data.connect(self.update_midlines)
 
-    if mode == "active":
-        current_step = self.viewer.dims.current_step[0]
-        dim_range = [current_step]
-    else:
-        dim_range = np.arange(mask_stack.shape[0])
+        mask_stack = self.segLayer.data.copy()
+        polygon_ids = []
 
-    for i in dim_range:
+        if mode == "active":
+            current_step = self.viewer.dims.current_step[0]
+            dim_range = [current_step]
+        else:
+            dim_range = np.arange(mask_stack.shape[0])
 
-        mask = mask_stack[i]
+        for i in dim_range:
 
-        mask_ids = np.unique(mask)
+            mask = mask_stack[i]
 
-        polygons = []
+            mask_ids = np.unique(mask)
 
-        for id in mask_ids:
+            polygons = []
 
-            if id != 0:
+            for id in mask_ids:
 
-                try:
+                if id != 0:
 
-                    cell_mask = np.zeros(mask.shape, dtype=np.uint8)
-                    cell_mask[mask == id] = 255
+                    try:
 
-                    contours, _ = cv2.findContours(cell_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+                        cell_mask = np.zeros(mask.shape, dtype=np.uint8)
+                        cell_mask[mask == id] = 255
 
-                    cnt = contours[0]
+                        contours, _ = cv2.findContours(cell_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-                    x, y, w, h = cv2.boundingRect(cnt)
+                        cnt = contours[0]
 
-                    if h > w:
-                        cnt90, shift_xy = rotate_contour(cnt, angle=90)
-                        mid_line = get_voronoi_midline(cnt90, extend=False, vertices=vertexes)
+                        x, y, w, h = cv2.boundingRect(cnt)
+
+                        if h > w:
+                            cnt90, shift_xy = rotate_contour(cnt, angle=90)
+                            mid_line = get_voronoi_midline(cnt90, extend=False, vertices=vertexes)
+
+                            if mid_line is not None:
+                                mid_line = rotate_model(mid_line, shift_xy, angle=-90)
+                        else:
+                            mid_line = get_voronoi_midline(cnt, extend=False, vertices=vertexes)
 
                         if mid_line is not None:
-                            mid_line = rotate_model(mid_line, shift_xy, angle=-90)
-                    else:
-                        mid_line = get_voronoi_midline(cnt, extend=False, vertices=vertexes)
+                            mid_line = interpolate_data(mid_line, export_segments=vertexes)
 
-                    if mid_line is not None:
-                        mid_line = interpolate_data(mid_line, export_segments=vertexes)
+                            mid_line = snap_midline_to_contour(cnt, mid_line)
 
-                        mid_line = snap_midline_to_contour(cnt, mid_line)
+                            mid_line = np.flip(mid_line)
 
-                        mid_line = np.flip(mid_line)
+                            polygon_ids.append(id)
+                            polygons.append(mid_line)
 
-                        polygon_ids.append(id)
-                        polygons.append(mid_line)
+                    except:
+                        pass
 
-                except:
-                    pass
+            meta[i]["midlines"] = polygons
 
-        meta[i]["midlines"] = polygons
+        self.segLayer.metadata = meta
 
-    self.segLayer.metadata = meta
+        self._sliderEvent(0)
 
-    self._sliderEvent(0)
+    return _event
 
 def _update_active_midlines(self):
 

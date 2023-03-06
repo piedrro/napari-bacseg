@@ -9,7 +9,7 @@ Replace code below according to your needs.
 
 import mahotas
 from qtpy.QtWidgets import (QWidget,QVBoxLayout,QTabWidget,QCheckBox,QLabel,QLineEdit,QFileDialog,
-                            QComboBox,QPushButton,QProgressBar,QTextEdit,QSlider, QRadioButton, QFormLayout)
+                            QComboBox,QPushButton,QProgressBar,QTextEdit,QSlider, QRadioButton, QFormLayout, QHBoxLayout)
 from qtpy.QtCore import (QObject,QRunnable,QThreadPool)
 from PyQt5.QtCore import pyqtSignal,pyqtSlot
 import sys
@@ -103,7 +103,35 @@ class Worker(QRunnable):
 
         return self.fn(*self.args, **self.kwargs)
 
+def external_function(self,arg1=None):
+    def event(viewer):
+        print(arg1)
+    return event
 
+
+class ExampleQWidget(QWidget):
+
+    def __init__(self, viewer: napari.Viewer):
+        super().__init__()
+        self.viewer = viewer
+
+        btn = QPushButton("Click me!")
+        # btn.clicked.connect(self._on_click)
+
+        self.setLayout(QHBoxLayout())
+        self.layout().addWidget(btn)
+
+        self.external_function = partial(external_function, self)
+
+        viewer.bind_key("n", self.on_pressed(arg1 = 1, arg2 = 2))
+        viewer.bind_key("e", self.external_function(arg1=1))
+
+    def on_pressed(self, arg1, arg2):
+
+        def _on_key_pressed(viewer):
+            print(arg1, arg2)
+
+        return _on_key_pressed
 
 
 
@@ -407,50 +435,50 @@ class BacSeg(QWidget):
 
 
         # modify tab events
-        self.modify_panzoom.clicked.connect(partial(self._modifyMode, "panzoom"))
-        self.modify_segment.clicked.connect(partial(self._modifyMode, "segment"))
-        self.modify_classify.clicked.connect(partial(self._modifyMode, "classify"))
-        self.modify_refine.clicked.connect(partial(self._modifyMode, "refine"))
-        self.modify_add.clicked.connect(partial(self._modifyMode, "add"))
-        self.modify_extend.clicked.connect(partial(self._modifyMode, "extend"))
-        self.modify_join.clicked.connect(partial(self._modifyMode, "join"))
-        self.modify_split.clicked.connect(partial(self._modifyMode, "split"))
-        self.modify_delete.clicked.connect(partial(self._modifyMode, "delete"))
-        self.classify_single.clicked.connect(partial(self._modifyMode, "single"))
-        self.classify_dividing.clicked.connect(partial(self._modifyMode, "dividing"))
-        self.classify_divided.clicked.connect(partial(self._modifyMode, "divided"))
-        self.classify_vertical.clicked.connect(partial(self._modifyMode, "vertical"))
-        self.classify_broken.clicked.connect(partial(self._modifyMode, "broken"))
-        self.classify_edge.clicked.connect(partial(self._modifyMode, "edge"))
-        self.modify_viewmasks.stateChanged.connect(partial(self._viewerControls, "viewmasks"))
-        self.modify_viewlabels.stateChanged.connect(partial(self._viewerControls, "viewlabels"))
+        self.modify_panzoom.clicked.connect(self._modifyMode(mode="panzoom"))
+        self.modify_segment.clicked.connect(self._modifyMode(mode="segment"))
+        self.modify_classify.clicked.connect(self._modifyMode(mode="classify"))
+        self.modify_refine.clicked.connect(self._modifyMode(mode="refine"))
+        self.modify_add.clicked.connect(self._modifyMode(mode="add"))
+        self.modify_extend.clicked.connect(self._modifyMode(mode="extend"))
+        self.modify_join.clicked.connect(self._modifyMode(mode="join"))
+        self.modify_split.clicked.connect(self._modifyMode(mode="split"))
+        self.modify_delete.clicked.connect(self._modifyMode(mode="delete"))
+        self.classify_single.clicked.connect(self._modifyMode(mode="single"))
+        self.classify_dividing.clicked.connect(self._modifyMode(mode="dividing"))
+        self.classify_divided.clicked.connect(self._modifyMode(mode="divided"))
+        self.classify_vertical.clicked.connect(self._modifyMode(mode="vertical"))
+        self.classify_broken.clicked.connect(self._modifyMode(mode="broken"))
+        self.classify_edge.clicked.connect(self._modifyMode(mode="edge"))
+        self.modify_viewmasks.stateChanged.connect(self._viewerControls("viewmasks"))
+        self.modify_viewlabels.stateChanged.connect(self._viewerControls("viewlabels"))
         self.refine_all.clicked.connect(self._refine_bacseg)
         self.modify_copymasktoall.clicked.connect(self._copymasktoall)
-        self.modify_deleteallmasks.clicked.connect(partial(self._deleteallmasks, mode = "all"))
-        self.modify_deleteactivemasks.clicked.connect(partial(self._deleteallmasks, mode="active"))
-        self.modify_deleteactiveimage.clicked.connect(partial(self._delete_active_image, mode="active"))
-        self.modify_deleteotherimages.clicked.connect(partial(self._delete_active_image, mode="other"))
-        self.find_next.clicked.connect(partial(self._sort_cells, "next"))
-        self.find_previous.clicked.connect(partial(self._sort_cells, "previous"))
+        self.modify_deleteallmasks.clicked.connect(self._deleteallmasks( mode="all"))
+        self.modify_deleteactivemasks.clicked.connect(self._deleteallmasks(mode="active"))
+        self.modify_deleteactiveimage.clicked.connect(self._delete_active_image(mode="active"))
+        self.modify_deleteotherimages.clicked.connect(self._delete_active_image(mode="other"))
+        self.find_next.clicked.connect(self._sort_cells("next"))
+        self.find_previous.clicked.connect(self._sort_cells("previous"))
 
         # export events
-        self.export_active.clicked.connect(partial(self._export, "active"))
-        self.export_all.clicked.connect(partial(self._export, "all"))
-        self.export_statistics_active.clicked.connect(partial(self._export_statistics, "active"))
-        self.export_statistics_all.clicked.connect(partial(self._export_statistics, "all"))
+        self.export_active.clicked.connect(self._export("active"))
+        self.export_all.clicked.connect(self._export("all"))
+        self.export_statistics_active.clicked.connect(self._export_statistics("active"))
+        self.export_statistics_all.clicked.connect(self._export_statistics("all"))
 
         #oufti events
-        self.oufti_generate_all_midlines.clicked.connect(partial(self.generate_midlines, mode = "all"))
-        self.oufti_generate_active_midlines.clicked.connect(partial(self.generate_midlines, mode="active"))
+        self.oufti_generate_all_midlines.clicked.connect(self.generate_midlines(mode = "all"))
+        self.oufti_generate_active_midlines.clicked.connect(self.generate_midlines(mode="active"))
         self.viewer.bind_key(key="m", func=self.midline_edit_toggle, overwrite=True)
         self.oufti_edit_mode.clicked.connect(self.midline_edit_toggle)
         self.oufti_panzoom_mode.clicked.connect(self.midline_edit_toggle)
-        self.oufti_centre_all_midlines.clicked.connect(partial(self.centre_oufti_midlines, mode = "all"))
-        self.oufti_centre_active_midlines.clicked.connect(partial(self.centre_oufti_midlines, mode="active"))
+        self.oufti_centre_all_midlines.clicked.connect(self.centre_oufti_midlines(mode = "all"))
+        self.oufti_centre_active_midlines.clicked.connect(self.centre_oufti_midlines(mode="active"))
 
         # upload tab events
-        self.upload_all.clicked.connect(partial(self._uploadDatabase, mode="all"))
-        self.upload_active.clicked.connect(partial(self._uploadDatabase, mode="active"))
+        self.upload_all.clicked.connect(self._uploadDatabase(mode="all"))
+        self.upload_active.clicked.connect(self._uploadDatabase(mode="active"))
         self.database_download.clicked.connect(self._downloadDatabase)
         self.create_database.clicked.connect(self._create_bacseg_database)
         self.load_database.clicked.connect(self._load_bacseg_database)
@@ -479,51 +507,51 @@ class BacSeg(QWidget):
         self.segLayer.contour = 1
 
         # keyboard events, only triggered when viewer is not empty (an image is loaded/active)
-        self.viewer.bind_key(key="t", func=partial(self._modifyMode, "toggle"), overwrite=True)
-        self.viewer.bind_key(key="a", func=partial(self._modifyMode, "add"), overwrite=True)
-        self.viewer.bind_key(key="e", func=partial(self._modifyMode, "extend"), overwrite=True)
-        self.viewer.bind_key(key="j", func=partial(self._modifyMode, "join"), overwrite=True)
-        self.viewer.bind_key(key="s", func=partial(self._modifyMode, "split"), overwrite=True)
-        self.viewer.bind_key(key="d", func=partial(self._modifyMode, "delete"), overwrite=True)
-        self.viewer.bind_key(key="r", func=partial(self._modifyMode, "refine"), overwrite=True)
-
-        self.viewer.bind_key(key="Control-1", func=partial(self._modifyMode, "single"), overwrite=True)
-        self.viewer.bind_key(key="Control-2", func=partial(self._modifyMode, "dividing"), overwrite=True)
-        self.viewer.bind_key(key="Control-3", func=partial(self._modifyMode, "divided"), overwrite=True)
-        self.viewer.bind_key(key="Control-4", func=partial(self._modifyMode, "vertical"), overwrite=True)
-        self.viewer.bind_key(key="Control-5", func=partial(self._modifyMode, "broken"), overwrite=True)
-        self.viewer.bind_key(key="Control-6", func=partial(self._modifyMode, "edge"), overwrite=True)
-        self.viewer.bind_key(key="F1", func=partial(self._modifyMode, "panzoom"), overwrite=True)
-        self.viewer.bind_key(key="F2", func=partial(self._modifyMode, "segment"), overwrite=True)
-        self.viewer.bind_key(key="F3", func=partial(self._modifyMode, "classify"), overwrite=True)
-        # self.viewer.bind_key(key="Control", func=partial(self._modifyMode, "segment"), overwrite=True)
-        self.viewer.bind_key(key="h", func=partial(self._viewerControls, "h"), overwrite=True)
-        self.viewer.bind_key(key="i", func=partial(self._viewerControls, "i"), overwrite=True)
-        self.viewer.bind_key(key="o", func=partial(self._viewerControls, "o"), overwrite=True)
-        self.viewer.bind_key(key="x", func=partial(self._viewerControls, "x"), overwrite=True)
-        self.viewer.bind_key(key="z", func=partial(self._viewerControls, "z"), overwrite=True)
-        self.viewer.bind_key(key="c", func=partial(self._viewerControls, "c"), overwrite=True)
-        self.viewer.bind_key(key="Right", func=partial(self._imageControls, "Right"), overwrite=True)
-        self.viewer.bind_key(key="Left", func=partial(self._imageControls, "Left"), overwrite=True)
-        self.viewer.bind_key(key="u", func=partial(self._imageControls, "Upload"), overwrite=True)
-        self.viewer.bind_key(key="Control-d", func=partial(self._deleteallmasks, mode="active"), overwrite=True)
-        self.viewer.bind_key(key="Control-Shift-d", func=partial(self._deleteallmasks, mode="all"), overwrite=True)
-        self.viewer.bind_key(key="Control-i", func=partial(self._delete_active_image, mode="active"), overwrite=True)
-        self.viewer.bind_key(key="Control-Shift-i", func=partial(self._delete_active_image, mode="other"), overwrite=True)
-
+        # self.viewer.bind_key(key="t", func=self._modifyMode(mode= "toggle"), overwrite=True)
+        self.viewer.bind_key(key="a", func=self._modifyMode(mode="add"), overwrite=True)
+        self.viewer.bind_key(key="e", func=self._modifyMode(mode="extend"), overwrite=True)
+        self.viewer.bind_key(key="j", func=self._modifyMode(mode="join"), overwrite=True)
+        self.viewer.bind_key(key="s", func=self._modifyMode(mode="split"), overwrite=True)
+        self.viewer.bind_key(key="d", func=self._modifyMode(mode="delete"), overwrite=True)
+        self.viewer.bind_key(key="r", func=self._modifyMode(mode="refine"), overwrite=True)
+        #
+        self.viewer.bind_key(key="Control-1", func=self._modifyMode(mode="single"), overwrite=True)
+        self.viewer.bind_key(key="Control-2", func=self._modifyMode(mode="dividing"), overwrite=True)
+        self.viewer.bind_key(key="Control-3", func=self._modifyMode(mode="divided"), overwrite=True)
+        self.viewer.bind_key(key="Control-4", func=self._modifyMode(mode="vertical"), overwrite=True)
+        self.viewer.bind_key(key="Control-5", func=self._modifyMode(mode="broken"), overwrite=True)
+        self.viewer.bind_key(key="Control-6", func=self._modifyMode(mode="edge"), overwrite=True)
+        self.viewer.bind_key(key="F1", func=self._modifyMode(mode="panzoom"), overwrite=True)
+        self.viewer.bind_key(key="F2", func=self._modifyMode(mode="segment"), overwrite=True)
+        self.viewer.bind_key(key="F3", func=self._modifyMode(mode="classify"), overwrite=True)
+        self.viewer.bind_key(key="Control", func=self._modifyMode(mode="segment"), overwrite=True)
+        self.viewer.bind_key(key="h", func=self._viewerControls("h"), overwrite=True)
+        self.viewer.bind_key(key="i", func=self._viewerControls("i"), overwrite=True)
+        self.viewer.bind_key(key="o", func=self._viewerControls("o"), overwrite=True)
+        self.viewer.bind_key(key="x", func=self._viewerControls("x"), overwrite=True)
+        self.viewer.bind_key(key="z", func=self._viewerControls("z"), overwrite=True)
+        self.viewer.bind_key(key="c", func=self._viewerControls("c"), overwrite=True)
+        self.viewer.bind_key(key="Right", func=self._imageControls("Right"), overwrite=True)
+        self.viewer.bind_key(key="Left", func=self._imageControls("Left"), overwrite=True)
+        self.viewer.bind_key(key="u", func=self._imageControls("Upload"), overwrite=True)
+        self.viewer.bind_key(key="Control-d", func=self._deleteallmasks(mode="active"), overwrite=True)
+        self.viewer.bind_key(key="Control-Shift-d", func=self._deleteallmasks(mode="all"), overwrite=True)
+        self.viewer.bind_key(key="Control-i", func=self._delete_active_image(mode="active"), overwrite=True)
+        self.viewer.bind_key(key="Control-Shift-i", func=self._delete_active_image(mode="other"), overwrite=True)
+        #
         self.viewer.bind_key(key="Control-l", func=self._downloadDatabase(),overwrite=True)
-        self.viewer.bind_key(key="Control-u", func=partial(self._uploadDatabase, mode="active"),overwrite=True)
-        self.viewer.bind_key(key="Control-Shift-u", func=partial(self._uploadDatabase, mode="all"), overwrite=True)
+        self.viewer.bind_key(key="Control-u", func=self._uploadDatabase(mode="active"),overwrite=True)
+        self.viewer.bind_key(key="Control-Shift-u", func=self._uploadDatabase(mode="all"), overwrite=True)
+        #
+        self.viewer.bind_key(key="Control-Left", func=self._manual_align_channels("left", mode="active"), overwrite=True)
+        self.viewer.bind_key(key="Control-Right", func=self._manual_align_channels("right", mode="active"), overwrite=True)
+        self.viewer.bind_key(key="Control-Up", func=self._manual_align_channels("up", mode="active"), overwrite=True)
+        self.viewer.bind_key(key="Control-Down", func=self._manual_align_channels("down", mode="active"), overwrite=True)
 
-        self.viewer.bind_key(key="Control-Left", func=partial(self._manual_align_channels, "left", mode="active"), overwrite=True)
-        self.viewer.bind_key(key="Control-Right", func=partial(self._manual_align_channels, "right", mode="active"), overwrite=True)
-        self.viewer.bind_key(key="Control-Up", func=partial(self._manual_align_channels, "up", mode="active"), overwrite=True)
-        self.viewer.bind_key(key="Control-Down", func=partial(self._manual_align_channels, "down", mode="active"), overwrite=True)
-
-        self.viewer.bind_key(key="Alt-Left", func=partial(self._manual_align_channels, "left", mode="all"), overwrite=True)
-        self.viewer.bind_key(key="Alt-Right", func=partial(self._manual_align_channels, "right", mode="all"), overwrite=True)
-        self.viewer.bind_key(key="Alt-Up", func=partial(self._manual_align_channels, "up", mode="all"), overwrite=True)
-        self.viewer.bind_key(key="Alt-Down", func=partial(self._manual_align_channels, "down", mode="all"), overwrite=True)
+        self.viewer.bind_key(key="Alt-Left", func=self._manual_align_channels("left", mode="all"), overwrite=True)
+        self.viewer.bind_key(key="Alt-Right", func=self._manual_align_channels("right", mode="all"), overwrite=True)
+        self.viewer.bind_key(key="Alt-Up", func=self._manual_align_channels("up", mode="all"), overwrite=True)
+        self.viewer.bind_key(key="Alt-Down", func=self._manual_align_channels("down", mode="all"), overwrite=True)
 
         self.import_filemode.currentIndexChanged.connect(self.update_import_limit)
         self.update_import_limit()
@@ -582,64 +610,65 @@ class BacSeg(QWidget):
                 self._updateSegChannels()
 
     def _export_statistics(self, mode='active'):
+        
+        def _event(viewer):
 
-        multithreaded = self.export_statistics_multithreaded.isChecked()
-
-        if self.unfolded == True:
-            self.fold_images()
-
-        pixel_size = float(self.export_statistics_pixelsize.text())
-
-        colicoords_channel = self.export_colicoords_mode.currentText()
-        colicoords_channel = colicoords_channel.replace("Mask + ", "")
-
-        if pixel_size <= 0:
-            pixel_size = 1
-
-        desktop = os.path.expanduser("~/Desktop")
-
-        path = QFileDialog.getExistingDirectory(self, "Select Directory", desktop)
-
-        colicoords_dir = os.path.join(tempfile.gettempdir(), "colicoords")
-
-        if os.path.isdir(colicoords_dir) != True:
-            os.mkdir(colicoords_dir)
-        else:
-            shutil.rmtree(colicoords_dir)
-            os.mkdir(colicoords_dir)
-
-        if os.path.isdir(path):
-
-            path = os.path.abspath(path)
-
-            from napari_bacseg._utils_statistics import get_cell_statistics, process_cell_statistics
-
-            self.get_cell_statistics = partial(get_cell_statistics, self)
-            self.process_cell_statistics = partial(process_cell_statistics, self)
-
-            worker = Worker(self.get_cell_statistics, mode=mode, pixel_size=pixel_size, colicoords_dir=colicoords_dir)
-            worker.signals.progress.connect(partial(self._Progresbar, progressbar="export"))
-            worker.signals.result.connect(partial(self.process_cell_statistics, path=path))
-            self.threadpool.start(worker)
-            cell_data = worker.result()
-
-            if self.export_colicoords_mode.currentIndex() != 0:
-                from napari_bacseg._utils_colicoords import run_colicoords
-
-                self.run_colicoords = partial(run_colicoords, self)
-
-                worker = Worker(self.run_colicoords,
-                                cell_data=cell_data,
-                                colicoords_channel=colicoords_channel,
-                                pixel_size=pixel_size,
-                                statistics=True,
-                                multithreaded=multithreaded)
-
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="export"))
-                worker.signals.result.connect(partial(self.process_cell_statistics, path=path))
+            multithreaded = self.export_statistics_multithreaded.isChecked()
+    
+            if self.unfolded == True:
+                self.fold_images()
+    
+            pixel_size = float(self.export_statistics_pixelsize.text())
+    
+            colicoords_channel = self.export_colicoords_mode.currentText()
+            colicoords_channel = colicoords_channel.replace("Mask + ", "")
+    
+            if pixel_size <= 0:
+                pixel_size = 1
+    
+            desktop = os.path.expanduser("~/Desktop")
+    
+            path = QFileDialog.getExistingDirectory(self, "Select Directory", desktop)
+    
+            colicoords_dir = os.path.join(tempfile.gettempdir(), "colicoords")
+    
+            if os.path.isdir(colicoords_dir) != True:
+                os.mkdir(colicoords_dir)
+            else:
+                shutil.rmtree(colicoords_dir)
+                os.mkdir(colicoords_dir)
+    
+            if os.path.isdir(path):
+    
+                path = os.path.abspath(path)
+    
+                from napari_bacseg._utils_statistics import get_cell_statistics, process_cell_statistics
+    
+                self.get_cell_statistics = partial(get_cell_statistics, self)
+                self.process_cell_statistics = partial(process_cell_statistics, self)
+    
+                worker = Worker(self.get_cell_statistics, mode=mode, pixel_size=pixel_size, colicoords_dir=colicoords_dir)
+                worker.signals.progress.connect(partial(self._Progresbar,progressbar="export"))
+                worker.signals.result.connect(self.process_cell_statistics(path=path))
                 self.threadpool.start(worker)
-
-
+                cell_data = worker.result()
+    
+                if self.export_colicoords_mode.currentIndex() != 0:
+                    from napari_bacseg._utils_colicoords import run_colicoords
+    
+                    self.run_colicoords = partial(run_colicoords, self)
+    
+                    worker = Worker(self.run_colicoords,
+                                    cell_data=cell_data,
+                                    colicoords_channel=colicoords_channel,
+                                    pixel_size=pixel_size,
+                                    statistics=True,
+                                    multithreaded=multithreaded)
+    
+                    worker.signals.progress.connect(partial(self._Progresbar,progressbar="export"))
+                    worker.signals.result.connect(self.process_cell_statistics(path=path))
+                    self.threadpool.start(worker)
+        return _event
 
     def update_import_limit(self):
 
@@ -659,127 +688,133 @@ class BacSeg(QWidget):
 
     def _sort_cells(self, order):
 
-        if self.unfolded == True:
-            self.fold_images()
+        def _event(viewer):
 
-        try:
+            if self.unfolded == True:
+                self.fold_images()
 
-            current_fov = self.viewer.dims.current_step[0]
+            try:
 
-            meta = self.segLayer.metadata[current_fov]
+                current_fov = self.viewer.dims.current_step[0]
 
-            self._compute_simple_cell_stats()
+                meta = self.segLayer.metadata[current_fov]
 
-            find_criterion = self.find_criterion.currentText()
-            find_mode = self.find_mode.currentText()
+                self._compute_simple_cell_stats()
 
-            cell_centre = meta["simple_cell_stats"]['cell_centre']
-            cell_zoom = meta["simple_cell_stats"]['cell_zoom']
+                find_criterion = self.find_criterion.currentText()
+                find_mode = self.find_mode.currentText()
 
-            if find_criterion == "Cell Area":
-                criterion = meta["simple_cell_stats"]["cell_area"]
-            if find_criterion == "Cell Solidity":
-                criterion = meta["simple_cell_stats"]["cell_solidity"]
-            if find_criterion == "Cell Aspect Ratio":
-                criterion = meta["simple_cell_stats"]["cell_aspect_ratio"]
+                cell_centre = meta["simple_cell_stats"]['cell_centre']
+                cell_zoom = meta["simple_cell_stats"]['cell_zoom']
 
-            if find_mode == "Ascending":
-                criterion, cell_centre, cell_zoom= zip(*sorted(zip(criterion, cell_centre, cell_zoom), key=lambda x: x[0]))
-            else:
-                criterion, cell_centre, cell_zoom = zip(*sorted(zip(criterion, cell_centre, cell_zoom), key=lambda x: x[0], reverse=True))
+                if find_criterion == "Cell Area":
+                    criterion = meta["simple_cell_stats"]["cell_area"]
+                if find_criterion == "Cell Solidity":
+                    criterion = meta["simple_cell_stats"]["cell_solidity"]
+                if find_criterion == "Cell Aspect Ratio":
+                    criterion = meta["simple_cell_stats"]["cell_aspect_ratio"]
 
-            current_position = tuple(np.array(self.viewer.camera.center).round())
+                if find_mode == "Ascending":
+                    criterion, cell_centre, cell_zoom= zip(*sorted(zip(criterion, cell_centre, cell_zoom), key=lambda x: x[0]))
+                else:
+                    criterion, cell_centre, cell_zoom = zip(*sorted(zip(criterion, cell_centre, cell_zoom), key=lambda x: x[0], reverse=True))
 
-            if current_position not in cell_centre:
+                current_position = tuple(np.array(self.viewer.camera.center).round())
 
-                self.viewer.camera.center = cell_centre[0]
-                self.viewer.camera.zoom = cell_zoom[0]
+                if current_position not in cell_centre:
 
-            else:
+                    self.viewer.camera.center = cell_centre[0]
+                    self.viewer.camera.zoom = cell_zoom[0]
 
-                current_index = cell_centre.index(current_position)
+                else:
 
-                if order == 'next':
+                    current_index = cell_centre.index(current_position)
 
-                    new_index = current_index + 1
+                    if order == 'next':
 
-                if order == 'previous':
+                        new_index = current_index + 1
 
-                    new_index = current_index - 1
+                    if order == 'previous':
 
-                new_index = max(current_fov, min(new_index, len(cell_centre) - 1))
+                        new_index = current_index - 1
 
-                self.viewer.camera.center = cell_centre[new_index]
-                self.viewer.camera.zoom = cell_zoom[new_index]
+                    new_index = max(current_fov, min(new_index, len(cell_centre) - 1))
 
-        except:
-            pass
+                    self.viewer.camera.center = cell_centre[new_index]
+                    self.viewer.camera.zoom = cell_zoom[new_index]
 
+            except:
+                pass
+
+        return _event
 
     def _manual_align_channels(self, key, viewer=None, mode ='active'):
 
-        if self.unfolded == True:
-            self.fold_images()
+        def _event(viewer):
 
-        from scipy.ndimage import shift
-        current_fov = self.viewer.dims.current_step[0]
-        active_layer = self.viewer.layers.selection.active
+            if self.unfolded == True:
+                self.fold_images()
 
-        if key == 'up':
-            shift_vector = [-1.0, 0.0]
-        elif key == 'down':
-            shift_vector = [1.0, 0.0]
-        elif key == 'left':
-            shift_vector = [0.0, -1.0]
-        elif key == 'right':
-            shift_vector = [0.0, 1.0]
-        else:
-            shift_vector = [0.0, 0.0]
+            from scipy.ndimage import shift
+            current_fov = self.viewer.dims.current_step[0]
+            active_layer = self.viewer.layers.selection.active
 
-        shift_image = False
-        if active_layer != None:
-            if active_layer.name not in ["Segmentations","Classes","center_lines"]:
-                shift_image = True
+            if key == 'up':
+                shift_vector = [-1.0, 0.0]
+            elif key == 'down':
+                shift_vector = [1.0, 0.0]
+            elif key == 'left':
+                shift_vector = [0.0, -1.0]
+            elif key == 'right':
+                shift_vector = [0.0, 1.0]
+            else:
+                shift_vector = [0.0, 0.0]
 
-        if shift_image is True:
+            shift_image = False
+            if active_layer != None:
+                if active_layer.name not in ["Segmentations","Classes","center_lines"]:
+                    shift_image = True
 
-            if mode == 'active':
+            if shift_image is True:
 
-                image_stack = active_layer.data.copy()
-                image = image_stack[current_fov, :, :]
-                image = shift(image, shift=shift_vector)
-                image_stack[current_fov, :, :] = np.expand_dims(image,0)
+                if mode == 'active':
 
-                active_layer.data = image_stack
+                    image_stack = active_layer.data.copy()
+                    image = image_stack[current_fov, :, :]
+                    image = shift(image, shift=shift_vector)
+                    image_stack[current_fov, :, :] = np.expand_dims(image,0)
 
+                    active_layer.data = image_stack
+
+                else:
+
+                    image_stack = active_layer.data.copy()
+
+                    for i in range(len(image_stack)):
+
+                        image = image_stack[i, :, :]
+                        image = shift(image, shift=shift_vector)
+                        image_stack[i, :, :] = np.expand_dims(image, 0)
+
+                    active_layer.data = image_stack
             else:
 
-                image_stack = active_layer.data.copy()
+                mask_stack = self.segLayer.data.copy()
+                label_stack = self.classLayer.data.copy()
 
-                for i in range(len(image_stack)):
+                mask = mask_stack[current_fov, :, :]
+                label = label_stack[current_fov, :, :]
 
-                    image = image_stack[i, :, :]
-                    image = shift(image, shift=shift_vector)
-                    image_stack[i, :, :] = np.expand_dims(image, 0)
+                mask = shift(mask, shift=shift_vector)
+                label = shift(label, shift=shift_vector)
 
-                active_layer.data = image_stack
-        else:
+                mask_stack[current_fov, :, :] = np.expand_dims(mask, 0)
+                label_stack[current_fov, :, :] = np.expand_dims(label, 0)
 
-            mask_stack = self.segLayer.data.copy()
-            label_stack = self.classLayer.data.copy()
+                self.segLayer.data = mask_stack
+                self.classLayer.data = label_stack
 
-            mask = mask_stack[current_fov, :, :]
-            label = label_stack[current_fov, :, :]
-
-            mask = shift(mask, shift=shift_vector)
-            label = shift(label, shift=shift_vector)
-
-            mask_stack[current_fov, :, :] = np.expand_dims(mask, 0)
-            label_stack[current_fov, :, :] = np.expand_dims(label, 0)
-
-            self.segLayer.data = mask_stack
-            self.classLayer.data = label_stack
-
+        return _event
 
 
 
@@ -833,22 +868,27 @@ class BacSeg(QWidget):
 
     def _uploadDatabase(self, viewer = None, mode=""):
 
-        try:
+        def _event(viewer):
 
-            if self.database_path != "" and os.path.exists(self.database_path) == True:
+            try:
 
-                if self.unfolded == True:
-                    self.fold_images()
+                if self.database_path != "" and os.path.exists(self.database_path) == True:
 
-                from napari_bacseg._utils_database_IO import _upload_bacseg_database
-                self._upload_bacseg_database = partial(_upload_bacseg_database, self)
+                    if self.unfolded == True:
+                        self.fold_images()
 
-                worker = Worker(self._upload_bacseg_database, mode=mode)
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="database"))
-                self.threadpool.start(worker)
+                    from napari_bacseg._utils_database_IO import _upload_bacseg_database
+                    self._upload_bacseg_database = partial(_upload_bacseg_database, self)
 
-        except:
-            pass
+                    worker = Worker(self._upload_bacseg_database, mode=mode)
+                    worker.signals.progress.connect(partial(self._Progresbar, progressbar="database"))
+                    self.threadpool.start(worker)
+
+            except:
+                pass
+
+        return _event
+
 
     def _downloadDatabase(self, viewer=None):
 
@@ -880,6 +920,7 @@ class BacSeg(QWidget):
                     self.threadpool.start(worker)
 
         except:
+            print(traceback.format_exc())
             pass
 
     def _updateSegChannels(self):
@@ -910,6 +951,7 @@ class BacSeg(QWidget):
             self.cellpose_progressbar.setValue(0)
             self.upload_progressbar.setValue(0)
             self.modify_progressbar.setValue(0)
+
 
     def _importDialog(self):
 
@@ -952,7 +994,7 @@ class BacSeg(QWidget):
 
                 worker = Worker(self.import_images, file_paths=paths)
                 worker.signals.result.connect(self._process_import)
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
+                worker.signals.progress.connect(partial(self._Progresbar,progressbar="import"))
                 self.threadpool.start(worker)
 
             if import_mode == "NanoImager Data":
@@ -964,7 +1006,7 @@ class BacSeg(QWidget):
 
                 worker = Worker(self.read_nim_images, measurements=measurements, channels=channels)
                 worker.signals.result.connect(self._process_import)
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
+                worker.signals.progress.connect(partial(self._Progresbar,progressbar="import"))
                 self.threadpool.start(worker)
 
             if import_mode == "Mask (.tif) Segmentation(s)":
@@ -997,7 +1039,7 @@ class BacSeg(QWidget):
 
                 worker = Worker(self.import_imagej, paths=paths)
                 worker.signals.result.connect(self._process_import)
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
+                worker.signals.progress.connect(partial(self._Progresbar,progressbar="import"))
                 self.threadpool.start(worker)
 
             if import_mode == "ScanR Data":
@@ -1010,32 +1052,37 @@ class BacSeg(QWidget):
 
                 worker = Worker(self.read_scanr_images, measurements=measurements, channels=channels)
                 worker.signals.result.connect(self._process_import)
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
+                worker.signals.progress.connect(partial(self._Progresbar,progressbar="import"))
                 self.threadpool.start(worker)
 
     def _export(self, mode):
+        
+        def _event(viewer):
+    
+            # if self.unfolded == True:
+            #     self.fold_images()
+    
+            execute_export = True
+    
+            if self.export_location.currentIndex() == 1:
+    
+                desktop = os.path.expanduser("~/Desktop")
+                self.export_directory = QFileDialog.getExistingDirectory(self, "Select Directory", desktop)
+    
+                if self.export_directory == "":
+    
+                    execute_export = False
+    
+            if execute_export == True:
+    
+                self.export_files = partial(napari_bacseg._utils.export_files, self)
+    
+                worker = Worker(self.export_files, mode=mode)
+                worker.signals.progress.connect(partial(self._Progresbar,progressbar="export"))
+                self.threadpool.start(worker)
+                
+        return _event
 
-        # if self.unfolded == True:
-        #     self.fold_images()
-
-        execute_export = True
-
-        if self.export_location.currentIndex() == 1:
-
-            desktop = os.path.expanduser("~/Desktop")
-            self.export_directory = QFileDialog.getExistingDirectory(self, "Select Directory", desktop)
-
-            if self.export_directory == "":
-
-                execute_export = False
-
-        if execute_export == True:
-
-            self.export_files = partial(napari_bacseg._utils.export_files, self)
-
-            worker = Worker(self.export_files, mode=mode)
-            worker.signals.progress.connect(partial(self._Progresbar, progressbar="export"))
-            self.threadpool.start(worker)
 
     def _trainCellpose(self):
 
@@ -1046,7 +1093,7 @@ class BacSeg(QWidget):
         self.train_cellpose_model = partial(train_cellpose_model, self)
 
         worker = Worker(self.train_cellpose_model)
-        worker.signals.progress.connect(partial(self._Progresbar, progressbar="cellpose_train"))
+        worker.signals.progress.connect(partial(self._Progresbar,progressbar="cellpose_train"))
         self.threadpool.start(worker)
 
 
@@ -1068,7 +1115,7 @@ class BacSeg(QWidget):
 
         worker = Worker(self._run_cellpose, images=image)
         worker.signals.result.connect(self._process_cellpose)
-        worker.signals.progress.connect(partial(self._Progresbar, progressbar="cellpose"))
+        worker.signals.progress.connect(partial(self._Progresbar,progressbar="cellpose"))
         self.threadpool.start(worker)
 
     def _segmentAll(self):
@@ -1088,7 +1135,7 @@ class BacSeg(QWidget):
 
         worker = Worker(self._run_cellpose, images=images)
         worker.signals.result.connect(self._process_cellpose)
-        worker.signals.progress.connect(partial(self._Progresbar, progressbar="cellpose"))
+        worker.signals.progress.connect(partial(self._Progresbar,progressbar="cellpose"))
         self.threadpool.start(worker)
 
     def _updateSliderLabel(self, slider_name, label_name):

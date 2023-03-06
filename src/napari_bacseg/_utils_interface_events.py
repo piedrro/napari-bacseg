@@ -534,204 +534,17 @@ def _newSegColour(self):
 
 def _modifyMode(self, mode, viewer=None):
 
-    if mode == "toggle":
+    def _event(viewer):
 
-        if self.interface_mode == "panzoom":
-            mode = "segment"
-        else:
-            mode = "panzoom"
-            self.interface_mode = "panzoom"
+        if mode == "panzoom":
+            self.segLayer.mode = "pan_zoom"
 
-    if mode == "panzoom":
-        self.segLayer.mode = "pan_zoom"
-
-        self.modify_add.setEnabled(False)
-        self.modify_extend.setEnabled(False)
-        self.modify_join.setEnabled(False)
-        self.modify_split.setEnabled(False)
-        self.modify_delete.setEnabled(False)
-        self.modify_refine.setEnabled(False)
-
-        self.classify_single.setEnabled(False)
-        self.classify_dividing.setEnabled(False)
-        self.classify_divided.setEnabled(False)
-        self.classify_vertical.setEnabled(False)
-        self.classify_broken.setEnabled(False)
-        self.classify_edge.setEnabled(False)
-
-        self.interface_mode = "panzoom"
-        self.modify_panzoom.setEnabled(False)
-        self.modify_panzoom.setEnabled(False)
-        self.modify_segment.setEnabled(True)
-        self.modify_classify.setEnabled(True)
-
-    if mode == "segment":
-        self.viewer.layers.selection.select_only(self.segLayer)
-
-        self.modify_add.setEnabled(False)
-        self.modify_extend.setEnabled(True)
-        self.modify_join.setEnabled(True)
-        self.modify_split.setEnabled(True)
-        self.modify_delete.setEnabled(True)
-        self.modify_refine.setEnabled(True)
-
-        self.classify_single.setEnabled(True)
-        self.classify_dividing.setEnabled(False)
-        self.classify_divided.setEnabled(False)
-        self.classify_vertical.setEnabled(False)
-        self.classify_broken.setEnabled(False)
-        self.classify_edge.setEnabled(False)
-
-
-        self.interface_mode = "segment"
-        self.segmentation_mode = "add"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(False)
-        self.modify_classify.setEnabled(True)
-
-    if mode == "classify":
-        self.viewer.layers.selection.select_only(self.segLayer)
-
-        self.modify_add.setEnabled(False)
-        self.modify_extend.setEnabled(False)
-        self.modify_join.setEnabled(False)
-        self.modify_split.setEnabled(False)
-        self.modify_delete.setEnabled(False)
-        self.modify_refine.setEnabled(False)
-
-        self.classify_single.setEnabled(False)
-        self.classify_dividing.setEnabled(True)
-        self.classify_divided.setEnabled(True)
-        self.classify_vertical.setEnabled(True)
-        self.classify_broken.setEnabled(True)
-        self.classify_edge.setEnabled(True)
-
-        self.interface_mode = "classify"
-        self.segmentation_mode = "add"
-        self.class_mode = 1
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(True)
-        self.modify_classify.setEnabled(False)
-
-    if mode == "add":
-        self.viewer.layers.selection.select_only(self.segLayer)
-
-        self.modify_add.setEnabled(False)
-        self.modify_extend.setEnabled(True)
-        self.modify_join.setEnabled(True)
-        self.modify_split.setEnabled(True)
-        self.modify_delete.setEnabled(True)
-        self.modify_refine.setEnabled(True)
-
-        self.classify_single.setEnabled(False)
-        self.classify_dividing.setEnabled(True)
-        self.classify_divided.setEnabled(True)
-        self.classify_vertical.setEnabled(True)
-        self.classify_broken.setEnabled(True)
-        self.classify_edge.setEnabled(True)
-
-        self.interface_mode = "segment"
-        self.segmentation_mode = "add"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(False)
-
-    if mode == "extend":
-        self.viewer.layers.selection.select_only(self.segLayer)
-
-        self.modify_add.setEnabled(True)
-        self.modify_extend.setEnabled(False)
-        self.modify_join.setEnabled(True)
-        self.modify_split.setEnabled(True)
-        self.modify_delete.setEnabled(True)
-        self.modify_refine.setEnabled(True)
-
-        self.interface_mode = "segment"
-        self.segmentation_mode = "extend"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(False)
-
-    if mode == "join":
-        self.viewer.layers.selection.select_only(self.segLayer)
-
-        self.modify_add.setEnabled(True)
-        self.modify_extend.setEnabled(True)
-        self.modify_join.setEnabled(False)
-        self.modify_split.setEnabled(True)
-        self.modify_delete.setEnabled(True)
-        self.modify_refine.setEnabled(True)
-
-        self.interface_mode = "segment"
-        self.segmentation_mode = "join"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(False)
-
-    if mode == "split":
-        self.viewer.layers.selection.select_only(self.segLayer)
-
-        self.modify_add.setEnabled(True)
-        self.modify_extend.setEnabled(True)
-        self.modify_join.setEnabled(True)
-        self.modify_split.setEnabled(False)
-        self.modify_delete.setEnabled(True)
-        self.modify_refine.setEnabled(True)
-
-        self.interface_mode = "segment"
-        self.segmentation_mode = "split"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(False)
-
-    if mode == "delete":
-        self.viewer.layers.selection.select_only(self.segLayer)
-
-        self.modify_add.setEnabled(True)
-        self.modify_extend.setEnabled(True)
-        self.modify_join.setEnabled(True)
-        self.modify_split.setEnabled(True)
-        self.modify_delete.setEnabled(False)
-        self.modify_refine.setEnabled(True)
-
-        self.interface_mode = "segment"
-        self.segmentation_mode = "delete"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(False)
-
-    if mode == "edit_vertex":
-        self.viewer.layers.selection.select_only(self.shapeLayer)
-
-        self.interface_mode = "shapes"
-        self.segmentation_mode = "edit_vertex"
-
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(False)
-
-    if mode == "refine":
-        self.viewer.layers.selection.select_only(self.segLayer)
-
-        self.modify_add.setEnabled(True)
-        self.modify_extend.setEnabled(True)
-        self.modify_join.setEnabled(True)
-        self.modify_split.setEnabled(True)
-        self.modify_delete.setEnabled(True)
-        self.modify_refine.setEnabled(False)
-
-        self.interface_mode = "segment"
-        self.segmentation_mode = "refine"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(False)
-
-    if self.interface_mode == "segment":
-        self.viewer.layers.selection.select_only(self.segLayer)
-
-        if self.segmentation_mode == "add":
-
-            self.classify_single.setEnabled(False)
-            self.classify_dividing.setEnabled(True)
-            self.classify_divided.setEnabled(True)
-            self.classify_vertical.setEnabled(True)
-            self.classify_broken.setEnabled(True)
-            self.classify_edge.setEnabled(True)
-
-        else:
+            self.modify_add.setEnabled(False)
+            self.modify_extend.setEnabled(False)
+            self.modify_join.setEnabled(False)
+            self.modify_split.setEnabled(False)
+            self.modify_delete.setEnabled(False)
+            self.modify_refine.setEnabled(False)
 
             self.classify_single.setEnabled(False)
             self.classify_dividing.setEnabled(False)
@@ -740,108 +553,290 @@ def _modifyMode(self, mode, viewer=None):
             self.classify_broken.setEnabled(False)
             self.classify_edge.setEnabled(False)
 
-    if mode == "single":
-        self.viewer.layers.selection.select_only(self.segLayer)
+            self.interface_mode = "panzoom"
+            self.modify_panzoom.setEnabled(False)
+            self.modify_panzoom.setEnabled(False)
+            self.modify_segment.setEnabled(True)
+            self.modify_classify.setEnabled(True)
 
-        self.classify_single.setEnabled(False)
-        self.classify_dividing.setEnabled(True)
-        self.classify_divided.setEnabled(True)
-        self.classify_vertical.setEnabled(True)
-        self.classify_broken.setEnabled(True)
-        self.classify_edge.setEnabled(True)
+        if mode == "segment":
+            self.viewer.layers.selection.select_only(self.segLayer)
 
-        self.class_mode = mode
-        self.class_colour = 1
-        self.interface_mode = "classify"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(True)
-        self.modify_classify.setEnabled(False)
+            self.modify_add.setEnabled(False)
+            self.modify_extend.setEnabled(True)
+            self.modify_join.setEnabled(True)
+            self.modify_split.setEnabled(True)
+            self.modify_delete.setEnabled(True)
+            self.modify_refine.setEnabled(True)
 
-    if mode == "dividing":
-        self.viewer.layers.selection.select_only(self.segLayer)
+            self.classify_single.setEnabled(True)
+            self.classify_dividing.setEnabled(False)
+            self.classify_divided.setEnabled(False)
+            self.classify_vertical.setEnabled(False)
+            self.classify_broken.setEnabled(False)
+            self.classify_edge.setEnabled(False)
 
-        self.classify_single.setEnabled(True)
-        self.classify_dividing.setEnabled(False)
-        self.classify_divided.setEnabled(True)
-        self.classify_vertical.setEnabled(True)
-        self.classify_broken.setEnabled(True)
-        self.classify_edge.setEnabled(True)
 
-        self.class_mode = mode
-        self.class_colour = 2
-        self.interface_mode = "classify"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(True)
-        self.modify_classify.setEnabled(False)
+            self.interface_mode = "segment"
+            self.segmentation_mode = "add"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(False)
+            self.modify_classify.setEnabled(True)
 
-    if mode == "divided":
-        self.viewer.layers.selection.select_only(self.segLayer)
+        if mode == "classify":
+            self.viewer.layers.selection.select_only(self.segLayer)
 
-        self.classify_single.setEnabled(True)
-        self.classify_dividing.setEnabled(True)
-        self.classify_divided.setEnabled(False)
-        self.classify_vertical.setEnabled(True)
-        self.classify_broken.setEnabled(True)
-        self.classify_edge.setEnabled(True)
+            self.modify_add.setEnabled(False)
+            self.modify_extend.setEnabled(False)
+            self.modify_join.setEnabled(False)
+            self.modify_split.setEnabled(False)
+            self.modify_delete.setEnabled(False)
+            self.modify_refine.setEnabled(False)
 
-        self.class_mode = mode
-        self.class_colour = 3
-        self.interface_mode = "classify"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(True)
-        self.modify_classify.setEnabled(False)
+            self.classify_single.setEnabled(False)
+            self.classify_dividing.setEnabled(True)
+            self.classify_divided.setEnabled(True)
+            self.classify_vertical.setEnabled(True)
+            self.classify_broken.setEnabled(True)
+            self.classify_edge.setEnabled(True)
 
-    if mode == "vertical":
-        self.viewer.layers.selection.select_only(self.segLayer)
+            self.interface_mode = "classify"
+            self.segmentation_mode = "add"
+            self.class_mode = 1
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(True)
+            self.modify_classify.setEnabled(False)
 
-        self.classify_single.setEnabled(True)
-        self.classify_dividing.setEnabled(True)
-        self.classify_divided.setEnabled(True)
-        self.classify_vertical.setEnabled(False)
-        self.classify_broken.setEnabled(True)
-        self.classify_edge.setEnabled(True)
+        if mode == "add":
+            self.viewer.layers.selection.select_only(self.segLayer)
 
-        self.class_mode = mode
-        self.class_colour = 4
-        self.interface_mode = "classify"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(True)
-        self.modify_classify.setEnabled(False)
+            self.modify_add.setEnabled(False)
+            self.modify_extend.setEnabled(True)
+            self.modify_join.setEnabled(True)
+            self.modify_split.setEnabled(True)
+            self.modify_delete.setEnabled(True)
+            self.modify_refine.setEnabled(True)
 
-    if mode == "broken":
-        self.viewer.layers.selection.select_only(self.segLayer)
+            self.classify_single.setEnabled(False)
+            self.classify_dividing.setEnabled(True)
+            self.classify_divided.setEnabled(True)
+            self.classify_vertical.setEnabled(True)
+            self.classify_broken.setEnabled(True)
+            self.classify_edge.setEnabled(True)
 
-        self.classify_single.setEnabled(True)
-        self.classify_dividing.setEnabled(True)
-        self.classify_divided.setEnabled(True)
-        self.classify_vertical.setEnabled(True)
-        self.classify_broken.setEnabled(False)
-        self.classify_edge.setEnabled(True)
+            self.interface_mode = "segment"
+            self.segmentation_mode = "add"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(False)
 
-        self.class_mode = mode
-        self.class_colour = 5
-        self.interface_mode = "classify"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(True)
-        self.modify_classify.setEnabled(False)
+        if mode == "extend":
+            self.viewer.layers.selection.select_only(self.segLayer)
 
-    if mode == "edge":
-        self.viewer.layers.selection.select_only(self.segLayer)
+            self.modify_add.setEnabled(True)
+            self.modify_extend.setEnabled(False)
+            self.modify_join.setEnabled(True)
+            self.modify_split.setEnabled(True)
+            self.modify_delete.setEnabled(True)
+            self.modify_refine.setEnabled(True)
 
-        self.classify_single.setEnabled(True)
-        self.classify_dividing.setEnabled(True)
-        self.classify_divided.setEnabled(True)
-        self.classify_vertical.setEnabled(True)
-        self.classify_broken.setEnabled(True)
-        self.classify_edge.setEnabled(False)
+            self.interface_mode = "segment"
+            self.segmentation_mode = "extend"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(False)
 
-        self.class_mode = mode
-        self.class_colour = 6
-        self.interface_mode = "classify"
-        self.modify_panzoom.setEnabled(True)
-        self.modify_segment.setEnabled(True)
-        self.modify_classify.setEnabled(False)
+        if mode == "join":
+            self.viewer.layers.selection.select_only(self.segLayer)
 
+            self.modify_add.setEnabled(True)
+            self.modify_extend.setEnabled(True)
+            self.modify_join.setEnabled(False)
+            self.modify_split.setEnabled(True)
+            self.modify_delete.setEnabled(True)
+            self.modify_refine.setEnabled(True)
+
+            self.interface_mode = "segment"
+            self.segmentation_mode = "join"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(False)
+
+        if mode == "split":
+            self.viewer.layers.selection.select_only(self.segLayer)
+
+            self.modify_add.setEnabled(True)
+            self.modify_extend.setEnabled(True)
+            self.modify_join.setEnabled(True)
+            self.modify_split.setEnabled(False)
+            self.modify_delete.setEnabled(True)
+            self.modify_refine.setEnabled(True)
+
+            self.interface_mode = "segment"
+            self.segmentation_mode = "split"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(False)
+
+        if mode == "delete":
+            self.viewer.layers.selection.select_only(self.segLayer)
+
+            self.modify_add.setEnabled(True)
+            self.modify_extend.setEnabled(True)
+            self.modify_join.setEnabled(True)
+            self.modify_split.setEnabled(True)
+            self.modify_delete.setEnabled(False)
+            self.modify_refine.setEnabled(True)
+
+            self.interface_mode = "segment"
+            self.segmentation_mode = "delete"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(False)
+
+        if mode == "edit_vertex":
+            self.viewer.layers.selection.select_only(self.shapeLayer)
+
+            self.interface_mode = "shapes"
+            self.segmentation_mode = "edit_vertex"
+
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(False)
+
+        if mode == "refine":
+            self.viewer.layers.selection.select_only(self.segLayer)
+
+            self.modify_add.setEnabled(True)
+            self.modify_extend.setEnabled(True)
+            self.modify_join.setEnabled(True)
+            self.modify_split.setEnabled(True)
+            self.modify_delete.setEnabled(True)
+            self.modify_refine.setEnabled(False)
+
+            self.interface_mode = "segment"
+            self.segmentation_mode = "refine"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(False)
+
+        if self.interface_mode == "segment":
+            self.viewer.layers.selection.select_only(self.segLayer)
+
+            if self.segmentation_mode == "add":
+
+                self.classify_single.setEnabled(False)
+                self.classify_dividing.setEnabled(True)
+                self.classify_divided.setEnabled(True)
+                self.classify_vertical.setEnabled(True)
+                self.classify_broken.setEnabled(True)
+                self.classify_edge.setEnabled(True)
+
+            else:
+
+                self.classify_single.setEnabled(False)
+                self.classify_dividing.setEnabled(False)
+                self.classify_divided.setEnabled(False)
+                self.classify_vertical.setEnabled(False)
+                self.classify_broken.setEnabled(False)
+                self.classify_edge.setEnabled(False)
+
+        if mode == "single":
+            self.viewer.layers.selection.select_only(self.segLayer)
+
+            self.classify_single.setEnabled(False)
+            self.classify_dividing.setEnabled(True)
+            self.classify_divided.setEnabled(True)
+            self.classify_vertical.setEnabled(True)
+            self.classify_broken.setEnabled(True)
+            self.classify_edge.setEnabled(True)
+
+            self.class_mode = mode
+            self.class_colour = 1
+            self.interface_mode = "classify"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(True)
+            self.modify_classify.setEnabled(False)
+
+        if mode == "dividing":
+            self.viewer.layers.selection.select_only(self.segLayer)
+
+            self.classify_single.setEnabled(True)
+            self.classify_dividing.setEnabled(False)
+            self.classify_divided.setEnabled(True)
+            self.classify_vertical.setEnabled(True)
+            self.classify_broken.setEnabled(True)
+            self.classify_edge.setEnabled(True)
+
+            self.class_mode = mode
+            self.class_colour = 2
+            self.interface_mode = "classify"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(True)
+            self.modify_classify.setEnabled(False)
+
+        if mode == "divided":
+            self.viewer.layers.selection.select_only(self.segLayer)
+
+            self.classify_single.setEnabled(True)
+            self.classify_dividing.setEnabled(True)
+            self.classify_divided.setEnabled(False)
+            self.classify_vertical.setEnabled(True)
+            self.classify_broken.setEnabled(True)
+            self.classify_edge.setEnabled(True)
+
+            self.class_mode = mode
+            self.class_colour = 3
+            self.interface_mode = "classify"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(True)
+            self.modify_classify.setEnabled(False)
+
+        if mode == "vertical":
+            self.viewer.layers.selection.select_only(self.segLayer)
+
+            self.classify_single.setEnabled(True)
+            self.classify_dividing.setEnabled(True)
+            self.classify_divided.setEnabled(True)
+            self.classify_vertical.setEnabled(False)
+            self.classify_broken.setEnabled(True)
+            self.classify_edge.setEnabled(True)
+
+            self.class_mode = mode
+            self.class_colour = 4
+            self.interface_mode = "classify"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(True)
+            self.modify_classify.setEnabled(False)
+
+        if mode == "broken":
+            self.viewer.layers.selection.select_only(self.segLayer)
+
+            self.classify_single.setEnabled(True)
+            self.classify_dividing.setEnabled(True)
+            self.classify_divided.setEnabled(True)
+            self.classify_vertical.setEnabled(True)
+            self.classify_broken.setEnabled(False)
+            self.classify_edge.setEnabled(True)
+
+            self.class_mode = mode
+            self.class_colour = 5
+            self.interface_mode = "classify"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(True)
+            self.modify_classify.setEnabled(False)
+
+        if mode == "edge":
+            self.viewer.layers.selection.select_only(self.segLayer)
+
+            self.classify_single.setEnabled(True)
+            self.classify_dividing.setEnabled(True)
+            self.classify_divided.setEnabled(True)
+            self.classify_vertical.setEnabled(True)
+            self.classify_broken.setEnabled(True)
+            self.classify_edge.setEnabled(False)
+
+            self.class_mode = mode
+            self.class_colour = 6
+            self.interface_mode = "classify"
+            self.modify_panzoom.setEnabled(True)
+            self.modify_segment.setEnabled(True)
+            self.modify_classify.setEnabled(False)
+
+    return _event
 
 def autocontrast_values(image, clip_hist_percent=0.001):
 
@@ -925,123 +920,128 @@ def cumsum(a):
 
 def _viewerControls(self, key, viewer=None):
 
-    if key == "h":
-        self.viewer.reset_view()
+    def _event(viewer):
 
-    if key == "o":
-
-        current_zoom = self.viewer.camera.zoom
-        new_zoom = current_zoom - 2
-        if new_zoom <= 0:
+        if key == "h":
             self.viewer.reset_view()
-        else:
-            self.viewer.camera.zoom = new_zoom
 
-    if key == "i":
-        self.viewer.camera.zoom = self.viewer.camera.zoom + 2
+        if key == "o":
 
-    if key == "z":
+            current_zoom = self.viewer.camera.zoom
+            new_zoom = current_zoom - 2
+            if new_zoom <= 0:
+                self.viewer.reset_view()
+            else:
+                self.viewer.camera.zoom = new_zoom
 
-        if self.segLayer.visible == True:
-            self.segLayer.visible = False
-            self.modify_viewmasks.setChecked(False)
-        else:
-            self.segLayer.visible = True
-            self.modify_viewmasks.setChecked(True)
+        if key == "i":
+            self.viewer.camera.zoom = self.viewer.camera.zoom + 2
 
-    if key == "x":
+        if key == "z":
 
-        if self.classLayer.visible == True:
-            self.classLayer.visible = False
-            self.modify_viewlabels.setChecked(False)
-        else:
-            self.classLayer.visible = True
-            self.modify_viewlabels.setChecked(True)
+            if self.segLayer.visible == True:
+                self.segLayer.visible = False
+                self.modify_viewmasks.setChecked(False)
+            else:
+                self.segLayer.visible = True
+                self.modify_viewmasks.setChecked(True)
 
-    if key == "viewlabels":
-        self.classLayer.visible = self.modify_viewlabels.isChecked()
+        if key == "x":
 
-    if key == "viewmasks":
-        self.segLayer.visible = self.modify_viewmasks.isChecked()
+            if self.classLayer.visible == True:
+                self.classLayer.visible = False
+                self.modify_viewlabels.setChecked(False)
+            else:
+                self.classLayer.visible = True
+                self.modify_viewlabels.setChecked(True)
 
-    if key == "c":
+        if key == "viewlabels":
+            self.classLayer.visible = self.modify_viewlabels.isChecked()
 
-        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
+        if key == "viewmasks":
+            self.segLayer.visible = self.modify_viewmasks.isChecked()
 
-        if len(layer_names) != 0:
+        if key == "c":
 
-            active_layer = layer_names[-1]
+            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
 
-            image_dims = tuple(list(self.viewer.dims.current_step[:-2]) + [...])
+            if len(layer_names) != 0:
 
-            image = self.viewer.layers[str(active_layer)].data[image_dims].copy()
+                active_layer = layer_names[-1]
 
-            crop = self.viewer.layers[str(active_layer)].corner_pixels[:,-2:]
+                image_dims = tuple(list(self.viewer.dims.current_step[:-2]) + [...])
 
-            [[y1, x1], [y2, x2]] = crop
+                image = self.viewer.layers[str(active_layer)].data[image_dims].copy()
 
-            image_crop = image[y1:y2, x1:x2]
+                crop = self.viewer.layers[str(active_layer)].corner_pixels[:,-2:]
 
-            contrast_limit = [np.min(image_crop),np.max(image_crop)]
+                [[y1, x1], [y2, x2]] = crop
 
-            if contrast_limit[1] > contrast_limit[0]:
-                self.viewer.layers[str(active_layer)].contrast_limits = contrast_limit
+                image_crop = image[y1:y2, x1:x2]
 
+                contrast_limit = [np.min(image_crop),np.max(image_crop)]
+
+                if contrast_limit[1] > contrast_limit[0]:
+                    self.viewer.layers[str(active_layer)].contrast_limits = contrast_limit
+    return _event
 
 def _imageControls(self, key, viewer=None):
 
-    if key == "Upload":
-        self._uploadDatabase("active")
+    def _event(viewer):
 
-    if len(self.viewer.dims.current_step) == 3:
+        if key == "Upload":
+            self._uploadDatabase("active")
 
-        current_frame = self.viewer.dims.current_step[0]
-        frame_range = int(self.viewer.dims.range[0][1]) - 1
+        if len(self.viewer.dims.current_step) == 3:
 
-        if key == "Right" or "Upload":
-            next_step = current_frame + 1
-        if key == "Left":
-            next_step = current_frame - 1
+            current_frame = self.viewer.dims.current_step[0]
+            frame_range = int(self.viewer.dims.range[0][1]) - 1
 
-        if next_step < 0:
-            next_step = 0
-        if next_step > frame_range:
-            next_step = frame_range
+            if key == "Right" or "Upload":
+                next_step = current_frame + 1
+            if key == "Left":
+                next_step = current_frame - 1
 
-        self.viewer.dims.current_step = (next_step, 0, 0)
-        self.viewer.reset_view()
+            if next_step < 0:
+                next_step = 0
+            if next_step > frame_range:
+                next_step = frame_range
 
-    if len(self.viewer.dims.current_step) == 4:
+            self.viewer.dims.current_step = (next_step, 0, 0)
+            self.viewer.reset_view()
 
-        current_frame = self.viewer.dims.current_step[0]
-        current_tile = self.viewer.dims.current_step[1]
+        if len(self.viewer.dims.current_step) == 4:
 
-        frame_range = int(self.viewer.dims.range[0][1]) - 1
-        tile_range = int(self.viewer.dims.range[1][1]) - 1
+            current_frame = self.viewer.dims.current_step[0]
+            current_tile = self.viewer.dims.current_step[1]
 
-        next_frame = current_frame
-        next_tile = current_tile
+            frame_range = int(self.viewer.dims.range[0][1]) - 1
+            tile_range = int(self.viewer.dims.range[1][1]) - 1
 
-        if key == "Right":
-            next_tile = current_tile + 1
-        if key == "Left":
-            next_tile = current_tile - 1
+            next_frame = current_frame
+            next_tile = current_tile
 
-        if next_tile < 0:
-            next_tile = 0
-            next_frame = current_frame - 1
-        if next_tile > tile_range:
-            next_tile = 0
-            next_frame = current_frame + 1
-        if next_frame < 0:
-            next_frame = 0
-        if next_frame > frame_range:
-            next_frame = frame_range
+            if key == "Right":
+                next_tile = current_tile + 1
+            if key == "Left":
+                next_tile = current_tile - 1
 
-        self.viewer.dims.current_step = (next_frame, next_tile, 0, 0)
-        self.viewer.reset_view()
-        self._autoContrast()
+            if next_tile < 0:
+                next_tile = 0
+                next_frame = current_frame - 1
+            if next_tile > tile_range:
+                next_tile = 0
+                next_frame = current_frame + 1
+            if next_frame < 0:
+                next_frame = 0
+            if next_frame > frame_range:
+                next_frame = frame_range
 
+            self.viewer.dims.current_step = (next_frame, next_tile, 0, 0)
+            self.viewer.reset_view()
+            self._autoContrast()
+
+    return _event
 
 def _clear_images(self):
 
@@ -1068,109 +1068,116 @@ def _copymasktoall(self):
         self.segLayer.data[i] = mask
         self.classLayer.data[i] = label
 
-def _deleteallmasks(self, viewer, mode = "all"):
+def _deleteallmasks(self, viewer=None, mode = "all"):
 
-    try:
-        current_step = self.viewer.dims.current_step
+    def _event(viewer):
 
-        viewer_dims = np.array(self.viewer.dims.range[:-2]).astype(int)
+        try:
+            current_step = self.viewer.dims.current_step
 
-        if mode == "active":
+            viewer_dims = np.array(self.viewer.dims.range[:-2]).astype(int)
 
-            mask = self.segLayer.data[current_step[:-2]].copy()
-            mask_ids = np.unique(mask).tolist()
+            if mode == "active":
 
-            if len(viewer_dims) == 2:
-
-                self.update_image_folds(mask_ids=mask_ids)
-
-            else:
-
-                for mask_id in mask_ids:
-                    mask[mask == mask_id] = 0
-
-                self.segLayer.data[current_step[:-2]] = mask
-                self.segLayer.refresh()
-
-        else:
-
-            for image_index in range(*viewer_dims[0]):
-
-                mask = self.segLayer.data[image_index].copy()
-                mask_ids = np.unique(mask)
+                mask = self.segLayer.data[current_step[:-2]].copy()
+                mask_ids = np.unique(mask).tolist()
 
                 if len(viewer_dims) == 2:
-                    self.update_image_folds(mask_ids=mask_ids, image_index=image_index)
+
+                    self.update_image_folds(mask_ids=mask_ids)
 
                 else:
 
                     for mask_id in mask_ids:
-                        mask[mask==mask_id] = 0
+                        mask[mask == mask_id] = 0
 
-                    self.segLayer.data[image_index] = mask
+                    self.segLayer.data[current_step[:-2]] = mask
                     self.segLayer.refresh()
 
-        if self.segLayer.visible == True:
-            self.segLayer.visible = False
-            self.segLayer.visible = True
+            else:
 
-        if self.classLayer.visible==True:
-            self.classLayer.visible = False
-            self.classLayer.visible = True
+                for image_index in range(*viewer_dims[0]):
 
-    except:
-        print(traceback.format_exc())
-        pass
+                    mask = self.segLayer.data[image_index].copy()
+                    mask_ids = np.unique(mask)
+
+                    if len(viewer_dims) == 2:
+                        self.update_image_folds(mask_ids=mask_ids, image_index=image_index)
+
+                    else:
+
+                        for mask_id in mask_ids:
+                            mask[mask==mask_id] = 0
+
+                        self.segLayer.data[image_index] = mask
+                        self.segLayer.refresh()
+
+            if self.segLayer.visible == True:
+                self.segLayer.visible = False
+                self.segLayer.visible = True
+
+            if self.classLayer.visible==True:
+                self.classLayer.visible = False
+                self.classLayer.visible = True
+
+        except:
+            print(traceback.format_exc())
+            pass
+
+    return _event
 
 def _delete_active_image(self, viewer=None, mode="active"):
 
-    try:
-        current_fov = self.viewer.dims.current_step[0]
+    def _event(viewer):
 
-        dim_range = int(self.viewer.dims.range[0][1])
+        try:
+            current_fov = self.viewer.dims.current_step[0]
 
-        if mode == "active":
-            dim_delete_list = [current_fov]
-        else:
-            dim_delete_list = np.arange(dim_range).tolist()
-            dim_delete_list.remove(current_fov)
+            dim_range = int(self.viewer.dims.range[0][1])
 
-        layer_names = [layer.name for layer in self.viewer.layers]
+            if mode == "active":
+                dim_delete_list = [current_fov]
+            else:
+                dim_delete_list = np.arange(dim_range).tolist()
+                dim_delete_list.remove(current_fov)
 
-        if dim_range > 1:
+            layer_names = [layer.name for layer in self.viewer.layers]
 
-            for layer_name in layer_names:
+            if dim_range > 1:
 
-                layer = self.viewer.layers[layer_name]
+                for layer_name in layer_names:
 
-                images = layer.data.copy()
-                metadata = layer.metadata.copy()
+                    layer = self.viewer.layers[layer_name]
 
-                if mode == "active":
-                    images = np.delete(images, current_fov, axis=0)
-                else:
-                    images = images[current_fov]
+                    images = layer.data.copy()
+                    metadata = layer.metadata.copy()
 
-                for dim in dim_delete_list:
-                    if dim in metadata.keys():
-                        del metadata[dim]
+                    if mode == "active":
+                        images = np.delete(images, current_fov, axis=0)
+                    else:
+                        images = images[current_fov]
 
-                new_meta = {}
+                    for dim in dim_delete_list:
+                        if dim in metadata.keys():
+                            del metadata[dim]
 
-                for key, value in metadata.items():
-                    new_meta[len(new_meta)] = value
+                    new_meta = {}
 
-                metadata = new_meta
+                    for key, value in metadata.items():
+                        new_meta[len(new_meta)] = value
 
-                layer.data = images
-                layer.metadata = metadata
+                    metadata = new_meta
 
-                self._updateFileName()
-                self._updateSegmentationCombo()
-                self._updateSegChannels()
-    except:
-        pass
+                    layer.data = images
+                    layer.metadata = metadata
 
+                    self._updateFileName()
+                    self._updateSegmentationCombo()
+                    self._updateSegChannels()
+        except:
+            pass
+
+    return _event
 
 
 def _doubeClickEvents(self, viewer, event):

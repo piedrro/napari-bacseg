@@ -560,33 +560,35 @@ def get_cell_statistics(self, mode, pixel_size, colicoords_dir, progress_callbac
 
 def process_cell_statistics(self,cell_statistics,path):
 
-    if type(cell_statistics) == dict:
-        ldist_data = cell_statistics["ldist_data"]
-        ldist_data = pd.DataFrame.from_dict(ldist_data).dropna(how='all')
-        cell_statistics = cell_statistics["cell_statistics"]
-    else:
-        ldist_data = None
+    def _event(viewer, cell_statistics=None):
 
-    export_path = os.path.join(path,'statistics.xlsx')
+        if type(cell_statistics) == dict:
+            ldist_data = cell_statistics["ldist_data"]
+            ldist_data = pd.DataFrame.from_dict(ldist_data).dropna(how='all')
+            cell_statistics = cell_statistics["cell_statistics"]
+        else:
+            ldist_data = None
 
-    drop_columns = ['cell_image', 'cell_mask','offset', 'shift_xy','edge',
-                    'vertical','mask_id','contour','edge','vertical','mask_id','cell','refined_cnt',
-                    'oufti','statistics','colicoords_channel','channels','cell_images_path', 'ldist']
+        export_path = os.path.join(path,'statistics.xlsx')
 
-    cell_statistics = pd.DataFrame(cell_statistics)
+        drop_columns = ['cell_image', 'cell_mask','offset', 'shift_xy','edge',
+                        'vertical','mask_id','contour','edge','vertical','mask_id','cell','refined_cnt',
+                        'oufti','statistics','colicoords_channel','channels','cell_images_path', 'ldist']
 
-    cell_statistics = cell_statistics.drop(columns=[col for col in cell_statistics if col in drop_columns])
+        cell_statistics = pd.DataFrame(cell_statistics)
 
-    cell_statistics = cell_statistics.dropna(how='all')
+        cell_statistics = cell_statistics.drop(columns=[col for col in cell_statistics if col in drop_columns])
 
-    with pd.ExcelWriter(export_path) as writer:
-        cell_statistics.to_excel(writer, sheet_name='Cell Statistics', index=False, startrow=1, startcol=1,)
-        if isinstance(ldist_data, pd.DataFrame):
-            ldist_data.to_excel(writer, sheet_name='Length Distribution Data', index=False, startrow=1, startcol=1)
+        cell_statistics = cell_statistics.dropna(how='all')
 
-    return
+        with pd.ExcelWriter(export_path) as writer:
+            cell_statistics.to_excel(writer, sheet_name='Cell Statistics', index=False, startrow=1, startcol=1,)
+            if isinstance(ldist_data, pd.DataFrame):
+                ldist_data.to_excel(writer, sheet_name='Length Distribution Data', index=False, startrow=1, startcol=1)
 
+        return
 
+    return _event
 
 def _compute_simple_cell_stats(self):
 
