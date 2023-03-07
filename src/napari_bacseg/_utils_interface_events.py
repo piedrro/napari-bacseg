@@ -423,7 +423,7 @@ def _segmentationEvents(self, viewer, event):
 
             data_coordinates = self.segLayer.world_to_data(event.position)
             coord = np.round(data_coordinates).astype(int)
-            mask_id = self.segLayer.get_value(coord).copy()
+            mask_id = self.segLayer.get_value(coord)
 
             self.segLayer.selected_label = mask_id
 
