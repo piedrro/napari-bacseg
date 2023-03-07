@@ -5,11 +5,11 @@ contributions:
     - id: napari-bacseg.make_qwidget
       python_name: napari_bacseg._widget:BacSeg
       title: Make BacSeg QWidget
-    - id: napari-bacseg.make_examplewidget
-      python_name: napari_bacseg._widget:ExampleQWidget
-      title: Make ExampleQWidget
+#    - id: napari-bacseg.make_examplewidget
+#      python_name: napari_bacseg._widget:ExampleQWidget
+#      title: Make ExampleQWidget
   widgets:
     - command: napari-bacseg.make_qwidget
       display_name: BacSeg
-    - command: napari-bacseg.make_examplewidget
-      display_name: ExampleQWidget
+#    - command: napari-bacseg.make_examplewidget
+#      display_name: ExampleQWidget
