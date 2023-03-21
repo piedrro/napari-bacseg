@@ -398,12 +398,16 @@ def update_database_metadata(self, control=None):
             "meta3": "upload_usermeta3",
         }
 
+        upload_control_dict = {}
+
         for meta_key, meta_values in dbmeta.items():
             if meta_key in control_dict.keys():
                 control_name = control_dict[meta_key]
 
                 try:
                     combo_box = getattr(self, control_name)
+
+                    upload_control_dict[control_name] = combo_box.currentText()
 
                     setattr(
                         combo_box,
@@ -422,6 +426,11 @@ def update_database_metadata(self, control=None):
                     combo_box_items = [
                         item
                         for item in combo_box_items
+                        if item not in ["", " ", "Required for upload"]
+                    ]
+                    meta_values = [
+                        item
+                        for item in meta_values
                         if item not in ["", " ", "Required for upload"]
                     ]
 
@@ -457,6 +466,10 @@ def update_database_metadata(self, control=None):
 
                             with open(txt_meta_path, "w") as f:
                                 f.write(txt_meta)
+
+                            show_info(
+                                f"Updated {meta_key.upper()} metadata items in {database_name} database"
+                            )
 
                         else:
                             print(f"Metadata file not found: {txt_meta_path}")
@@ -538,9 +551,17 @@ def update_database_metadata(self, control=None):
             with open(txt_meta_path, "w") as f:
                 f.write(txt_meta)
 
+            show_info(
+                f"Added new user metadata files for {new_user_initial} in {database_name} database"
+            )
+
         self.populate_upload_combos()
         self._populateUSERMETA
         self.upload_initial.setCurrentIndex(user_intial_index)
+
+        for control_name, control_text in upload_control_dict.items():
+            combo_box = getattr(self, control_name)
+            combo_box.setCurrentText(control_text)
 
 
 def _populateUSERMETA(self):
