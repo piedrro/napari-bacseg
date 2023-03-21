@@ -87,3 +87,4 @@ venv/
 /src/napari_bacseg/_scripts/
 /src/_dev/
 /src/_scripts/
+/src/napari_bacseg/_tests/test_data/

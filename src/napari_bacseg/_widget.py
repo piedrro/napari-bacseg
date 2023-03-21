@@ -949,8 +949,9 @@ class BacSeg(QWidget):
         # viewer events
         self.viewer.layers.events.inserted.connect(self._manualImport)
 
-        self.threadpool = QThreadPool()
-        # self.load_dev_data()
+        self.threadpool = QThreadPool()  # self.load_dev_data()
+
+        self.widget_notifications = True
 
     def wrapper(self, func, *args, **kwargs):
         try:
@@ -1350,7 +1351,8 @@ class BacSeg(QWidget):
                 ) = self.get_filtered_database_metadata()
 
                 if len(file_paths) == 0:
-                    show_info("no matching database files found")
+                    if self.widget_notifications:
+                        show_info("no matching database files found")
 
                 else:
                     worker = Worker(
@@ -1398,7 +1400,7 @@ class BacSeg(QWidget):
             self.upload_progressbar.setValue(0)
             self.modify_progressbar.setValue(0)
 
-    def _importDialog(self):
+    def _importDialog(self, paths=None):
         if self.unfolded == True:
             self.fold_images()
 
@@ -1418,20 +1420,22 @@ class BacSeg(QWidget):
 
         desktop = os.path.expanduser("~/Desktop")
 
-        if import_filemode == "Import File(s)":
-            paths, _ = QFileDialog.getOpenFileNames(
-                self, "Open Files", desktop, f"Files ({file_extension})"
-            )
+        if type(paths) is not list:
+            if import_filemode == "Import File(s)":
+                paths, _ = QFileDialog.getOpenFileNames(
+                    self, "Open Files", desktop, f"Files ({file_extension})"
+                )
 
-        if import_filemode == "Import Directory":
-            path = QFileDialog.getExistingDirectory(
-                self, "Select Directory", desktop
-            )
+            if import_filemode == "Import Directory":
+                path = QFileDialog.getExistingDirectory(
+                    self, "Select Directory", desktop
+                )
 
-            paths = [path]
+                paths = [path]
 
-        if "" in paths or paths == []:
-            show_info("No file/folder selected")
+        if "" in paths or paths == [] or type(paths) is not list:
+            if self.widget_notifications:
+                show_info("No file/folder selected")
 
         else:
             if import_mode == "Images":
