@@ -328,10 +328,20 @@ class BacSeg(QWidget):
 
         # upload tab controls from Qt Desinger References
         self.database_path = ""
+        self.user_metadata_keys = 6
+
         self.metadata_columns = ["date_uploaded", "date_created", "date_modified", "file_name", "channel", "file_list", "channel_list", "segmentation_file", "segmentation_channel", "akseg_hash",
             "user_initial", "content", "microscope", "modality", "source", "stain", "stain_target", "antibiotic", "treatment time (mins)", "antibiotic concentration", "mounting method", "protocol",
-            "user_meta1", "user_meta2", "user_meta3", "folder", "parent_folder", "num_segmentations", "segmented", "labelled", "segmentation_curated", "label_curated", "posX", "posY", "posZ",
-            "image_load_path", "image_save_path", "mask_load_path", "mask_save_path", "label_load_path", "label_save_path", ]
+            "folder", "parent_folder", "num_segmentations", "image_laplacian", "image_focus","image_debris","segmented", "labelled", "segmentation_curated", "label_curated", "posX", "posY", "posZ",
+            "image_load_path", "image_save_path", "mask_load_path", "mask_save_path", "label_load_path", "label_save_path"]
+
+        user_key_list = np.arange(1,self.user_metadata_keys+1).tolist()
+        user_key_list.reverse()
+
+        for key in user_key_list:
+            user_key = f"user_meta{key}"
+            self.metadata_columns.insert(22,str(user_key))
+            setattr(self, f"upload_usermeta{key}", self.findChild(QComboBox, f"upload_usermeta{key}"))
 
         self.upload_initial = self.findChild(QComboBox, "upload_initial")
         self.upload_content = self.findChild(QComboBox, "upload_content")
@@ -341,11 +351,6 @@ class BacSeg(QWidget):
         self.upload_treatmenttime = self.findChild(QComboBox, "upload_treatmenttime")
         self.upload_mount = self.findChild(QComboBox, "upload_mount")
         self.upload_protocol = self.findChild(QComboBox, "upload_protocol")
-        self.upload_usermeta1 = self.findChild(QComboBox, "upload_usermeta1")
-        self.upload_usermeta2 = self.findChild(QComboBox, "upload_usermeta2")
-        self.upload_usermeta3 = self.findChild(QComboBox, "upload_usermeta3")
-        self.upload_usermeta4 = self.findChild(QComboBox, "upload_usermeta4")
-        self.upload_usermeta5 = self.findChild(QComboBox, "upload_usermeta5")
         self.upload_overwrite_images = self.findChild(QCheckBox, "upload_overwrite_images")
         self.upload_overwrite_masks = self.findChild(QCheckBox, "upload_overwrite_masks")
         self.overwrite_selected_metadata = self.findChild(QCheckBox, "overwrite_selected_metadata")

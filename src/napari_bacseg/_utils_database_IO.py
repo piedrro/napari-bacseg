@@ -11,8 +11,8 @@ from multiprocessing import Pool
 import numpy as np
 import pandas as pd
 import tifffile
+import cv2
 from napari.utils.notifications import show_info
-
 from napari_bacseg._utils_json import export_coco_json
 
 
@@ -192,6 +192,7 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
 
 
 def generate_multichannel_stack(self):
+
     segChannel = self.cellpose_segchannel.currentText()
     user_initial = self.upload_initial.currentText()
     content = self.upload_content.currentText()
@@ -201,9 +202,6 @@ def generate_multichannel_stack(self):
     treatmenttime = self.upload_treatmenttime.currentText()
     mount = self.upload_mount.currentText()
     protocol = self.upload_protocol.currentText()
-    usermeta1 = self.upload_usermeta1.currentText()
-    usermeta2 = self.upload_usermeta2.currentText()
-    usermeta3 = self.upload_usermeta3.currentText()
     overwrite_all_metadata = self.overwrite_all_metadata.isChecked()
     overwrite_selected_metadata = self.overwrite_selected_metadata.isChecked()
     date_uploaded = datetime.datetime.now()
@@ -234,11 +232,15 @@ def generate_multichannel_stack(self):
         abxconcentration=abxconcentration,
         treatmenttime=treatmenttime,
         mount=mount,
-        protocol=protocol,
-        usermeta1=usermeta1,
-        usermeta2=usermeta2,
-        usermeta3=usermeta3,
-    )
+        protocol=protocol)
+
+    num_user_keys = self.user_metadata_keys
+
+    for key in range(1, num_user_keys+1):
+        control_name = f"upload_usermeta{key}"
+        combo_box = getattr(self, control_name)
+        combo_box_value = combo_box.currentText()
+        metadata[f"usermeta{key}"] = combo_box_value
 
     layer_names = [
         layer.name
@@ -281,10 +283,8 @@ def generate_multichannel_stack(self):
 
                     meta["user_initial"] = user_initial
 
-                    if (
-                        meta["import_mode"] != "BacSeg"
-                        or overwrite_all_metadata is True
-                    ):
+                    if (meta["import_mode"] != "BacSeg" or overwrite_all_metadata is True):
+
                         meta["microscope"] = microscope
                         meta["image_content"] = content
                         meta["antibiotic"] = antibiotic
@@ -292,24 +292,18 @@ def generate_multichannel_stack(self):
                         meta["abxconcentration"] = abxconcentration
                         meta["mount"] = mount
                         meta["protocol"] = protocol
-                        meta["usermeta1"] = usermeta1
-                        meta["usermeta2"] = usermeta2
-                        meta["usermeta3"] = usermeta3
                         meta["channel"] = layer
                         meta["segmentation_channel"] = segChannel
                         meta["file_list"] = []
                         meta["layer_list"] = []
                         meta["segmentation_file"] = segmentation_file
 
-                    if (
-                        meta["import_mode"] == "BacSeg"
-                        and overwrite_all_metadata is True
-                    ):
-                        metadata = {
-                            key: val
-                            for key, val in metadata.items()
-                            if val != "Required for upload"
-                        }
+                        for key in range(1, num_user_keys+1):
+                            meta[f"usermeta{key}"] = metadata[f"usermeta{key}"]
+                            print(meta[f"usermeta{key}"], metadata[f"usermeta{key}"])
+
+                    if (meta["import_mode"] == "BacSeg"and overwrite_all_metadata is True):
+                        metadata = {key: val for key, val in metadata.items() if val != "Required for upload"}
 
                         for key, value in metadata.items():
                             meta[key] = value
@@ -372,7 +366,7 @@ def generate_multichannel_stack(self):
     return multi_image_stack, multi_meta_stack, layer_names
 
 
-def upload_bacseg_files(path, widget_notifications=True):
+def upload_bacseg_files(path, widget_notifications=True, num_user_keys = 5):
     file_metadata_list = []
 
     try:
@@ -523,10 +517,10 @@ def upload_bacseg_files(path, widget_notifications=True):
                 class_mask = class_mask[y1:y2, x1:x2]
 
                 unique_segmentations = np.unique(mask)
-                unique_segmentations = np.delete(
-                    unique_segmentations, np.where(unique_segmentations == 0)
-                )
+                unique_segmentations = np.delete(unique_segmentations, np.where(unique_segmentations == 0))
+
                 num_segmentations = len(unique_segmentations)
+                image_laplacian = cv2.Laplacian(img, cv2.CV_64F).var()
 
                 meta.pop("shape", None)
 
@@ -589,25 +583,19 @@ def upload_bacseg_files(path, widget_notifications=True):
                     "stain": get_meta_value(meta, "stain"),
                     "stain_target": get_meta_value(meta, "stain_target"),
                     "antibiotic": get_meta_value(meta, "antibiotic"),
-                    "treatment time (mins)": get_meta_value(
-                        meta, "treatmenttime"
-                    ),
-                    "antibiotic concentration": get_meta_value(
-                        meta, "abxconcentration"
-                    ),
+                    "treatment time (mins)": get_meta_value(meta, "treatmenttime"),
+                    "antibiotic concentration": get_meta_value(meta, "abxconcentration"),
                     "mounting method": get_meta_value(meta, "mount"),
                     "protocol": get_meta_value(meta, "protocol"),
-                    "user_meta1": get_meta_value(meta, "usermeta1"),
-                    "user_meta2": get_meta_value(meta, "usermeta1"),
-                    "user_meta3": get_meta_value(meta, "usermeta3"),
                     "folder": get_meta_value(meta, "folder"),
                     "parent_folder": get_meta_value(meta, "parent_folder"),
                     "num_segmentations": num_segmentations,
+                    "image_laplacian": image_laplacian,
+                    "image_focus": get_meta_value(meta, "image_focus"),
+                    "image_debris": get_meta_value(meta, "image_debris"),
                     "segmented": get_meta_value(meta, "segmented"),
                     "labelled": get_meta_value(meta, "labelled"),
-                    "segmentation_curated": get_meta_value(
-                        meta, "segmentations_curated"
-                    ),
+                    "segmentation_curated": get_meta_value(meta, "segmentations_curated"),
                     "label_curated": get_meta_value(meta, "labels_curated"),
                     "posX": posX,
                     "posY": posY,
@@ -619,6 +607,9 @@ def upload_bacseg_files(path, widget_notifications=True):
                     "label_load_path": get_meta_value(meta, "label_path"),
                     "label_save_path": class_path,
                 }
+
+                for key in range(1, num_user_keys + 1):
+                    file_metadata[f"user_meta{key}"] = get_meta_value(meta, f"usermeta{key}")
 
                 file_metadata_list.append(file_metadata)
     except:
@@ -733,9 +724,9 @@ def _upload_bacseg_database(self, progress_callback, mode):
             overwrite_images = self.upload_overwrite_images.isChecked()
             overwrite_masks = self.upload_overwrite_masks.isChecked()
             overwrite_all_metadata = self.overwrite_all_metadata.isChecked()
-            overwrite_selected_metadata = (
-                self.overwrite_selected_metadata.isChecked()
-            )
+            overwrite_selected_metadata = (self.overwrite_selected_metadata.isChecked())
+
+            num_user_keys = self.user_metadata_keys
 
             save_dir = os.path.join(database_path, "Images", user_initial)
 
@@ -863,7 +854,7 @@ def _upload_bacseg_database(self, progress_callback, mode):
                     )
 
                     if mode == "active":
-                        results = upload_bacseg_files(upload_tempfiles[0])
+                        results = upload_bacseg_files(upload_tempfiles[0], num_user_keys)
 
                     else:
                         with Pool(4) as pool:
@@ -886,7 +877,7 @@ def _upload_bacseg_database(self, progress_callback, mode):
                             results = [
                                 pool.apply_async(
                                     upload_bacseg_files,
-                                    args=(i,),
+                                    args=(i,num_user_keys),
                                     callback=callback,
                                 )
                                 for i in upload_tempfiles
@@ -996,6 +987,7 @@ def _upload_bacseg_database(self, progress_callback, mode):
 
 
 def get_filtered_database_metadata(self):
+
     database_metadata = {
         "user_initial": self.upload_initial.currentText(),
         "content": self.upload_content.currentText(),
@@ -1005,15 +997,20 @@ def get_filtered_database_metadata(self):
         "treatment time (mins)": self.upload_treatmenttime.currentText(),
         "mounting method": self.upload_mount.currentText(),
         "protocol": self.upload_protocol.currentText(),
-        "user_meta1": self.upload_usermeta1.currentText(),
-        "user_meta2": self.upload_usermeta2.currentText(),
-        "user_meta3": self.upload_usermeta3.currentText(),
     }
+
+    num_user_keys = self.user_metadata_keys
+
+    for key in range(1, num_user_keys + 1):
+        control_name = f"upload_usermeta{key}"
+        combo_box = getattr(self, control_name)
+        combo_box_text = combo_box.currentText()
+        database_metadata[f"user_meta{key}"] = combo_box_text
 
     database_metadata = {
         key: val
         for key, val in database_metadata.items()
-        if val not in ["", "Required for upload"]
+        if val not in ["", "Required for upload", 'example_item1', 'example_item2', 'example_item3']
     }
 
     database_path = self.database_path
