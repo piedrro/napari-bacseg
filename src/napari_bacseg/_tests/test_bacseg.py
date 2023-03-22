@@ -27,45 +27,20 @@ class test_bacseg(unittest.TestCase):
             cls.BacSeg = BacSeg(viewer)
             cls.BacSeg.widget_notifications = False
 
-            cls.export_setting_dict = {
-                "mode": [
-                    "masks",
-                    "images",
-                    "images + masks",
-                    "oufti",
-                    "cellpose",
-                    "imagej",
-                    "json",
-                    "csv",
-                ],
-                "overwrite": [True, False],
-                "export_images": [True, False],
-                "normalise": [True, False],
-                "invert": [True, False],
-                "autocontrast": [True, False],
-            }
+            cls.export_setting_dict = {"mode": ["masks", "images", "images + masks", "oufti", "cellpose", "imagej", "json", "csv", ], "overwrite": [True, False], "export_images": [True,
+                                                                                                                                                                                    False], "normalise": [
+                True, False], "invert": [True, False], "autocontrast": [True, False], }
 
-            cls.import_images_setting_dict = {
-                "mode": ["images", "scanr", "nim"],
-                "filemode": ["directory", "file"],
-                "import_limit": ["None", "1", "5", "100"],
-                "import_precision": ["int16"],
-                "multiframe_mode_index": [0, 1, 2, 3],
-                "crop_mode_index": [0, 1, 2, 3],
-            }
+            cls.import_images_setting_dict = {"mode": ["images", "scanr", "nim"], "filemode": ["directory", "file"], "import_limit": ["None", "1", "5", "100"], "import_precision": [
+                "int16"], "multiframe_mode_index": [0, 1, 2, 3], "crop_mode_index": [0, 1, 2, 3], }
 
-            cls.import_masks_setting_dict = {
-                "mode": ["masks", "imagej", "json", "csv"],
-                "filemode": ["directory", "file"],
-                "import_limit": ["None", "100", "1000"],
-                "import_precision": ["int8", "int16", "int32", "native"],
-                "multiframe_mode_index": [0, 1, 2, 3],
-                "crop_mode_index": [0, 1, 2, 3],
-            }
+            cls.import_masks_setting_dict = {"mode": ["masks", "imagej", "json", "csv"], "filemode": ["directory", "file"], "import_limit": ["None", "100", "1000"], "import_precision": ["int8",
+                                                                                                                                                                                          "int16",
+                                                                                                                                                                                          "int32",
+                                                                                                                                                                                          "native"], "multiframe_mode_index": [
+                0, 1, 2, 3], "crop_mode_index": [0, 1, 2, 3], }
 
-    def perumuation_test(
-        self, function, setting_dict={}, limit=10, shuffle=True
-    ):
+    def perumuation_test(self, function, setting_dict={}, limit=10, shuffle=True):
         modes = setting_dict.pop("mode")
 
         for mode in modes:
@@ -84,15 +59,7 @@ class test_bacseg(unittest.TestCase):
                 with self.subTest(msg="getAll"):
                     function(mode=mode, **active_settings)
 
-    def import_images(
-        self,
-        mode="images",
-        filemode="directory",
-        import_limit="None",
-        import_precision="int16",
-        multiframe_mode_index=0,
-        crop_mode_index=0,
-    ):
+    def import_images(self, mode="images", filemode="directory", import_limit="None", import_precision="int16", multiframe_mode_index=0, crop_mode_index=0, ):
         if filemode == "directory":
             self.BacSeg.import_filemode.setCurrentText("Import Directory")
         elif filemode == "file":
@@ -104,9 +71,7 @@ class test_bacseg(unittest.TestCase):
             self.BacSeg.import_precision.setCurrentText(import_precision)
 
         if multiframe_mode_index in [0, 1, 2, 3]:
-            self.BacSeg.import_multiframe_mode.setCurrentIndex(
-                multiframe_mode_index
-            )
+            self.BacSeg.import_multiframe_mode.setCurrentIndex(multiframe_mode_index)
 
         if crop_mode_index in [0, 1, 2, 3]:
             self.BacSeg.import_crop_mode.setCurrentIndex(crop_mode_index)
@@ -124,9 +89,7 @@ class test_bacseg(unittest.TestCase):
 
             self.BacSeg.import_images = self.BacSeg.wrapper(import_images)
 
-            data = self.BacSeg.import_images(
-                file_paths=paths, progress_callback=None
-            )
+            data = self.BacSeg.import_images(file_paths=paths, progress_callback=None)
 
         if mode.lower() == "scanr":
             self.BacSeg.import_mode.setCurrentText("ScanR Data")
@@ -134,31 +97,16 @@ class test_bacseg(unittest.TestCase):
 
             assert len(paths) > 0
 
-            from napari_bacseg._utils import (
-                read_scanr_directory,
-                read_scanr_images,
-            )
+            from napari_bacseg._utils import (read_scanr_directory, read_scanr_images, )
 
-            self.BacSeg.read_scanr_directory = self.BacSeg.wrapper(
-                read_scanr_directory
-            )
-            self.BacSeg.read_scanr_images = self.BacSeg.wrapper(
-                read_scanr_images
-            )
+            self.BacSeg.read_scanr_directory = self.BacSeg.wrapper(read_scanr_directory)
+            self.BacSeg.read_scanr_images = self.BacSeg.wrapper(read_scanr_images)
 
-            (
-                measurements,
-                file_paths,
-                channels,
-            ) = self.BacSeg.read_scanr_directory(paths)
+            (measurements, file_paths, channels,) = self.BacSeg.read_scanr_directory(paths)
             target_num_images = len(measurements)
             target_channels = channels
 
-            data = self.BacSeg.read_scanr_images(
-                measurements=measurements,
-                channels=channels,
-                progress_callback=None,
-            )
+            data = self.BacSeg.read_scanr_images(measurements=measurements, channels=channels, progress_callback=None, )
 
         if mode.lower() == "nim":
             self.BacSeg.import_mode.setCurrentText("NanoImager Data")
@@ -166,37 +114,20 @@ class test_bacseg(unittest.TestCase):
 
             assert len(paths) > 0
 
-            from napari_bacseg._utils import (
-                read_nim_directory,
-                read_nim_images,
-            )
+            from napari_bacseg._utils import (read_nim_directory, read_nim_images, )
 
-            self.BacSeg.read_nim_directory = self.BacSeg.wrapper(
-                read_nim_directory
-            )
+            self.BacSeg.read_nim_directory = self.BacSeg.wrapper(read_nim_directory)
             self.BacSeg.read_nim_images = self.BacSeg.wrapper(read_nim_images)
 
-            (
-                measurements,
-                file_paths,
-                channels,
-            ) = self.BacSeg.read_nim_directory(paths)
+            (measurements, file_paths, channels,) = self.BacSeg.read_nim_directory(paths)
             target_num_images = len(measurements)
             target_channels = channels
 
-            data = self.BacSeg.read_nim_images(
-                measurements=measurements,
-                channels=channels,
-                progress_callback=None,
-            )
+            data = self.BacSeg.read_nim_images(measurements=measurements, channels=channels, progress_callback=None, )
 
         self.BacSeg._process_import(data)
 
-        layer_names = [
-            layer.name
-            for layer in self.BacSeg.viewer.layers
-            if layer.name not in ["Segmentations", "Classes", "center_lines"]
-        ]
+        layer_names = [layer.name for layer in self.BacSeg.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
 
         loaded_images = self.BacSeg.viewer.layers[layer_names[0]].data
 
@@ -210,14 +141,9 @@ class test_bacseg(unittest.TestCase):
     def read_mask_files(self, paths):
         mask_paths = glob("test_data/images + masks/masks/*.tif")
 
-        file_names = [
-            os.path.basename(path.split(path.split(".")[-1])[0]) + "tif"
-            for path in paths
-        ]
+        file_names = [os.path.basename(path.split(path.split(".")[-1])[0]) + "tif" for path in paths]
 
-        paths = [
-            path for path in mask_paths if os.path.basename(path) in file_names
-        ]
+        paths = [path for path in mask_paths if os.path.basename(path) in file_names]
 
         mask_dict = {}
 
@@ -236,32 +162,21 @@ class test_bacseg(unittest.TestCase):
         assert len(image_paths) > 0
 
         if randomise:
-            image_paths = random.sample(
-                image_paths, random.randint(1, len(image_paths))
-            )
+            image_paths = random.sample(image_paths, random.randint(1, len(image_paths)))
 
-        from napari_bacseg._utils import (
-            get_hash,
-            import_imagej,
-            import_images,
-            import_masks,
-        )
+        from napari_bacseg._utils import (get_hash, import_imagej, import_images, import_masks, )
 
         self.BacSeg.import_masks = self.BacSeg.wrapper(import_masks)
         self.BacSeg.import_images = self.BacSeg.wrapper(import_images)
         self.BacSeg.import_imagej = self.BacSeg.wrapper(import_imagej)
         self.BacSeg.get_hash = self.BacSeg.wrapper(get_hash)
 
-        data = self.BacSeg.import_images(
-            file_paths=image_paths, progress_callback=None
-        )
+        data = self.BacSeg.import_images(file_paths=image_paths, progress_callback=None)
 
         self.BacSeg._process_import(data)
 
         if mode == "masks":
-            self.BacSeg.import_mode.setCurrentText(
-                "Mask (.tif) Segmentation(s)"
-            )
+            self.BacSeg.import_mode.setCurrentText("Mask (.tif) Segmentation(s)")
 
             mask_paths = glob("test_data/images + masks/masks/*.tif")
             assert len(mask_paths) > 0
@@ -270,9 +185,7 @@ class test_bacseg(unittest.TestCase):
             self.BacSeg._autoClassify()
 
         if mode == "oufti":
-            self.BacSeg.import_mode.setCurrentText(
-                "Oufti (.mat) Segmentation(s)"
-            )
+            self.BacSeg.import_mode.setCurrentText("Oufti (.mat) Segmentation(s)")
 
             mask_paths = glob("test_data/images + masks/oufti/*.mat")
             assert len(mask_paths) > 0
@@ -281,9 +194,7 @@ class test_bacseg(unittest.TestCase):
             self.BacSeg._autoClassify()
 
         if mode == "cellpose":
-            self.BacSeg.import_mode.setCurrentText(
-                "Cellpose (.npy) Segmentation(s)"
-            )
+            self.BacSeg.import_mode.setCurrentText("Cellpose (.npy) Segmentation(s)")
 
             mask_paths = glob("test_data/images + masks/cellpose/*.npy")
             assert len(mask_paths) > 0
@@ -298,17 +209,13 @@ class test_bacseg(unittest.TestCase):
 
             assert len(mask_paths) > 0
 
-            data = self.BacSeg.import_imagej(
-                paths=mask_paths, progress_callback=None
-            )
+            data = self.BacSeg.import_imagej(paths=mask_paths, progress_callback=None)
 
             self.BacSeg._process_import(data)
             self.BacSeg._autoClassify()
 
         if mode == "json":
-            self.BacSeg.import_mode.setCurrentText(
-                "JSON (.txt) Segmentation(s)"
-            )
+            self.BacSeg.import_mode.setCurrentText("JSON (.txt) Segmentation(s)")
 
             self.BacSeg.import_imagej = self.BacSeg.wrapper(import_imagej)
 
@@ -321,11 +228,7 @@ class test_bacseg(unittest.TestCase):
 
         mask_dict = self.read_mask_files(mask_paths)
 
-        layer_names = [
-            layer.name
-            for layer in self.BacSeg.viewer.layers
-            if layer.name not in ["Segmentations", "Classes", "center_lines"]
-        ]
+        layer_names = [layer.name for layer in self.BacSeg.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
         for layer in layer_names:
             metadata = self.BacSeg.viewer.layers[layer].metadata
 
@@ -339,26 +242,13 @@ class test_bacseg(unittest.TestCase):
 
                     assert num_cells >= target_num_cells - 5
 
-    def export_data(
-        self,
-        mode="masks",
-        overwrite=False,
-        export_images=False,
-        normalise=False,
-        invert=False,
-        autocontrast=False,
-        export_modifier="_BacSeg",
-    ):
+    def export_data(self, mode="masks", overwrite=False, export_images=False, normalise=False, invert=False, autocontrast=False, export_modifier="_BacSeg", ):
         if self.BacSeg.segLayer.data.shape == (1, 100, 100):
             self.import_masks(mode="masks")
 
         self.BacSeg.export_directory = "test_data/exported_data"
 
-        layer_names = [
-            layer.name
-            for layer in self.BacSeg.viewer.layers
-            if layer.name not in ["Segmentations", "Classes", "center_lines"]
-        ]
+        layer_names = [layer.name for layer in self.BacSeg.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
 
         if os.path.isdir(self.BacSeg.export_directory) != True:
             os.mkdir(self.BacSeg.export_directory)
@@ -371,9 +261,7 @@ class test_bacseg(unittest.TestCase):
         if mode == "images":
             self.BacSeg.export_mode.setCurrentText("Export .tif Images")
         if mode == "images + masks":
-            self.BacSeg.export_mode.setCurrentText(
-                "Export .tif Images and Masks"
-            )
+            self.BacSeg.export_mode.setCurrentText("Export .tif Images and Masks")
         if mode == "oufti":
             self.BacSeg.export_mode.setCurrentText("Export Oufti")
         if mode == "cellpose":
@@ -403,25 +291,14 @@ class test_bacseg(unittest.TestCase):
 
         num_exported_files = len(glob(self.BacSeg.export_directory + "/*"))
 
-        layer_names = [
-            layer.name
-            for layer in self.BacSeg.viewer.layers
-            if layer.name not in ["Segmentations", "Classes", "center_lines"]
-        ]
+        layer_names = [layer.name for layer in self.BacSeg.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
 
         num_images = self.BacSeg.viewer.layers[layer_names[0]].data.shape[0]
 
-        if export_images == True and mode in [
-            "oufti",
-            "cellpose",
-            "json",
-            "csv",
-        ]:
+        if export_images == True and mode in ["oufti", "cellpose", "json", "csv", ]:
             targeted_image_num = num_images * 2
         elif mode == "images + masks":
-            num_exported_files = len(
-                glob(self.BacSeg.export_directory + "/*/*")
-            )
+            num_exported_files = len(glob(self.BacSeg.export_directory + "/*/*"))
             targeted_image_num = num_images * 2
         else:
             targeted_image_num = num_images
@@ -431,9 +308,7 @@ class test_bacseg(unittest.TestCase):
     def load_custom_cellpose_model(self):
         from napari_bacseg._utils_cellpose import _select_custom_cellpose_model
 
-        self.BacSeg._select_custom_cellpose_model = self.BacSeg.wrapper(
-            _select_custom_cellpose_model
-        )
+        self.BacSeg._select_custom_cellpose_model = self.BacSeg.wrapper(_select_custom_cellpose_model)
 
         model_path = "test_data/cellpose_model/cellpose_residual_on_style_on_concatenation_off_Image_2022_08_01_17_24_23.500813"
 
@@ -442,15 +317,7 @@ class test_bacseg(unittest.TestCase):
         self.BacSeg.cellpose_segmodel.setCurrentIndex(6)
 
     def train_cellpose(self, mode="active", model="cyto", import_limit=1):
-        cellpose_models = [
-            "cyto",
-            "nuclei",
-            "tissuenet",
-            "livecell",
-            "cyto2",
-            "general",
-            "custom",
-        ]
+        cellpose_models = ["cyto", "nuclei", "tissuenet", "livecell", "cyto2", "general", "custom", ]
 
         if model == "custom":
             self.load_custom_cellpose_model()
@@ -461,10 +328,7 @@ class test_bacseg(unittest.TestCase):
         self.import_images(mode="images", import_limit=str(import_limit))
 
         from napari_bacseg._utils import unstack_images
-        from napari_bacseg._utils_cellpose import (
-            _process_cellpose,
-            _run_cellpose,
-        )
+        from napari_bacseg._utils_cellpose import (_process_cellpose, _run_cellpose, )
 
         self.BacSeg._run_cellpose = self.BacSeg.wrapper(_run_cellpose)
         self.BacSeg._process_cellpose = self.BacSeg.wrapper(_process_cellpose)
@@ -484,13 +348,7 @@ class test_bacseg(unittest.TestCase):
 
         masks = self.BacSeg.viewer.layers["Segmentations"].data
 
-        mask_num = len(
-            [
-                mask
-                for mask in [len(np.unique(mask)) for mask in masks]
-                if mask > 1
-            ]
-        )
+        mask_num = len([mask for mask in [len(np.unique(mask)) for mask in masks] if mask > 1])
 
         assert mask_num == len(images)
         assert len(data) == len(images)
@@ -505,9 +363,7 @@ class test_bacseg(unittest.TestCase):
 
         from napari_bacseg._utils_database import _load_bacseg_database
 
-        self.BacSeg._load_bacseg_database = self.BacSeg.wrapper(
-            _load_bacseg_database
-        )
+        self.BacSeg._load_bacseg_database = self.BacSeg.wrapper(_load_bacseg_database)
 
         self.BacSeg._load_bacseg_database(path=path)
 
@@ -527,9 +383,7 @@ class test_bacseg(unittest.TestCase):
 
         from napari_bacseg._utils_database import _create_bacseg_database
 
-        self.BacSeg._create_bacseg_database = self.BacSeg.wrapper(
-            _create_bacseg_database
-        )
+        self.BacSeg._create_bacseg_database = self.BacSeg.wrapper(_create_bacseg_database)
 
         database_directory = self.BacSeg._create_bacseg_database(path=path)
 
@@ -541,12 +395,7 @@ class test_bacseg(unittest.TestCase):
         database_directory = self.BacSeg.database_path
 
         if user_initial != "all":
-            meta_path = os.path.join(
-                self.BacSeg.database_path,
-                "images",
-                user_initial,
-                f"{user_initial}_file_metadata.txt",
-            )
+            meta_path = os.path.join(self.BacSeg.database_path, "images", user_initial, f"{user_initial}_file_metadata.txt", )
 
             if os.path.exists(meta_path) == True:
                 metadata = pd.read_csv(meta_path, sep=",", low_memory=False)
@@ -554,48 +403,25 @@ class test_bacseg(unittest.TestCase):
                 metadata = pd.DataFrame()
 
         else:
-            meta_files = glob(
-                os.path.join(database_directory, "Images")
-                + "/**/*file_metadata.txt"
-            )
+            meta_files = glob(os.path.join(database_directory, "Images") + "/**/*file_metadata.txt")
 
             meta_list = []
 
             for user_metadata_path in meta_files:
                 if os.path.exists(user_metadata_path) == True:
-                    user_metadata = pd.read_csv(
-                        user_metadata_path, sep=",", low_memory=False
-                    )
+                    user_metadata = pd.read_csv(user_metadata_path, sep=",", low_memory=False)
                     meta_list.append(user_metadata)
                 else:
                     meta_list.append(pd.DataFrame())
 
-            metadata = pd.concat(
-                meta_list, axis=0, ignore_index=True
-            ).reset_index(drop=True)
+            metadata = pd.concat(meta_list, axis=0, ignore_index=True).reset_index(drop=True)
 
         metadata = metadata.loc[:, ~metadata.columns.duplicated()].copy()
 
         return metadata
 
     def update_database_metadata(self, user_initial):
-        control_dict = {
-            "abxconcentration": "upload_abxconcentration",
-            "antibiotic": "upload_antibiotic",
-            "content": "upload_content",
-            "microscope": "upload_microscope",
-            "modality": "label_modality",
-            "mount": "upload_mount",
-            "protocol": "upload_protocol",
-            "source": "label_light_source",
-            "stain": "label_stain",
-            "stain_target": "label_stain_target",
-            "treatment_time": "upload_treatmenttime",
-            "user_initial": "upload_initial",
-            "meta1": "upload_usermeta1",
-            "meta2": "upload_usermeta2",
-            "meta3": "upload_usermeta3",
-        }
+        control_dict = {"abxconcentration": "upload_abxconcentration", "antibiotic": "upload_antibiotic", "content": "upload_content", "microscope": "upload_microscope", "modality": "label_modality", "mount": "upload_mount", "protocol": "upload_protocol", "source": "label_light_source", "stain": "label_stain", "stain_target": "label_stain_target", "treatment_time": "upload_treatmenttime", "user_initial": "upload_initial", "meta1": "upload_usermeta1", "meta2": "upload_usermeta2", "meta3": "upload_usermeta3", }
 
         dbmeta = self.get_database_metadata(user_initial=user_initial)
 
@@ -615,9 +441,7 @@ class test_bacseg(unittest.TestCase):
 
         from napari_bacseg._utils_database import update_database_metadata
 
-        self.BacSeg.update_database_metadata = self.BacSeg.wrapper(
-            update_database_metadata
-        )
+        self.BacSeg.update_database_metadata = self.BacSeg.wrapper(update_database_metadata)
 
         self.BacSeg.update_database_metadata(control=None)
 
@@ -625,31 +449,15 @@ class test_bacseg(unittest.TestCase):
             combo_box = getattr(self.BacSeg, control_name)
             combo_box.setCurrentText(control_text)
 
-    def upload_database(
-        self,
-        path=None,
-        mode="active",
-        user_initial="AK",
-        content="BacSeg",
-        microscope="Nikon",
-        modalilty="Fluorescence",
-        source="LED",
-        stain="None",
-        stain_target="None",
-        overwrite_images=False,
-        overwrite_masks=False,
-        overwrite_all_metadata=False,
-        overwrite_selected_metadata=False,
-    ):
+    def upload_database(self, path=None, mode="active", user_initial="AK", content="BacSeg", microscope="Nikon", modalilty="Fluorescence", source="LED", stain="None", stain_target="None", overwrite_images=False, overwrite_masks=False, overwrite_all_metadata=False, overwrite_selected_metadata=False, ):
+
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=ResourceWarning)
 
             if type(path) == str:
                 self.create_database(path=path)
 
-            pre_upload_metadata = len(
-                self.get_database_metadata(user_initial=user_initial)
-            )
+            pre_upload_metadata = len(self.get_database_metadata(user_initial=user_initial))
 
             self.BacSeg.upload_initial.setCurrentText(user_initial)
             self.BacSeg.upload_content.setCurrentText(content)
@@ -660,32 +468,18 @@ class test_bacseg(unittest.TestCase):
             self.BacSeg.label_stain_target.setCurrentText(stain_target)
             self.BacSeg.upload_overwrite_images.setChecked(overwrite_images)
             self.BacSeg.upload_overwrite_masks.setChecked(overwrite_masks)
-            self.BacSeg.overwrite_all_metadata.setChecked(
-                overwrite_all_metadata
-            )
-            self.BacSeg.overwrite_selected_metadata.setChecked(
-                overwrite_selected_metadata
-            )
+            self.BacSeg.overwrite_all_metadata.setChecked(overwrite_all_metadata)
+            self.BacSeg.overwrite_selected_metadata.setChecked(overwrite_selected_metadata)
 
-            from napari_bacseg._utils_database_IO import (
-                _upload_bacseg_database,
-            )
+            from napari_bacseg._utils_database_IO import (_upload_bacseg_database, )
 
-            self.BacSeg._upload_bacseg_database = self.BacSeg.wrapper(
-                _upload_bacseg_database
-            )
+            self.BacSeg._upload_bacseg_database = self.BacSeg.wrapper(_upload_bacseg_database)
 
-            self.BacSeg._upload_bacseg_database(
-                mode=mode, progress_callback=None
-            )
+            self.BacSeg._upload_bacseg_database(mode=mode, progress_callback=None)
 
-            post_upload_metadata = len(
-                self.get_database_metadata(user_initial=user_initial)
-            )
+            post_upload_metadata = len(self.get_database_metadata(user_initial=user_initial))
 
-            database_length_increase = (
-                post_upload_metadata - pre_upload_metadata
-            )
+            database_length_increase = (post_upload_metadata - pre_upload_metadata)
 
             self.update_database_metadata(user_initial)
 
@@ -715,26 +509,9 @@ class test_bacseg(unittest.TestCase):
     #
 
     def test_database_download(self, import_limit=1):
-        meta_keys = [
-            "user_initial",
-            "content",
-            "microscope",
-            "antibiotic",
-            "treatment time (mins)",
-            "source",
-            "modality",
-            "stain",
-            "antibiotic concentration",
-            "mounting method",
-            "protocol",
-            "segmented",
-            "segmentation_curated",
-            "labelled",
-            "label_curated",
-            "user_meta1",
-            "user_meta2",
-            "user_meta3",
-        ]
+
+        meta_keys = ["user_initial", "content", "microscope", "antibiotic", "treatment time (mins)", "source", "modality", "stain", "antibiotic concentration", "mounting method", "protocol",
+            "segmented", "segmentation_curated", "labelled", "label_curated", "user_meta1", "user_meta2", "user_meta3", ]
 
         self.load_database()
 
@@ -742,9 +519,7 @@ class test_bacseg(unittest.TestCase):
 
         metadata = metadata[meta_keys]
 
-        metadata = metadata.sample(n=import_limit, random_state=0).dropna(
-            axis=1, how="all"
-        )
+        metadata = metadata.sample(n=import_limit, random_state=0).dropna(axis=1, how="all")
 
         meta_options = {}
         for column in metadata.columns.values:
@@ -801,38 +576,19 @@ class test_bacseg(unittest.TestCase):
         # else:
         #     self.BacSeg.upload_label_combo.setCurrentIndex(0)
 
-        from napari_bacseg._utils_database_IO import (
-            get_filtered_database_metadata,
-            read_bacseg_images,
-        )
+        from napari_bacseg._utils_database_IO import (get_filtered_database_metadata, read_bacseg_images, )
 
-        self.BacSeg.get_filtered_database_metadata = self.BacSeg.wrapper(
-            get_filtered_database_metadata
-        )
-        self.BacSeg.read_bacseg_images = self.BacSeg.wrapper(
-            read_bacseg_images
-        )
+        self.BacSeg.get_filtered_database_metadata = self.BacSeg.wrapper(get_filtered_database_metadata)
+        self.BacSeg.read_bacseg_images = self.BacSeg.wrapper(read_bacseg_images)
 
         self.BacSeg.active_import_mode = "BacSeg"
 
-        (
-            measurements,
-            file_paths,
-            channels,
-        ) = self.BacSeg.get_filtered_database_metadata()
+        (measurements, file_paths, channels,) = self.BacSeg.get_filtered_database_metadata()
 
-        data = self.BacSeg.read_bacseg_images(
-            measurements=measurements,
-            channels=channels,
-            progress_callback=None,
-        )
+        data = self.BacSeg.read_bacseg_images(measurements=measurements, channels=channels, progress_callback=None, )
         self.BacSeg._process_import(data)
 
-        layer_names = [
-            layer.name
-            for layer in self.BacSeg.viewer.layers
-            if layer.name not in ["Segmentations", "Classes", "center_lines"]
-        ]
+        layer_names = [layer.name for layer in self.BacSeg.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
 
         loaded_images = len(self.BacSeg.viewer.layers[layer_names[0]].data)
 

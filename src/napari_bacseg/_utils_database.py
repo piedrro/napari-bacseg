@@ -366,6 +366,7 @@ def populate_upload_combos(self):
 
 
 def update_database_metadata(self, control=None):
+
     new_user = False
     new_user_initial = ""
 
