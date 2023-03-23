@@ -575,7 +575,6 @@ class BacSeg(QWidget):
 
         self.widget_notifications = True
 
-
     def set_image_quality(self, mode = "", value =""):
 
         try:
@@ -1059,7 +1058,7 @@ class BacSeg(QWidget):
                 worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
                 self.threadpool.start(worker)
 
-    def _export(self, mode):
+    def _export(self, mode, viewer=None):
         def _event(viewer):
             # if self.unfolded == True:
             #     self.fold_images()

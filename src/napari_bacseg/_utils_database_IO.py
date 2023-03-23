@@ -17,6 +17,7 @@ from napari_bacseg._utils_json import export_coco_json
 
 
 def check_metadata_format(metadata, expected_columns):
+
     if "stains" in metadata.columns:
         metadata = metadata.rename(columns={"stains": "stain"})
 

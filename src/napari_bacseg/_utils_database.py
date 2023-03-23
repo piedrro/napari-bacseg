@@ -401,9 +401,54 @@ def update_database_metadata(self, control=None):
             combo_box.setCurrentText(control_text)
 
 
+def read_file_metadata(self):
+
+    # control_dict = {"abxconcentration": "upload_abxconcentration", "antibiotic": "upload_antibiotic",
+    #                 "content": "upload_content", "microscope": "upload_microscope",
+    #                 "modality": "label_modality", "mount": "upload_mount",
+    #                 "protocol": "upload_protocol", "source": "label_light_source",
+    #                 "stain": "label_stain", "stain_target": "label_stain_target",
+    #                 "treatment_time": "upload_treatmenttime"}
+
+    control_dict = {}
+
+    user_file_meta = {}
+
+    user_key_list = np.arange(1, self.user_metadata_keys + 1).tolist()
+    user_key_list.reverse()
+
+    for key in user_key_list:
+        user_key = f"meta{key}"
+        control_dict[user_key] = f"user_meta{key}"
+
+    database_path = self.database_path
+    user_initial = self.upload_initial.currentText()
+
+    if database_path != "" and user_initial != "":
+
+        user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
+
+        if os.path.exists(user_metadata_path):
+
+            user_metadata = pd.read_csv(user_metadata_path, sep=",", low_memory=False)
+
+            for key, dfkey in control_dict.items():
+
+                values = user_metadata[dfkey].unique().tolist()
+
+                user_file_meta[key] = values
+
+    return user_file_meta
+
+
+
+
+
 def _populateUSERMETA(self):
+
     try:
         _, usermeta = read_txt_metadata(self, self.database_path)
+        file_usermeta = read_file_metadata(self)
 
         user_initial = self.upload_initial.currentText()
 
@@ -416,10 +461,15 @@ def _populateUSERMETA(self):
             combo_box.clear()
 
             if user_initial in usermeta.keys():
+                user_meta_values = usermeta[user_initial][f"meta{key}"]
+                file_meta_values = file_usermeta[f"meta{key}"]
 
-                meta_values = usermeta[user_initial][f"meta{key}"]
+                meta_values = np.unique(user_meta_values + file_meta_values).tolist()
+
+                meta_values = [value for value in meta_values if value not in ["", " ", "nan", "Required for upload",
+                                                                               'example_item1', 'example_item2', 'example_item3',
+                                                                               None, np.nan]]
                 combo_box.addItems([""] + meta_values)
-
             else:
                 combo_box.setCurrentText("")
 
