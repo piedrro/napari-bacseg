@@ -403,13 +403,6 @@ def update_database_metadata(self, control=None):
 
 def read_file_metadata(self):
 
-    # control_dict = {"abxconcentration": "upload_abxconcentration", "antibiotic": "upload_antibiotic",
-    #                 "content": "upload_content", "microscope": "upload_microscope",
-    #                 "modality": "label_modality", "mount": "upload_mount",
-    #                 "protocol": "upload_protocol", "source": "label_light_source",
-    #                 "stain": "label_stain", "stain_target": "label_stain_target",
-    #                 "treatment_time": "upload_treatmenttime"}
-
     control_dict = {}
 
     user_file_meta = {}
@@ -434,9 +427,15 @@ def read_file_metadata(self):
 
             for key, dfkey in control_dict.items():
 
-                values = user_metadata[dfkey].unique().tolist()
+                if dfkey in user_metadata.columns:
 
-                user_file_meta[key] = values
+                    values = user_metadata[dfkey].unique().tolist()
+
+                    user_file_meta[key] = values
+
+                else:
+
+                    user_file_meta[key] = []
 
     return user_file_meta
 
