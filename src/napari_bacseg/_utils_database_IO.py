@@ -1268,6 +1268,9 @@ def get_filtered_database_metadata(self):
         if "posY" in user_metadata.columns:
             sort_columns.append("posY")
             user_metadata.loc[user_metadata["posY"].isna(), "posY"] = 0
+        if "posZ" in user_metadata.columns:
+            sort_columns.append("posZ")
+            user_metadata.loc[user_metadata["posZ"].isna(), "posZ"] = 0
 
         measurements = user_metadata.groupby(sort_columns)
 
