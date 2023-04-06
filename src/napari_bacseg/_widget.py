@@ -230,6 +230,9 @@ class BacSeg(QWidget):
         self.fold = self.findChild(QPushButton, "fold")
         self.unfold = self.findChild(QPushButton, "unfold")
         self.unfold_progressbar = self.findChild(QPushButton, "unfold_progressbar")
+        self.alignment_channel =  self.findChild(QComboBox, "alignment_channel")
+        self.align_active_image = self.findChild(QPushButton, "align_active_image")
+        self.align_all_images = self.findChild(QPushButton, "align_all_images")
 
         # cellpose controls + variables from Qt Desinger References
         self.cellpose_segmentation = False
@@ -297,6 +300,7 @@ class BacSeg(QWidget):
         self.find_previous = self.findChild(QPushButton, "find_previous")
         self.find_criterion = self.findChild(QComboBox, "find_criterion")
         self.find_mode = self.findChild(QComboBox, "find_mode")
+
 
         self.set_quality_mode = self.findChild(QComboBox, "set_quality_mode")
         self.set_focus_0 = self.findChild(QPushButton, "set_focus_0")
@@ -366,8 +370,14 @@ class BacSeg(QWidget):
         self.upload_tab = self.findChild(QWidget, "upload_tab")
         self.upload_segmentation_combo = self.findChild(QComboBox, "upload_segmentation_combo")
         self.upload_label_combo = self.findChild(QComboBox, "upload_label_combo")
-        self.download_sort_order = self.findChild(QComboBox, "download_sort_order")
+        self.download_sort_order_1 = self.findChild(QComboBox, "download_sort_order_1")
+        self.download_sort_order_2 = self.findChild(QComboBox, "download_sort_order_2")
+        self.download_sort_direction_1 = self.findChild(QComboBox, "download_sort_direction_1")
+        self.download_sort_direction_2 = self.findChild(QComboBox, "download_sort_direction_2")
         self.update_metadata = self.findChild(QPushButton, "update_metadata")
+        self.upload_images_setting = self.findChild(QCheckBox, "upload_images_setting")
+        self.upload_segmentations_setting = self.findChild(QCheckBox, "upload_segmentations_setting")
+        self.upload_metadata_setting = self.findChild(QCheckBox, "upload_metadata_setting")
 
         self.image_metadata_controls = self.findChild(QFormLayout, "image_metadata_controls")
 
@@ -421,6 +431,8 @@ class BacSeg(QWidget):
         self.tiler_object = None
         self.tile_dict = {"Segmentations": [], "Classes": []}
         self.unfolded = False
+        self.align_active_image.clicked.connect(partial(self._align_images, mode="active"))
+        self.align_all_images.clicked.connect(partial(self._align_images, mode="all"))
 
         # cellpose events
         self.cellpose_flowthresh.valueChanged.connect(lambda: self._updateSliderLabel("cellpose_flowthresh", "cellpose_flowthresh_label"))
@@ -434,6 +446,7 @@ class BacSeg(QWidget):
         self.cellpose_segment_active.clicked.connect(self._segmentActive)
         self.cellpose_train_model.clicked.connect(self._trainCellpose)
         self.cellpose_segchannel.currentTextChanged.connect(self._updateSegChannels)
+
 
         # modify tab events
         self.modify_panzoom.clicked.connect(self._modifyMode(mode="panzoom"))
@@ -452,11 +465,13 @@ class BacSeg(QWidget):
         self.classify_broken.clicked.connect(self._modifyMode(mode="broken"))
         self.classify_edge.clicked.connect(self._modifyMode(mode="edge"))
 
+        self.viewer.bind_key(key="b", func=self.set_blurred, overwrite=True)
         self.set_focus_1.clicked.connect(partial(self.set_image_quality, mode = "focus", value=1))
         self.set_focus_2.clicked.connect(partial(self.set_image_quality, mode = "focus", value=2))
         self.set_focus_3.clicked.connect(partial(self.set_image_quality, mode = "focus", value=3))
         self.set_focus_4.clicked.connect(partial(self.set_image_quality, mode = "focus", value=4))
         self.set_focus_5.clicked.connect(partial(self.set_image_quality, mode = "focus", value=5))
+        self.viewer.bind_key(key="f", func=self.set_focused, overwrite=True)
 
         self.set_debris_1.clicked.connect(partial(self.set_image_quality, mode = "debris", value=1))
         self.set_debris_2.clicked.connect(partial(self.set_image_quality, mode = "debris", value=2))
@@ -545,7 +560,7 @@ class BacSeg(QWidget):
         self.viewer.bind_key(key="Control-Shift-d", func=self._deleteallmasks(mode="all"), overwrite=True, )
         self.viewer.bind_key(key="Control-i", func=self._delete_active_image(mode="active"), overwrite=True, )
         self.viewer.bind_key(key="Control-Shift-i", func=self._delete_active_image(mode="other"), overwrite=True, )
-        #
+
         self.viewer.bind_key(key="Control-l", func=self._downloadDatabase(), overwrite=True)
         self.viewer.bind_key(key="Control-u", func=self._uploadDatabase(mode="active"), overwrite=True, )
         self.viewer.bind_key(key="Control-Shift-u", func=self._uploadDatabase(mode="all"), overwrite=True, )
@@ -574,6 +589,68 @@ class BacSeg(QWidget):
         self.threadpool = QThreadPool()  # self.load_dev_data()
 
         self.widget_notifications = True
+
+
+    def _align_images(self, viewer=None, mode="active"):
+
+        from skimage import exposure
+        import scipy
+        from skimage.registration import phase_cross_correlation
+
+        try:
+
+            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations",
+                                                                                            "Classes",
+                                                                                            "center_lines"]]
+
+            if len(layer_names) > 2:
+
+                num_images = self.viewer.layers[layer_names[0]].data.shape[0]
+
+                if mode == "active":
+                    fov_list = [self.viewer.dims.current_step[0]]
+                else:
+                    fov_list = range(num_images)
+
+                alignment_channel = self.alignment_channel.currentText()
+                current_fov = self.viewer.dims.current_step[0]
+
+                target_channels = [layer for layer in layer_names if layer != alignment_channel]
+
+                for channel in target_channels:
+
+                    image_stack = self.viewer.layers[channel].data.copy()
+                    target_image_stack = self.viewer.layers[alignment_channel].data.copy()
+
+                    for fov in fov_list:
+
+                        target_image = image_stack[fov, :, :]
+                        alignment_image = target_image_stack[fov, :, :]
+
+                        shift, error, diffphase = phase_cross_correlation(
+                            alignment_image,
+                            target_image,
+                            upsample_factor=100
+                        )
+
+                        shifted_img = scipy.ndimage.shift(target_image, shift)
+
+                        image_stack[fov, :, :] = shifted_img
+
+                    self.viewer.layers[channel].data = image_stack
+
+                show_info(f"{len(fov_list)} Image(s) aligned to channel: " + alignment_channel)
+
+        except:
+            pass
+
+
+
+    def set_blurred(self, viewer=None):
+        self.set_image_quality(mode="focus", value=1)
+
+    def set_focused(self, viewer=None):
+        self.set_image_quality(mode="focus", value=5)
 
     def set_image_quality(self, mode = "", value =""):
 
@@ -891,6 +968,7 @@ class BacSeg(QWidget):
         self.threadpool.start(worker)
 
     def _uploadDatabase(self, viewer=None, mode=""):
+
         def _event(viewer):
             try:
                 if (self.database_path != "" and os.path.exists(self.database_path) == True):
@@ -1157,6 +1235,9 @@ class BacSeg(QWidget):
         self.cellpose_trainchannel.clear()
         self.cellpose_trainchannel.addItems(layer_names)
 
+        self.alignment_channel.clear()
+        self.alignment_channel.addItems(layer_names)
+
         self.export_channel.clear()
         export_layers = layer_names
         export_layers.extend(["All Channels (Stack)", "First Three Channels (RGB)"])
@@ -1206,10 +1287,13 @@ class BacSeg(QWidget):
             current_fov = self.viewer.dims.current_step[0]
             active_layer = self.viewer.layers.selection.active
 
+            image = self.viewer.layers[str(active_layer)].data[current_fov]
             metadata = self.viewer.layers[str(active_layer)].metadata[current_fov]
 
             file_name = metadata["image_name"]
             channel = metadata["channel"]
+
+
 
             viewer_text = f"File Name: {file_name}"
 
@@ -1248,6 +1332,13 @@ class BacSeg(QWidget):
                 viewer_text = viewer_text + f"\nImage Debris: {image_debris}"
             else:
                 viewer_text = viewer_text + f"\nImage Debris: None"
+
+            image_range = np.max(image) - np.min(image)
+            image_laplacian = np.mean(cv2.Laplacian(image, cv2.CV_64F))
+
+            viewer_text = viewer_text + f"\nImage Laplacian: {image_laplacian:.2f}"
+            viewer_text = viewer_text + f"\nImage Range: {image_range}"
+
 
             self.viewer.text_overlay.visible = True
 

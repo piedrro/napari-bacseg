@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>681</width>
-    <height>1011</height>
+    <height>1133</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -765,6 +765,75 @@
           <string>Smaller Images (Extra FOVs)</string>
          </property>
         </item>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_43">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Minimum</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="Line" name="line_28">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_70">
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Automatic Channel Alignment/Registration</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QFormLayout" name="formLayout_18">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_40">
+        <property name="text">
+         <string>Reference Channel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="alignment_channel"/>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QGridLayout" name="gridLayout_26">
+      <item row="0" column="0">
+       <widget class="QPushButton" name="align_active_image">
+        <property name="text">
+         <string>Align Active Image</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="align_all_images">
+        <property name="text">
+         <string>Align All Images</string>
+        </property>
        </widget>
       </item>
      </layout>
@@ -3481,7 +3550,7 @@ color: rgb(0, 255, 0);</string>
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>150</height>
+        <height>500</height>
        </size>
       </property>
       <property name="currentIndex">
@@ -3494,11 +3563,16 @@ color: rgb(0, 255, 0);</string>
        <layout class="QVBoxLayout" name="verticalLayout_12">
         <item>
          <layout class="QGridLayout" name="database_download_buttons_2">
-          <item row="0" column="1">
-           <widget class="QComboBox" name="download_sort_order">
+          <item row="1" column="1">
+           <widget class="QComboBox" name="download_sort_order_2">
             <property name="currentIndex">
              <number>0</number>
             </property>
+            <item>
+             <property name="text">
+              <string/>
+             </property>
+            </item>
             <item>
              <property name="text">
               <string>Random</string>
@@ -3506,22 +3580,32 @@ color: rgb(0, 255, 0);</string>
             </item>
             <item>
              <property name="text">
-              <string>Date Uploaded (Ascending)</string>
+              <string>Date Uploaded</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Date Uploaded (Descending)</string>
+              <string>Date Modifed</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Date Modifed (Ascending)</string>
+              <string>Image Laplacian</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Date Modifed (Descending)</string>
+              <string>Num Segmentations</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Image Focus</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Image Debris</string>
              </property>
             </item>
            </widget>
@@ -3529,20 +3613,119 @@ color: rgb(0, 255, 0);</string>
           <item row="0" column="0">
            <widget class="QLabel" name="label_15">
             <property name="text">
-             <string>Sort Order</string>
+             <string>Primary Sort Order</string>
             </property>
            </widget>
           </item>
+          <item row="0" column="2">
+           <widget class="QComboBox" name="download_sort_direction_1">
+            <item>
+             <property name="text">
+              <string/>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Ascending</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Descending</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="download_sort_order_1">
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <item>
+             <property name="text">
+              <string/>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Random</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Date Uploaded</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Date Modifed</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Image Laplacian</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Num Segmentations</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Image Focus</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Image Debris</string>
+             </property>
+            </item>
+           </widget>
+          </item>
           <item row="1" column="0">
+           <widget class="QLabel" name="label_23">
+            <property name="text">
+             <string>Secondary Sort Order</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QComboBox" name="download_sort_direction_2">
+            <item>
+             <property name="text">
+              <string/>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Ascending</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Descending</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_23">
+          <item row="0" column="0">
            <widget class="QLabel" name="label_88">
             <property name="text">
              <string>Download Limit</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="0" column="1">
            <widget class="QComboBox" name="database_download_limit">
             <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="editable">
              <bool>true</bool>
             </property>
             <property name="frame">
@@ -3605,14 +3788,76 @@ color: rgb(0, 255, 0);</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_11">
         <item>
-         <layout class="QGridLayout" name="database_upload_options_2">
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="overwrite_all_metadata">
+         <widget class="QLabel" name="label_24">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Upload Data</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_24">
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="upload_segmentations_setting">
+            <property name="text">
+             <string>Segmentations/labels</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="upload_images_setting">
+            <property name="text">
+             <string>Images</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QCheckBox" name="upload_metadata_setting">
+            <property name="text">
+             <string>Metadata</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_32">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Upload Settings</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_25">
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="upload_overwrite_masks">
             <property name="enabled">
              <bool>true</bool>
             </property>
             <property name="text">
-             <string>Overwrite All Metadata</string>
+             <string>Overwrite Masks/Labels</string>
             </property>
            </widget>
           </item>
@@ -3626,17 +3871,17 @@ color: rgb(0, 255, 0);</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="upload_overwrite_masks">
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="overwrite_all_metadata">
             <property name="enabled">
              <bool>true</bool>
             </property>
             <property name="text">
-             <string>Overwrite Masks/Labels</string>
+             <string>Overwrite All Metadata</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="1" column="1">
            <widget class="QCheckBox" name="overwrite_selected_metadata">
             <property name="enabled">
              <bool>true</bool>
@@ -3647,6 +3892,22 @@ color: rgb(0, 255, 0);</string>
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_41">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Minimum</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>435</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
         <item>
          <layout class="QGridLayout" name="database_upload_buttons_2">
@@ -3721,7 +3982,7 @@ color: rgb(0, 255, 0);</string>
       <property name="sizeHint" stdset="0">
        <size>
         <width>20</width>
-        <height>40</height>
+        <height>20</height>
        </size>
       </property>
      </spacer>

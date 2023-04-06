@@ -37,6 +37,7 @@ def find_contours(img):
 
 
 def determine_overlap(cnt_num, contours, image):
+
     try:
 
         # gets current contour of interest

@@ -16,15 +16,20 @@ def find_contours(img):
 
 def fill_holes(mask, colour):
 
-    fill_mask = mask.copy()
-    fill_mask[fill_mask != colour] = 0
-    fill_mask[fill_mask == colour] == 255
-    fill_mask = fill_mask.astype(np.uint8)
+    try:
 
-    cnt = find_contours(fill_mask.astype(np.uint8))
-    cv2.drawContours(fill_mask, [cnt[0]], -1, 255, -1)
+        fill_mask = mask.copy()
+        fill_mask[fill_mask != colour] = 0
+        fill_mask[fill_mask == colour] == 255
+        fill_mask = fill_mask.astype(np.uint8)
 
-    mask[fill_mask == 255] = colour
+        cnt = find_contours(fill_mask.astype(np.uint8))
+        cv2.drawContours(fill_mask, [cnt[0]], -1, 255, -1)
+
+        mask[fill_mask == 255] = colour
+
+    except:
+        pass
 
     return mask
 
@@ -32,27 +37,114 @@ def fill_holes(mask, colour):
 
 def _segmentationEvents(self, viewer, event):
 
-    if "Control" in event.modifiers:
-        self._modifyMode(mode="delete")
+    try:
 
-    if "Shift" in event.modifiers:
-        self._modifyMode(mode="add")
+        if "Control" in event.modifiers:
+            self._modifyMode(mode="delete")
 
-    if self.interface_mode == "segment":
+        if "Shift" in event.modifiers:
+            self._modifyMode(mode="add")
 
-        # add segmentation
-        if self.segmentation_mode in ["add", "extend"]:
+        if self.interface_mode == "segment":
 
-            self.segLayer.mode = "paint"
-            self.segLayer.brush_size = 1
+            # add segmentation
+            if self.segmentation_mode in ["add", "extend"]:
 
-            stored_mask = self.segLayer.data.copy()
-            stored_class = self.classLayer.data.copy()
-            meta = self.segLayer.metadata.copy()
+                self.segLayer.mode = "paint"
+                self.segLayer.brush_size = 1
 
-            if self.segmentation_mode == "add":
-                new_colour = _newSegColour(self)
-            else:
+                stored_mask = self.segLayer.data.copy()
+                stored_class = self.classLayer.data.copy()
+                meta = self.segLayer.metadata.copy()
+
+                if self.segmentation_mode == "add":
+                    new_colour = _newSegColour(self)
+                else:
+                    data_coordinates = self.segLayer.world_to_data(event.position)
+                    coord = np.round(data_coordinates).astype(int)
+                    new_colour = self.segLayer.get_value(coord)
+
+                    self.segLayer.selected_label = new_colour
+                    new_colour = self.segLayer.get_value(coord)
+
+                    new_class = self.classLayer.get_value(coord)
+
+                    if new_class != None:
+                        self.class_colour = new_class
+
+                dragged = False
+                coordinates = []
+
+                yield
+
+                # # on move
+                while event.type == 'mouse_move':
+                    coordinates.append(event.position)
+                    dragged = True
+                    yield
+
+                # on release
+                if dragged:
+
+                    if new_colour != 0 and new_colour != None and self.class_colour != None:
+
+                        coordinates = np.round(np.array(coordinates)).astype(np.int32)
+
+                        mask_dim = tuple(list(coordinates[0][:-2]) + [...])
+
+                        cnt = coordinates[:, -2:]
+
+                        cnt = np.fliplr(cnt)
+                        cnt = cnt.reshape((-1, 1, 2))
+
+                        seg_stack = self.segLayer.data
+
+                        seg_mask = seg_stack[mask_dim]
+
+                        cv2.drawContours(seg_mask, [cnt], -1, int(new_colour), -1)
+
+                        seg_mask = fill_holes(seg_mask, new_colour)
+
+                        seg_stack[mask_dim] = seg_mask
+
+                        self.segLayer.data = seg_stack
+
+                        # update class
+
+                        class_stack = self.classLayer.data
+                        class_colour = self.class_colour
+                        seg_stack = self.segLayer.data
+
+                        seg_mask = seg_stack[mask_dim]
+                        class_mask = class_stack[mask_dim]
+
+                        class_mask[seg_mask == int(new_colour)] = class_colour
+                        class_stack[mask_dim] = class_mask
+
+                        self.classLayer.data = class_stack
+
+                        # update metadata
+
+                        meta["manual_segmentation"] = True
+                        self.segLayer.metadata = meta
+                        self.segLayer.mode = "pan_zoom"
+                        self.update_image_folds()
+
+                    else:
+                        self.segLayer.data = stored_mask
+                        self.classLayer.data = stored_class
+                        self.segLayer.mode = "pan_zoom"
+
+            # join segmentations
+            if self.segmentation_mode == "join":
+
+                self.segLayer.mode = "paint"
+                self.segLayer.brush_size = 1
+
+                stored_mask = self.segLayer.data.copy()
+                stored_class = self.classLayer.data.copy()
+                meta = self.segLayer.metadata.copy()
+
                 data_coordinates = self.segLayer.world_to_data(event.position)
                 coord = np.round(data_coordinates).astype(int)
                 new_colour = self.segLayer.get_value(coord)
@@ -65,453 +157,371 @@ def _segmentationEvents(self, viewer, event):
                 if new_class != None:
                     self.class_colour = new_class
 
-            dragged = False
-            coordinates = []
 
-            yield
-
-            # # on move
-            while event.type == 'mouse_move':
-                coordinates.append(event.position)
-                dragged = True
+                dragged = False
+                colours = []
+                classes = []
+                coords = []
                 yield
 
-            # on release
-            if dragged:
+                # on move
+                while event.type == 'mouse_move':
+                    data_coordinates = self.segLayer.world_to_data(event.position)
+                    coord = np.round(data_coordinates).astype(int)
+                    mask_val = self.segLayer.get_value(coord)
+                    class_val = self.classLayer.get_value(coord)
+                    colours.append(mask_val)
+                    classes.append(class_val)
+                    coords.append(coord)
+                    dragged = True
+                    yield
 
-                if new_colour != 0 and new_colour != None and self.class_colour != None:
+                # on release
+                if dragged:
 
-                    coordinates = np.round(np.array(coordinates)).astype(np.int32)
+                    colours = np.array(colours)
+                    colours = np.unique(colours)
+                    colours = np.delete(colours, np.where(colours == 0))
 
-                    mask_dim = tuple(list(coordinates[0][:-2]) + [...])
+                    if new_colour in colours:
+                        colours = np.delete(colours, np.where(colours == new_colour))
 
-                    cnt = coordinates[:, -2:]
+                    if len(colours) == 1 and new_colour not in colours and new_colour != None:
 
-                    cnt = np.fliplr(cnt)
-                    cnt = cnt.reshape((-1, 1, 2))
+                        mask_stack = self.segLayer.data
 
-                    seg_stack = self.segLayer.data
+                        mask_dim = tuple(list(coords[0][:-2]) + [...])
 
-                    seg_mask = seg_stack[mask_dim]
+                        mask = mask_stack[mask_dim]
 
-                    cv2.drawContours(seg_mask, [cnt], -1, int(new_colour), -1)
+                        mask[mask == colours[0]] = new_colour
 
-                    seg_mask = fill_holes(seg_mask, new_colour)
+                        mask = fill_holes(mask,new_colour)
 
-                    seg_stack[mask_dim] = seg_mask
+                        mask_stack[mask_dim] = mask
 
-                    self.segLayer.data = seg_stack
+                        self.segLayer.data = mask_stack
 
-                    # update class
+                        # update class
 
-                    class_stack = self.classLayer.data
-                    class_colour = self.class_colour
-                    seg_stack = self.segLayer.data
+                        class_stack = self.classLayer.data
+                        seg_stack = self.segLayer.data
 
-                    seg_mask = seg_stack[mask_dim]
-                    class_mask = class_stack[mask_dim]
+                        seg_mask = seg_stack[mask_dim]
+                        class_mask = class_stack[mask_dim]
 
-                    class_mask[seg_mask == int(new_colour)] = class_colour
-                    class_stack[mask_dim] = class_mask
+                        class_mask[seg_mask == new_colour] = 2
+                        class_stack[mask_dim] = class_mask
 
-                    self.classLayer.data = class_stack
+                        self.classLayer.data = class_stack
 
-                    # update metadata
-
-                    meta["manual_segmentation"] = True
-                    self.segLayer.metadata = meta
-                    self.segLayer.mode = "pan_zoom"
-                    self.update_image_folds()
-
-                else:
-                    self.segLayer.data = stored_mask
-                    self.classLayer.data = stored_class
-                    self.segLayer.mode = "pan_zoom"
-
-        # join segmentations
-        if self.segmentation_mode == "join":
-
-            self.segLayer.mode = "paint"
-            self.segLayer.brush_size = 1
-
-            stored_mask = self.segLayer.data.copy()
-            stored_class = self.classLayer.data.copy()
-            meta = self.segLayer.metadata.copy()
-
-            data_coordinates = self.segLayer.world_to_data(event.position)
-            coord = np.round(data_coordinates).astype(int)
-            new_colour = self.segLayer.get_value(coord)
-
-            self.segLayer.selected_label = new_colour
-            new_colour = self.segLayer.get_value(coord)
-
-            new_class = self.classLayer.get_value(coord)
-
-            if new_class != None:
-                self.class_colour = new_class
-
-
-            dragged = False
-            colours = []
-            classes = []
-            coords = []
-            yield
-
-            # on move
-            while event.type == 'mouse_move':
-                data_coordinates = self.segLayer.world_to_data(event.position)
-                coord = np.round(data_coordinates).astype(int)
-                mask_val = self.segLayer.get_value(coord)
-                class_val = self.classLayer.get_value(coord)
-                colours.append(mask_val)
-                classes.append(class_val)
-                coords.append(coord)
-                dragged = True
-                yield
-
-            # on release
-            if dragged:
-
-                colours = np.array(colours)
-                colours = np.unique(colours)
-                colours = np.delete(colours, np.where(colours == 0))
-
-                if new_colour in colours:
-                    colours = np.delete(colours, np.where(colours == new_colour))
-
-                if len(colours) == 1 and new_colour not in colours and new_colour != None:
-
-                    mask_stack = self.segLayer.data
-
-                    mask_dim = tuple(list(coords[0][:-2]) + [...])
-
-                    mask = mask_stack[mask_dim]
-
-                    mask[mask == colours[0]] = new_colour
-
-                    mask = fill_holes(mask,new_colour)
-
-                    mask_stack[mask_dim] = mask
-
-                    self.segLayer.data = mask_stack
-
-                    # update class
-
-                    class_stack = self.classLayer.data
-                    seg_stack = self.segLayer.data
-
-                    seg_mask = seg_stack[mask_dim]
-                    class_mask = class_stack[mask_dim]
-
-                    class_mask[seg_mask == new_colour] = 2
-                    class_stack[mask_dim] = class_mask
-
-                    self.classLayer.data = class_stack
-
-                    # update metadata
-
-                    meta["manual_segmentation"] = True
-                    self.segLayer.metadata = meta
-                    self.segLayer.mode = "pan_zoom"
-                    self.update_image_folds()
-
-
-                else:
-
-                    self.segLayer.data = stored_mask
-                    self.classLayer.data = stored_class
-                    self.segLayer.mode = "pan_zoom"
-
-        # split segmentations
-        if self.segmentation_mode == "split":
-
-            self.segLayer.mode = "paint"
-            self.segLayer.brush_size = 1
-
-            new_colour = _newSegColour(self)
-            stored_mask = self.segLayer.data.copy()
-            stored_class = self.classLayer.data
-            meta = self.segLayer.metadata.copy()
-
-            dragged = False
-            colours = []
-            yield
-
-            # on move
-            while event.type == 'mouse_move':
-                data_coordinates = self.segLayer.world_to_data(event.position)
-                coords = np.round(data_coordinates).astype(int)
-                mask_val = self.segLayer.get_value(coords)
-                colours.append(mask_val)
-                dragged = True
-                yield
-
-            # on release
-            if dragged:
-
-                colours = np.array(colours)
-                colours = np.delete(colours, np.where(colours == new_colour))
-
-                colours[colours==None] = 0
-
-                num_colours = len(np.unique(colours))
-
-                if num_colours == 2 or num_colours == 3:
-
-                    if num_colours == 2:
-                        maskref = colours[colours != 0][0]
-                    else:
-                        maskref = sorted(set(colours.tolist()), key=lambda x: colours.tolist().index(x))[1]
-
-                    bisection = colours[0] != maskref and colours[-1] != maskref
-
-                    if bisection and new_colour != None:
-
-                        mask_dim = tuple(list(coords[:-2]) + [...])
-                        shape_mask = stored_mask[mask_dim].copy()
-
-                        class_mask = stored_class[mask_dim].copy()
-                        class_mask[shape_mask == maskref] = 3
-                        stored_class[mask_dim] = class_mask
-                        self.classLayer.data = stored_class
-
-                        shape_mask[shape_mask != maskref] = 0
-                        shape_mask[shape_mask == maskref] = 255
-                        shape_mask = shape_mask.astype(np.uint8)
-
-                        line_mask = self.segLayer.data.copy()
-                        line_mask = line_mask[mask_dim]
-                        line_mask[line_mask != new_colour] = 0
-                        line_mask[line_mask == new_colour] = 255
-                        line_mask = line_mask.astype(np.uint8)
-
-                        overlap = cv2.bitwise_and(shape_mask, line_mask)
-
-                        shape_mask_split = cv2.bitwise_xor(shape_mask, overlap).astype(np.uint8)
-
-                        # update labels layers with split shape
-                        split_mask = stored_mask[mask_dim]
-                        split_mask[overlap == 255] = new_colour
-                        stored_mask[mask_dim] = split_mask
-                        self.segLayer.data = stored_mask
-
-                        # fill one have of the split shape with the new colour
-                        indices = np.where(shape_mask_split == 255)
-                        split_dim = list(list(mask_dim[:-1]) + [indices[0][0], indices[1][0]])
-                        split_dim = np.array(split_dim).flatten().tolist()
-
-                        self.segLayer.fill(split_dim, new_colour)
+                        # update metadata
 
                         meta["manual_segmentation"] = True
                         self.segLayer.metadata = meta
                         self.segLayer.mode = "pan_zoom"
                         self.update_image_folds()
 
+
+                    else:
+
+                        self.segLayer.data = stored_mask
+                        self.classLayer.data = stored_class
+                        self.segLayer.mode = "pan_zoom"
+
+            # split segmentations
+            if self.segmentation_mode == "split":
+
+                self.segLayer.mode = "paint"
+                self.segLayer.brush_size = 1
+
+                new_colour = _newSegColour(self)
+                stored_mask = self.segLayer.data.copy()
+                stored_class = self.classLayer.data
+                meta = self.segLayer.metadata.copy()
+
+                dragged = False
+                colours = []
+                yield
+
+                # on move
+                while event.type == 'mouse_move':
+                    data_coordinates = self.segLayer.world_to_data(event.position)
+                    coords = np.round(data_coordinates).astype(int)
+                    mask_val = self.segLayer.get_value(coords)
+                    colours.append(mask_val)
+                    dragged = True
+                    yield
+
+                # on release
+                if dragged:
+
+                    colours = np.array(colours)
+                    colours = np.delete(colours, np.where(colours == new_colour))
+
+                    colours[colours==None] = 0
+
+                    num_colours = len(np.unique(colours))
+
+                    if num_colours == 2 or num_colours == 3:
+
+                        if num_colours == 2:
+                            maskref = colours[colours != 0][0]
+                        else:
+                            maskref = sorted(set(colours.tolist()), key=lambda x: colours.tolist().index(x))[1]
+
+                        bisection = colours[0] != maskref and colours[-1] != maskref
+
+                        if bisection and new_colour != None:
+
+                            mask_dim = tuple(list(coords[:-2]) + [...])
+                            shape_mask = stored_mask[mask_dim].copy()
+
+                            class_mask = stored_class[mask_dim].copy()
+                            class_mask[shape_mask == maskref] = 3
+                            stored_class[mask_dim] = class_mask
+                            self.classLayer.data = stored_class
+
+                            shape_mask[shape_mask != maskref] = 0
+                            shape_mask[shape_mask == maskref] = 255
+                            shape_mask = shape_mask.astype(np.uint8)
+
+                            line_mask = self.segLayer.data.copy()
+                            line_mask = line_mask[mask_dim]
+                            line_mask[line_mask != new_colour] = 0
+                            line_mask[line_mask == new_colour] = 255
+                            line_mask = line_mask.astype(np.uint8)
+
+                            overlap = cv2.bitwise_and(shape_mask, line_mask)
+
+                            shape_mask_split = cv2.bitwise_xor(shape_mask, overlap).astype(np.uint8)
+
+                            # update labels layers with split shape
+                            split_mask = stored_mask[mask_dim]
+                            split_mask[overlap == 255] = new_colour
+                            stored_mask[mask_dim] = split_mask
+                            self.segLayer.data = stored_mask
+
+                            # fill one have of the split shape with the new colour
+                            indices = np.where(shape_mask_split == 255)
+                            split_dim = list(list(mask_dim[:-1]) + [indices[0][0], indices[1][0]])
+                            split_dim = np.array(split_dim).flatten().tolist()
+
+                            self.segLayer.fill(split_dim, new_colour)
+
+                            meta["manual_segmentation"] = True
+                            self.segLayer.metadata = meta
+                            self.segLayer.mode = "pan_zoom"
+                            self.update_image_folds()
+
+                        else:
+                            self.segLayer.data = stored_mask
+                            self.segLayer.mode = "pan_zoom"
                     else:
                         self.segLayer.data = stored_mask
                         self.segLayer.mode = "pan_zoom"
                 else:
                     self.segLayer.data = stored_mask
                     self.segLayer.mode = "pan_zoom"
-            else:
-                self.segLayer.data = stored_mask
-                self.segLayer.mode = "pan_zoom"
 
 
-        # delete segmentations
-        if self.segmentation_mode == "delete":
+            # delete segmentations
+            if self.segmentation_mode == "delete":
 
-            self.segLayer.mode = "paint"
-            self.segLayer.brush_size = 1
+                self.segLayer.mode = "paint"
+                self.segLayer.brush_size = 1
 
-            new_colour = _newSegColour(self)
-            stored_mask = self.segLayer.data.copy()
-            stored_class = self.classLayer.data
-            meta = self.segLayer.metadata.copy()
-
-            dragged = False
-            coordinates = []
-            yield
-
-            # on move
-            while event.type == 'mouse_move':
-                coordinates.append(event.position)
-                dragged = True
-                yield
-
-            # on release
-            if dragged:
-
-                self.segLayer.data = stored_mask
-
-                coordinates = np.round(np.array(coordinates)).astype(np.int32)
-                cnt = coordinates[:, -2:]
-
-                cnt = np.fliplr(cnt)
-                cnt = cnt.reshape((-1, 1, 2))
-
-                mask_dim = tuple(list(coordinates[0][:-2]) + [...])
-
-                seg_stack = self.segLayer.data.copy()
-                class_stack = self.classLayer.data.copy()
-
-                seg_mask = seg_stack[mask_dim]
-                class_mask = class_stack[mask_dim]
-
-                delete_mask = np.zeros_like(seg_mask)
-                cv2.drawContours(delete_mask, [cnt], -1, 255, -1)
-
-                delete_colours = np.unique(seg_mask[delete_mask==255])
-
-                for colour in delete_colours:
-                    seg_mask[seg_mask == colour] = 0
-
-                class_mask[seg_mask == 0] = 0
-
-                seg_stack[mask_dim] = seg_mask
-                class_stack[mask_dim] = class_mask
-
-                self.segLayer.data = seg_stack
-                self.classLayer.data = class_stack
-
-                pass
-
-            else:
-
-                self.segLayer.data = stored_mask
-                self.segLayer.mode = "pan_zoom"
-                self.update_image_folds()
-
+                new_colour = _newSegColour(self)
+                stored_mask = self.segLayer.data.copy()
+                stored_class = self.classLayer.data
                 meta = self.segLayer.metadata.copy()
 
-                data_coordinates = self.segLayer.world_to_data(event.position)
-                coord = np.round(data_coordinates).astype(int)
-                mask_val = self.segLayer.get_value(coord)
+                dragged = False
+                coordinates = []
+                yield
 
-                if mask_val != 0:
+                # on move
+                while event.type == 'mouse_move':
+                    coordinates.append(event.position)
+                    dragged = True
+                    yield
 
-                    mask_dim = tuple(list(coord[:-2]) + [...])[0]
+                # on release
+                if dragged:
 
-                    mask_stack = self.segLayer.data
-                    class_stack = self.classLayer.data
+                    self.segLayer.data = stored_mask
 
-                    mask = mask_stack[mask_dim]
+                    coordinates = np.round(np.array(coordinates)).astype(np.int32)
+                    cnt = coordinates[:, -2:]
+
+                    cnt = np.fliplr(cnt)
+                    cnt = cnt.reshape((-1, 1, 2))
+
+                    mask_dim = tuple(list(coordinates[0][:-2]) + [...])
+
+                    seg_stack = self.segLayer.data.copy()
+                    class_stack = self.classLayer.data.copy()
+
+                    seg_mask = seg_stack[mask_dim]
                     class_mask = class_stack[mask_dim]
 
-                    class_mask[mask == mask_val] = 0
-                    mask[mask == mask_val] = 0
+                    delete_mask = np.zeros_like(seg_mask)
+                    cv2.drawContours(delete_mask, [cnt], -1, 255, -1)
 
+                    delete_colours = np.unique(seg_mask[delete_mask==255])
+
+                    for colour in delete_colours:
+                        seg_mask[seg_mask == colour] = 0
+
+                    class_mask[seg_mask == 0] = 0
+
+                    seg_stack[mask_dim] = seg_mask
                     class_stack[mask_dim] = class_mask
-                    mask_stack[mask_dim] = mask
 
+                    self.segLayer.data = seg_stack
                     self.classLayer.data = class_stack
-                    self.segLayer.data = mask_stack
 
-                    # update metadata
+                    pass
 
-                    meta["manual_segmentation"] = True
-                    self.segLayer.metadata = meta
+                else:
+
+                    self.segLayer.data = stored_mask
                     self.segLayer.mode = "pan_zoom"
                     self.update_image_folds()
 
-        if self.segmentation_mode == "refine":
+                    meta = self.segLayer.metadata.copy()
 
-            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
+                    data_coordinates = self.segLayer.world_to_data(event.position)
+                    coord = np.round(data_coordinates).astype(int)
+                    mask_val = self.segLayer.get_value(coord)
+
+                    if mask_val != 0:
+
+                        mask_dim = tuple(list(coord[:-2]) + [...])[0]
+
+                        mask_stack = self.segLayer.data
+                        class_stack = self.classLayer.data
+
+                        mask = mask_stack[mask_dim]
+                        class_mask = class_stack[mask_dim]
+
+                        class_mask[mask == mask_val] = 0
+                        mask[mask == mask_val] = 0
+
+                        class_stack[mask_dim] = class_mask
+                        mask_stack[mask_dim] = mask
+
+                        self.classLayer.data = class_stack
+                        self.segLayer.data = mask_stack
+
+                        # update metadata
+
+                        meta["manual_segmentation"] = True
+                        self.segLayer.metadata = meta
+                        self.segLayer.mode = "pan_zoom"
+                        self.update_image_folds()
+
+            if self.segmentation_mode == "refine":
+
+                layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes","center_lines"]]
+
+                self.segLayer.mode == "pan_zoom"
+                self.segLayer.brush_size = 1
+
+                data_coordinates = self.segLayer.world_to_data(event.position)
+                coord = np.round(data_coordinates).astype(int)
+                mask_id = self.segLayer.get_value(coord)
+
+                self.segLayer.selected_label = mask_id
+
+                if mask_id != 0:
+
+                    current_fov = self.viewer.dims.current_step[0]
+
+                    channel = self.refine_channel.currentText()
+                    channel = channel.replace("Mask + ", "")
+
+                    label_stack = self.classLayer.data
+                    mask_stack = self.segLayer.data
+
+                    mask = mask_stack[current_fov, :, :].copy()
+                    label = label_stack[current_fov, :, :].copy()
+
+                    image = []
+                    for layer in layer_names:
+                        image.append(self.viewer.layers[layer].data[current_fov])
+                    image = np.stack(image,axis=0)
+
+                    cell_mask = np.zeros(mask.shape, dtype=np.uint8)
+
+                    mask[mask != mask_id] = 0
+                    cell_mask[mask != mask_id] = 0
+                    cell_mask[mask == mask_id] = 1
+
+                    from napari_bacseg._utils_statistics import get_cell_images
+                    from napari_bacseg._utils_colicoords import run_colicoords, process_colicoords
+
+                    colicoords_dir = os.path.join(tempfile.gettempdir(), "colicoords")
+
+                    cell_images_path = get_cell_images(self,image, mask, cell_mask, mask_id, layer_names, colicoords_dir)
+
+                    cell_data = {"cell_images_path":cell_images_path}
+
+                    colicoords_data = run_colicoords(self, cell_data=[cell_data],
+                                                     colicoords_channel=channel,
+                                                     multithreaded=True)
+
+                    process_colicoords(self, colicoords_data)
+
+        if self.interface_mode == "classify":
 
             self.segLayer.mode == "pan_zoom"
             self.segLayer.brush_size = 1
 
             data_coordinates = self.segLayer.world_to_data(event.position)
             coord = np.round(data_coordinates).astype(int)
-            mask_id = self.segLayer.get_value(coord)
+            mask_val = self.segLayer.get_value(coord).copy()
 
-            self.segLayer.selected_label = mask_id
+            self.segLayer.selected_label = mask_val
 
-            if mask_id != 0:
+            if mask_val != 0:
 
-                current_fov = self.viewer.dims.current_step[0]
+                stored_mask = self.segLayer.data.copy()
+                stored_class = self.classLayer.data.copy()
 
-                channel = self.refine_channel.currentText()
-                channel = channel.replace("Mask + ", "")
+                if len(stored_mask.shape) > 2:
 
-                label_stack = self.classLayer.data
-                mask_stack = self.segLayer.data
+                    current_fov = self.viewer.dims.current_step[0]
 
-                mask = mask_stack[current_fov, :, :].copy()
-                label = label_stack[current_fov, :, :].copy()
+                    seg_mask = stored_mask[current_fov, :, :]
+                    class_mask = stored_class[current_fov, :, :]
 
-                image = []
-                for layer in layer_names:
-                    image.append(self.viewer.layers[layer].data[current_fov])
-                image = np.stack(image,axis=0)
+                    class_mask[seg_mask == mask_val] = self.class_colour
 
-                cell_mask = np.zeros(mask.shape, dtype=np.uint8)
+                    stored_class[current_fov, :, :] = class_mask
 
-                mask[mask != mask_id] = 0
-                cell_mask[mask != mask_id] = 0
-                cell_mask[mask == mask_id] = 1
+                    self.classLayer.data = stored_class
+                    self.segLayer.mode = "pan_zoom"
 
-                from napari_bacseg._utils_statistics import get_cell_images
-                from napari_bacseg._utils_colicoords import run_colicoords, process_colicoords
+                else:
 
-                colicoords_dir = os.path.join(tempfile.gettempdir(), "colicoords")
+                    stored_class[stored_mask == mask_val] = self.class_colour
 
-                cell_images_path = get_cell_images(self,image, mask, cell_mask, mask_id, layer_names, colicoords_dir)
+                    self.classLayer.data = stored_class
+                    self.segLayer.mode = "pan_zoom"
 
-                cell_data = {"cell_images_path":cell_images_path}
+        if self.interface_mode == "panzoom":
 
-                colicoords_data = run_colicoords(self, cell_data=[cell_data],
-                                                 colicoords_channel=channel,
-                                                 multithreaded=True)
+            mouse_button = event.button
 
-                process_colicoords(self, colicoords_data)
+            data_coordinates = self.segLayer.world_to_data(event.position)
+            coord = np.round(data_coordinates).astype(int)
 
-    if self.interface_mode == "classify":
+        if self.modify_auto_panzoom.isChecked() == True:
+            self._modifyMode(mode="panzoom")
 
-        self.segLayer.mode == "pan_zoom"
-        self.segLayer.brush_size = 1
-
-        data_coordinates = self.segLayer.world_to_data(event.position)
-        coord = np.round(data_coordinates).astype(int)
-        mask_val = self.segLayer.get_value(coord).copy()
-
-        self.segLayer.selected_label = mask_val
-
-        if mask_val != 0:
-
-            stored_mask = self.segLayer.data.copy()
-            stored_class = self.classLayer.data.copy()
-
-            if len(stored_mask.shape) > 2:
-
-                current_fov = self.viewer.dims.current_step[0]
-
-                seg_mask = stored_mask[current_fov, :, :]
-                class_mask = stored_class[current_fov, :, :]
-
-                class_mask[seg_mask == mask_val] = self.class_colour
-
-                stored_class[current_fov, :, :] = class_mask
-
-                self.classLayer.data = stored_class
-                self.segLayer.mode = "pan_zoom"
-
-            else:
-
-                stored_class[stored_mask == mask_val] = self.class_colour
-
-                self.classLayer.data = stored_class
-                self.segLayer.mode = "pan_zoom"
-
-    if self.interface_mode == "panzoom":
-
-        mouse_button = event.button
-
-        data_coordinates = self.segLayer.world_to_data(event.position)
-        coord = np.round(data_coordinates).astype(int)
-
-    if self.modify_auto_panzoom.isChecked() == True:
-        self._modifyMode(mode="panzoom")
+    except:
+        pass
 
 
 def _newSegColour(self):
