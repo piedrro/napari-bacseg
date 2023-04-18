@@ -12,6 +12,7 @@ from qtpy.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QLabel, QProgress
 
 
 def _create_bacseg_database(self, viewer=None, database_name="BacSeg", path=None):
+
     if type(path) != str:
         desktop = os.path.expanduser("~/Desktop")
         path = QFileDialog.getExistingDirectory(self, "Select Directory", desktop)
@@ -40,7 +41,7 @@ def _create_bacseg_database(self, viewer=None, database_name="BacSeg", path=None
                 if os.path.exists(folder_path) == False:
                     os.mkdir(folder_path)
 
-            database_metadata_list = ["abxconcentration", "antibiotic", "content", "microscope", "modality", "mount", "protocol", "source", "stain", "treatment_time", "user_initial", ]
+            database_metadata_list = ["abxconcentration", "antibiotic", "content", "microscope", "modality", "mount", "protocol", "source", "stain", "treatment_time", "user_initial", "strain", "phenotype"]
 
             user_metadata_list = ["example_user"]
 
@@ -101,6 +102,7 @@ def _show_database_controls(self, visible=True):
 
 
 def generate_txt_metadata(self, database_directory):
+
     database_name = (pathlib.Path(database_directory).parts[-1].replace("_Database", ""))
 
     path = pathlib.PurePath(database_directory, "Metadata", f"{database_name} Metadata.xlsx")
@@ -108,11 +110,19 @@ def generate_txt_metadata(self, database_directory):
     if os.path.exists:
         akmeta = pd.read_excel(path, usecols="B:M", header=2)
 
-        akmeta = dict(user_initial=akmeta["User Initial"].dropna().astype(str).tolist(), content=akmeta["Image Content"].dropna().astype(str).tolist(), microscope=akmeta[
-            "Microscope"].dropna().astype(str).tolist(), modality=akmeta["Modality"].dropna().astype(str).tolist(), source=akmeta["Light Source"].dropna().astype(str).tolist(), antibiotic=akmeta[
-            "Antibiotic"].dropna().astype(str).tolist(), abxconcentration=akmeta["Antibiotic Concentration"].dropna().astype(str).tolist(), treatment_time=akmeta[
-            "Treatment Time (mins)"].dropna().astype(str).tolist(), stain=akmeta["Stains"].dropna().astype(str).tolist(), stain_target=akmeta["Stain Target"].dropna().astype(str).tolist(), mount=
-        akmeta["Mounting Method"].dropna().astype(str).tolist(), protocol=akmeta["Protocol"].dropna().astype(str).tolist(), )
+        akmeta = dict(
+            user_initial=akmeta["User Initial"].dropna().astype(str).tolist(),
+            content=akmeta["Image Content"].dropna().astype(str).tolist(),
+            microscope=akmeta["Microscope"].dropna().astype(str).tolist(),
+            modality=akmeta["Modality"].dropna().astype(str).tolist(),
+            source=akmeta["Light Source"].dropna().astype(str).tolist(),
+            antibiotic=akmeta["Antibiotic"].dropna().astype(str).tolist(),
+            abxconcentration=akmeta["Antibiotic Concentration"].dropna().astype(str).tolist(),
+            treatment_time=akmeta["Treatment Time (mins)"].dropna().astype(str).tolist(),
+            stain=akmeta["Stains"].dropna().astype(str).tolist(),
+            stain_target=akmeta["Stain Target"].dropna().astype(str).tolist(),
+            mount=akmeta["Mounting Method"].dropna().astype(str).tolist(),
+            protocol=akmeta["Protocol"].dropna().astype(str).tolist(), )
 
         # generate file metadata
 
@@ -250,6 +260,10 @@ def populate_upload_combos(self):
         self.upload_mount.addItems([""] + akmeta["mount"])
         self.upload_protocol.clear()
         self.upload_protocol.addItems([""] + akmeta["protocol"])
+        self.upload_strain.clear()
+        self.upload_strain.addItems([""] + akmeta["strain"])
+        self.upload_phenotype.clear()
+        self.upload_phenotype.addItems([""] + akmeta["phenotype"])
 
     except:
         print(traceback.format_exc())
@@ -270,7 +284,7 @@ def update_database_metadata(self, control=None):
         dbmeta, usermeta = read_txt_metadata(self, self.database_path)
 
         control_dict = {"abxconcentration": "upload_abxconcentration", "antibiotic": "upload_antibiotic", "content": "upload_content",
-                        "microscope": "upload_microscope", "modality": "label_modality", "mount": "upload_mount",
+                        "microscope": "upload_microscope", "modality": "label_modality", "mount": "upload_mount", "strain": "upload_strain", "phenotype": "upload_phenotype",
                         "protocol": "upload_protocol", "source": "label_light_source", "stain": "label_stain", "stain_target":
                         "label_stain_target", "treatment_time": "upload_treatmenttime", "user_initial": "upload_initial"}
 
