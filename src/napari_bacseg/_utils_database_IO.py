@@ -166,6 +166,7 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
 
 
 def generate_multichannel_stack(self):
+
     segChannel = self.cellpose_segchannel.currentText()
     user_initial = self.upload_initial.currentText()
     content = self.upload_content.currentText()
@@ -199,7 +200,7 @@ def generate_multichannel_stack(self):
         labelled = True
         labelled_curated = True
 
-    metadata = dict(user_initial=user_initial, content=content, microscope=microscope, antibiotic=antibiotic, abxconcentration=abxconcentration, treatmenttime=treatmenttime, mount=mount, protocol=protocol, )
+    metadata = dict(user_initial=user_initial, content=content, microscope=microscope, antibiotic=antibiotic, abxconcentration=abxconcentration, treatmenttime=treatmenttime, mount=mount, protocol=protocol, strain=strain, phenotype=phenotype, )
 
     num_user_keys = self.user_metadata_keys
 
@@ -460,12 +461,14 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
                 if "label_path" not in meta.keys():
                     meta["label_path"] = None
 
-                file_metadata = {"date_uploaded": date_uploaded, "date_created": date_created, "date_modified": date_modified, "file_name": file_name, "channel": get_meta_value(meta, "channel"), "file_list": get_meta_value(meta, "file_list"), "channel_list": get_meta_value(meta, "channel_list"), "segmentation_file": get_meta_value(meta, "segmentation_file"), "segmentation_channel": get_meta_value(meta, "segmentation_channel"), "akseg_hash": get_meta_value(meta, "akseg_hash"), "user_initial": get_meta_value(meta, "user_initial"), "content": get_meta_value(meta, "image_content"), "microscope": get_meta_value(meta, "microscope"), "modality": get_meta_value(meta, "modality"), "source": get_meta_value(meta, "light_source"), "stain": get_meta_value(meta, "stain"), "stain_target": get_meta_value(meta, "stain_target"), "antibiotic": get_meta_value(meta, "antibiotic"), "treatment time (mins)": get_meta_value(meta, "treatmenttime"), "antibiotic concentration": get_meta_value(meta, "abxconcentration"), "mounting method": get_meta_value(meta, "mount"), "protocol": get_meta_value(meta, "protocol"), "folder": get_meta_value(meta, "folder"), "parent_folder": get_meta_value(meta, "parent_folder"), "num_segmentations": num_segmentations, "image_laplacian": image_laplacian, "image_focus": get_meta_value(meta, "image_focus"), "image_debris": get_meta_value(meta, "image_debris"), "segmented": get_meta_value(meta, "segmented"), "labelled": get_meta_value(meta, "labelled"), "segmentation_curated": get_meta_value(meta, "segmentations_curated"), "label_curated": get_meta_value(meta, "labels_curated"), "posX": posX, "posY": posY, "posZ": posZ, "image_load_path": get_meta_value(meta, "image_path"), "image_save_path": image_path, "mask_load_path": get_meta_value(meta, "mask_path"), "mask_save_path": mask_path, "label_load_path": get_meta_value(meta, "label_path"), "label_save_path": class_path, }
+                file_metadata = {"date_uploaded": date_uploaded, "date_created": date_created, "date_modified": date_modified, "file_name": file_name, "channel": get_meta_value(meta, "channel"), "file_list": get_meta_value(meta, "file_list"), "channel_list": get_meta_value(meta, "channel_list"), "segmentation_file": get_meta_value(meta, "segmentation_file"), "segmentation_channel": get_meta_value(meta, "segmentation_channel"), "strain" : get_meta_value(meta, "strain"), "phenotype" : get_meta_value(meta, "phenotype"),
+                                "akseg_hash": get_meta_value(meta, "akseg_hash"), "user_initial": get_meta_value(meta, "user_initial"), "content": get_meta_value(meta, "image_content"), "microscope": get_meta_value(meta, "microscope"), "modality": get_meta_value(meta, "modality"), "source": get_meta_value(meta, "light_source"), "stain": get_meta_value(meta, "stain"), "stain_target": get_meta_value(meta, "stain_target"), "antibiotic": get_meta_value(meta, "antibiotic"), "treatment time (mins)": get_meta_value(meta, "treatmenttime"), "antibiotic concentration": get_meta_value(meta, "abxconcentration"), "mounting method": get_meta_value(meta, "mount"), "protocol": get_meta_value(meta, "protocol"), "folder": get_meta_value(meta, "folder"), "parent_folder": get_meta_value(meta, "parent_folder"), "num_segmentations": num_segmentations, "image_laplacian": image_laplacian, "image_focus": get_meta_value(meta, "image_focus"), "image_debris": get_meta_value(meta, "image_debris"), "segmented": get_meta_value(meta, "segmented"), "labelled": get_meta_value(meta, "labelled"), "segmentation_curated": get_meta_value(meta, "segmentations_curated"), "label_curated": get_meta_value(meta, "labels_curated"), "posX": posX, "posY": posY, "posZ": posZ, "image_load_path": get_meta_value(meta, "image_path"), "image_save_path": image_path, "mask_load_path": get_meta_value(meta, "mask_path"), "mask_save_path": mask_path, "label_load_path": get_meta_value(meta, "label_path"), "label_save_path": class_path, }
 
                 for key in range(1, num_user_keys + 1):
                     file_metadata[f"user_meta{key}"] = get_meta_value(meta, f"usermeta{key}")
 
                 file_metadata_list.append(file_metadata)
+
     except:
         file_metadata_list = []
         print(traceback.format_exc())
