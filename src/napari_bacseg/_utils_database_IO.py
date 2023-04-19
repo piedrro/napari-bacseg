@@ -316,15 +316,6 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
     try:
         dat = np.load(path, allow_pickle=True).item()
 
-        dat_list = ["user_metadata", "image", "image_meta", "mask", "class_mask", "save_dir",
-                    "overwrite_images", "overwrite_masks", "overwrite_metadata", "overwrite_selected_metadata",
-                    "overwrite_all_metadata", "upload_images", "upload_segmentations", "upload_metadata",
-                    "image_dir", "mask_dir", "class_dir", "json_dir", "strain", "phenotype"]
-
-        for item in dat_list:
-            if item not in dat.keys():
-                dat[item] = None
-
         user_metadata = dat["user_metadata"]
         image = dat["image"]
         image_meta = dat["image_meta"]
@@ -343,8 +334,6 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
         mask_dir = dat["mask_dir"]
         class_dir = dat["class_dir"]
         json_dir = dat["json_dir"]
-        strain = dat["strain"]
-        phenotype = dat["phenotype"]
 
         metadata_file_names = user_metadata["file_name"].tolist()
         metadata_akseg_hash = user_metadata["akseg_hash"].tolist()
@@ -360,6 +349,8 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
             file_name = get_meta_value(meta, "image_name")
             folder = get_meta_value(meta, "folder")
             akseg_hash = get_meta_value(meta, "akseg_hash")
+            strain = get_meta_value(meta, "strain")
+            phenotype = get_meta_value(meta, "phenotype")
 
             import_mode = meta["import_mode"]
 
@@ -483,6 +474,7 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
 
 
 def generate_upload_tempfiles(user_metadata, image_stack, meta_stack, mask_stack, class_stack, save_dir, overwrite_images, overwrite_masks, overwrite_metadata, overwrite_selected_metadata, overwrite_all_metadata, upload_images, upload_segmentations, upload_metadata, ):
+
     upload_tempfiles = []
 
     upload_dir = os.path.join(tempfile.gettempdir(), "BacSeg")

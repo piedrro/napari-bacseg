@@ -145,6 +145,7 @@ def _process_cellpose(self, segmentation_data):
 
 
 def load_cellpose_dependencies(self, omni=False):
+
     if self.widget_notifications:
         show_info("Loading Cellpose dependencies")
 
