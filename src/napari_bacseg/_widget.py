@@ -1276,7 +1276,8 @@ class BacSeg(QWidget):
 
                     image_crop = image[y1:y2, x1:x2]
 
-                    contrast_limit = [np.min(image_crop), np.max(image_crop)]
+                    contrast_limit = np.percentile(image_crop[image_crop != 0], (1, 99))
+                    contrast_limit = [int(contrast_limit[0]*0.5), int(contrast_limit[1]*2)]
 
                     if contrast_limit[1] > contrast_limit[0]:
                         self.viewer.layers[str(active_layer)].contrast_limits = contrast_limit
