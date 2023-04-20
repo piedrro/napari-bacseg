@@ -422,6 +422,7 @@ class BacSeg(QWidget):
         self.export_scalebar_size_units = self.findChild(QComboBox, "export_scalebar_size_units")
         self.export_scalebar_colour = self.findChild(QComboBox, "export_scalebar_colour")
         self.export_scalebar_thickness = self.findChild(QComboBox, "export_scalebar_thickness")
+        self.export_cropzoom = self.findChild(QCheckBox, "export_crop_zoom")
 
 
         self.export_autocontrast = self.findChild(QCheckBox, "export_autocontrast")
@@ -1269,6 +1270,18 @@ class BacSeg(QWidget):
         self.export_colicoords_mode.addItems(["None (OpenCV Stats)", "Mask"] + refine_layers)
 
     def _sliderEvent(self, current_step):
+
+        try:
+
+            active_layer = self.viewer.layers.selection.active
+
+            crop = active_layer.corner_pixels.T
+
+            y_range = crop[-2]
+            x_range = crop[-1]
+        except:
+            pass
+
         self._updateFileName()
         self._autoContrast()
         self._updateScaleBar()
