@@ -999,6 +999,8 @@ def _imageControls(self, key, viewer=None):
 
     def _event(viewer):
 
+        print(True)
+
         if key == "Upload":
             self._uploadDatabase("active")
 

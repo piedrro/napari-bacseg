@@ -300,6 +300,9 @@ class BacSeg(QWidget):
         self.find_previous = self.findChild(QPushButton, "find_previous")
         self.find_criterion = self.findChild(QComboBox, "find_criterion")
         self.find_mode = self.findChild(QComboBox, "find_mode")
+        self.scalebar_show = self.findChild(QCheckBox, "scalebar_show")
+        self.scalebar_resolution = self.findChild(QLineEdit, "scalebar_resolution")
+        self.scalebar_units = self.findChild(QComboBox, "scalebar_units")
 
 
         self.set_quality_mode = self.findChild(QComboBox, "set_quality_mode")
@@ -435,6 +438,9 @@ class BacSeg(QWidget):
         self.unfolded = False
         self.align_active_image.clicked.connect(partial(self._align_images, mode="active"))
         self.align_all_images.clicked.connect(partial(self._align_images, mode="all"))
+        self.scalebar_show.stateChanged.connect(self._updateScaleBar)
+        self.scalebar_resolution.textChanged.connect(self._updateScaleBar)
+        self.scalebar_units.currentTextChanged.connect(self._updateScaleBar)
 
         # cellpose events
         self.cellpose_flowthresh.valueChanged.connect(lambda: self._updateSliderLabel("cellpose_flowthresh", "cellpose_flowthresh_label"))
@@ -1256,7 +1262,37 @@ class BacSeg(QWidget):
     def _sliderEvent(self, current_step):
         self._updateFileName()
         self._autoContrast()
+        self._updateScaleBar()
         self._update_active_midlines()
+
+    def _updateScaleBar(self):
+
+        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Classes", "center_lines"]]
+
+        try:
+
+            if self.scalebar_show.isChecked() and len(layer_names) > 0:
+
+                pixel_resolution = float(self.scalebar_resolution.text())
+                scalebar_units = self.scalebar_units.currentText()
+
+                if pixel_resolution > 0:
+
+                    for layer in layer_names:
+
+                        self.viewer.layers[layer].scale = [1,pixel_resolution, pixel_resolution]
+
+                        self.viewer.scale_bar.visible = True
+                        self.viewer.scale_bar.unit = scalebar_units
+                        self.viewer.reset_view()
+
+            else:
+                self.viewer.scale_bar.visible = False
+                pass
+
+        except:
+            self.viewer.scale_bar.visible = False
+            pass
 
     def _autoContrast(self):
         try:
@@ -1461,6 +1497,7 @@ class BacSeg(QWidget):
         self._autoClassify()
         align_image_channels(self)
         self._autoContrast()
+        self._updateScaleBar()
 
     def _autoClassify(self, reset=False):
         mask_stack = self.segLayer.data.copy()
