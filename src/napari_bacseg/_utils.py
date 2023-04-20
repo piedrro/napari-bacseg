@@ -46,6 +46,7 @@ def rescale01(x):
     return x
 
 
+    
 def read_xml(paths):
     try:
         files = {}
@@ -2172,6 +2173,43 @@ def automatic_brightness_and_contrast(image, clip_hist_percent=0.1):
     return image
 
 
+def add_scale_bar(image, pixel_resolution=100, pixel_resolution_units="nm", scalebar_size=20, scalebar_size_units="um", scalebar_colour="white", scalebar_thickness=10, scalebar_margin=50):
+
+    try:
+
+        if float(pixel_resolution) > 0 and float(scalebar_size) > 0:
+
+            h, w = image.shape
+
+            pixel_resolution = float(pixel_resolution)
+            scalebar_size = float(scalebar_size)
+
+            if pixel_resolution_units != "nm":
+                pixel_resolution = pixel_resolution * 1000
+
+            if scalebar_size_units != "nm":
+                scalebar_size = scalebar_size * 1000
+
+            scalebar_len = int(scalebar_size / pixel_resolution)
+
+            if scalebar_len > 0 and scalebar_len < w:
+
+                if scalebar_colour == "White":
+                    bit_depth = str(image.dtype)
+                    bit_depth = int(bit_depth.replace("uint", ""))
+                    colour = ((2 ** bit_depth) - 1)
+
+                scalebar_pos = (w - scalebar_margin - scalebar_len, h - scalebar_margin)  # Position of the scale bar in the image (in pixels)
+
+            image = cv2.rectangle(image, scalebar_pos, (scalebar_pos[0] + scalebar_len, scalebar_pos[1] + int(scalebar_thickness)), colour, -1)
+
+    except:
+        print(traceback.format_exc())
+        pass
+
+    return image
+
+
 def generate_export_image(
     self,
     export_channel,
@@ -2179,6 +2217,7 @@ def generate_export_image(
     normalize=False,
     invert=False,
     autocontrast=False,
+    scalebar = False
 ):
     layer_names = [
         layer.name
@@ -2215,6 +2254,23 @@ def generate_export_image(
         if autocontrast:
             img = automatic_brightness_and_contrast(img)
 
+        if scalebar:
+
+            pixel_resolution = self.export_scalebar_resolution.text()
+            pixel_resolution_units = self.export_scalebar_resolution_units.currentText()
+            scalebar_size = self.export_scalebar_size.text()
+            scalebar_size_units = self.export_scalebar_size_units.currentText()
+            scalebar_colour = self.export_scalebar_colour.currentText()
+            scalebar_thickness = self.export_scalebar_thickness.currentText()
+
+            img = add_scale_bar(img,
+            pixel_resolution = pixel_resolution,
+            pixel_resolution_units = pixel_resolution_units,
+            scalebar_size = scalebar_size,
+            scalebar_size_units = scalebar_size_units,
+            scalebar_colour = scalebar_colour,
+            scalebar_thickness = scalebar_thickness)
+
         image.append(img)
 
     if mode == "rgb":
@@ -2242,6 +2298,7 @@ def generate_export_image(
 
 
 def export_files(self, progress_callback, mode):
+
     desktop = os.path.expanduser("~/Desktop")
 
     overwrite = self.export_overwrite_setting.isChecked()
@@ -2249,6 +2306,7 @@ def export_files(self, progress_callback, mode):
     normalise = self.export_normalise.isChecked()
     invert = self.export_invert.isChecked()
     autocontrast = self.export_autocontrast.isChecked()
+    scalebar = self.export_scalebar.isChecked()
 
     export_channel = self.export_channel.currentText()
     export_modifier = self.export_modifier.text()
@@ -2276,7 +2334,7 @@ def export_files(self, progress_callback, mode):
 
     for i, dim in enumerate(dim_list):
         image, mask, label, meta, mode = generate_export_image(
-            self, export_channel, dim, normalise, invert, autocontrast
+            self, export_channel, dim, normalise, invert, autocontrast, scalebar
         )
         contours = get_contours_from_mask(mask, label, export_labels)
 

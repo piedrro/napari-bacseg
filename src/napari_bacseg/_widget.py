@@ -415,6 +415,15 @@ class BacSeg(QWidget):
         self.export_all = self.findChild(QPushButton, "export_all")
         self.export_normalise = self.findChild(QCheckBox, "export_normalise")
         self.export_invert = self.findChild(QCheckBox, "export_invert")
+        self.export_scalebar = self.findChild(QCheckBox, "export_scalebar")
+        self.export_scalebar_resolution = self.findChild(QLineEdit, "export_scalebar_resolution")
+        self.export_scalebar_resolution_units = self.findChild(QComboBox, "export_scalebar_resolution_units")
+        self.export_scalebar_size = self.findChild(QLineEdit, "export_scalebar_size")
+        self.export_scalebar_size_units = self.findChild(QComboBox, "export_scalebar_size_units")
+        self.export_scalebar_colour = self.findChild(QComboBox, "export_scalebar_colour")
+        self.export_scalebar_thickness = self.findChild(QComboBox, "export_scalebar_thickness")
+
+
         self.export_autocontrast = self.findChild(QCheckBox, "export_autocontrast")
         self.export_statistics_pixelsize = self.findChild(QLineEdit, "export_statistics_pixelsize")
         self.export_statistics_active = self.findChild(QPushButton, "export_statistics_active")
