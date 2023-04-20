@@ -1961,7 +1961,7 @@ def add_scale_bar(image, pixel_resolution=100, pixel_resolution_units="nm", scal
     return image
 
 
-def generate_export_image(self, export_channel, dim, normalize=False, invert=False, autocontrast=False, scalebar=False, cropzoom=False):
+def generate_export_image(self, export_channel, dim, normalize=False, invert=False, autocontrast=False, scalebar=False, cropzoom=False, mask_background=False):
 
     layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
 
@@ -1978,20 +1978,36 @@ def generate_export_image(self, export_channel, dim, normalize=False, invert=Fal
     if mode == "rgb":
         layer_names = layer_names[:3]
 
+
+    mask = self.segLayer.data
+    label = self.classLayer.data
+    metadata = self.viewer.layers[layer_names[0]].metadata
+
+    mask = mask[dim]
+    label = label[dim]
+    metadata = metadata[dim[0]]
+
+    if cropzoom:
+        layer = self.viewer.layers[layer_names[0]]
+        crop = layer.corner_pixels.T
+        y_range = crop[-2]
+        x_range = crop[-1]
+        mask = mask[y_range[0]:y_range[1], x_range[0]:x_range[1]]
+        label = label[y_range[0]:y_range[1], x_range[0]:x_range[1]]
+
+
     image = []
 
     for layer in layer_names:
-        img = self.viewer.layers[layer].data
+        img = self.viewer.layers[layer].data.copy()
 
         img = img[dim]
 
         if cropzoom:
-            layer = self.viewer.layers[layer]
-            crop = layer.corner_pixels.T
-            y_range = crop[-2]
-            x_range = crop[-1]
-
             img = img[y_range[0]:y_range[1], x_range[0]:x_range[1]]
+
+        if mask_background:
+            img[mask == 0] = 0
 
         if invert:
             img = cv2.bitwise_not(img)
@@ -2020,25 +2036,17 @@ def generate_export_image(self, export_channel, dim, normalize=False, invert=Fal
 
     if mode == "rgb":
         image = np.stack(image, axis=-1)
+
+        image = rescale01(image)
+        image = image * (2 ** 16 - 1)
+        image = image.astype(np.uint16)
+
     elif mode == "stack":
         image = np.stack(image, axis=0)
+    else:
+        image = image[0]
 
-    image = rescale01(image)
-    image = image * (2 ** 16 - 1)
-    image = image.astype(np.uint16)
 
-    mask = self.segLayer.data
-    label = self.classLayer.data
-    metadata = self.viewer.layers[layer_names[0]].metadata
-
-    mask = mask[dim]
-    label = label[dim]
-
-    if cropzoom:
-        mask = mask[y_range[0]:y_range[1], x_range[0]:x_range[1]]
-        label = label[y_range[0]:y_range[1], x_range[0]:x_range[1]]
-
-    metadata = metadata[dim[0]]
 
     return image, mask, label, metadata, mode
 
@@ -2053,6 +2061,7 @@ def export_files(self, progress_callback, mode):
     autocontrast = self.export_autocontrast.isChecked()
     scalebar = self.export_scalebar.isChecked()
     cropzoom = self.export_cropzoom.isChecked()
+    mask_background = self.export_mask_background.isChecked()
 
     export_channel = self.export_channel.currentText()
     export_modifier = self.export_modifier.text()
@@ -2079,7 +2088,7 @@ def export_files(self, progress_callback, mode):
                 dim_list.append((image_index,))
 
     for i, dim in enumerate(dim_list):
-        image, mask, label, meta, mode = generate_export_image(self, export_channel, dim, normalise, invert, autocontrast, scalebar, cropzoom)
+        image, mask, label, meta, mode = generate_export_image(self, export_channel, dim, normalise, invert, autocontrast, scalebar, cropzoom, mask_background)
         contours = get_contours_from_mask(mask, label, export_labels)
 
         if "midlines" in meta.keys():

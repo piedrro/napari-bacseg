@@ -423,6 +423,7 @@ class BacSeg(QWidget):
         self.export_scalebar_colour = self.findChild(QComboBox, "export_scalebar_colour")
         self.export_scalebar_thickness = self.findChild(QComboBox, "export_scalebar_thickness")
         self.export_cropzoom = self.findChild(QCheckBox, "export_crop_zoom")
+        self.export_mask_background = self.findChild(QCheckBox, "export_mask_background")
 
 
         self.export_autocontrast = self.findChild(QCheckBox, "export_autocontrast")
