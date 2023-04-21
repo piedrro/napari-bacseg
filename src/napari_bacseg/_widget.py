@@ -335,20 +335,6 @@ class BacSeg(QWidget):
         self.set_debris_4 = self.findChild(QPushButton, "set_debris_4")
         self.set_debris_5 = self.findChild(QPushButton, "set_debris_5")
 
-        # self.modify_panzoom.setEnabled(False)
-        # self.modify_add.setEnabled(False)
-        # self.modify_extend.setEnabled(False)
-        # self.modify_join.setEnabled(False)
-        # self.modify_split.setEnabled(False)
-        # self.modify_delete.setEnabled(False)
-        # self.modify_refine.setEnabled(False)
-        # self.classify_single.setEnabled(False)
-        # self.classify_dividing.setEnabled(False)
-        # self.classify_divided.setEnabled(False)
-        # self.classify_vertical.setEnabled(False)
-        # self.classify_broken.setEnabled(False)
-        # self.classify_edge.setEnabled(False)
-
         # upload tab controls from Qt Desinger References
         self.database_path = ""
         self.user_metadata_keys = 6
@@ -638,6 +624,7 @@ class BacSeg(QWidget):
         self.widget_notifications = True
 
     def _align_images(self, viewer=None, mode="active"):
+
         import scipy
         from skimage.registration import phase_cross_correlation
 
