@@ -1500,18 +1500,13 @@ class BacSeg(QWidget):
                 self.classLayer.data = new_class_stack
                 self.segLayer.metadata = new_metadata
 
-        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
 
-        # ensures segmentation and classes is in correct order in the viewer
-        for layer in layer_names:
-            self.viewer.layers[layer].selected = False
-            layer_index = self.viewer.layers.index(layer)
-            self.viewer.layers.move(layer_index, 0)
 
         # sets labels such that only label contours are shown
         self.segLayer.contour = 1
         self.segLayer.opacity = 1
 
+        self._reorderLayers()
         self._updateFileName()
         self._updateSegmentationCombo()
         self._updateSegChannels()
@@ -1521,6 +1516,20 @@ class BacSeg(QWidget):
         align_image_channels(self)
         self._autoContrast()
         self._updateScaleBar()
+
+    def _reorderLayers(self):
+
+        try:
+
+            layer_names = [layer.name for layer in self.viewer.layers if layer.name in ["Segmentations", "Classes", "center_lines"]]
+
+            for layer in ["center_lines", "Classes", "Segmentations"]:
+                if layer in layer_names:
+                    layer_index = self.viewer.layers.index(layer)
+                    self.viewer.layers.move(layer_index, -1)
+
+        except:
+            pass
 
     def _autoClassify(self, reset=False):
         mask_stack = self.segLayer.data.copy()

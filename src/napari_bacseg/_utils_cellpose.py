@@ -132,16 +132,18 @@ def _process_cellpose(self, segmentation_data):
         if self.cellpose_resetimage.isChecked() == True:
             self.viewer.reset_view()
 
-        layer_names = [
-            layer.name
-            for layer in self.viewer.layers
-            if layer.name not in ["Segmentations", "Classes", "center_lines"]
-        ]
+        self._reorderLayers()
 
-        # ensures segmentation and classes is in correct order in the viewer
-        for layer in layer_names:
-            layer_index = self.viewer.layers.index(layer)
-            self.viewer.layers.move(layer_index, 0)
+        # layer_names = [
+        #     layer.name
+        #     for layer in self.viewer.layers
+        #     if layer.name not in ["Segmentations", "Classes", "center_lines"]
+        # ]
+        #
+        # # ensures segmentation and classes is in correct order in the viewer
+        # for layer in layer_names:
+        #     layer_index = self.viewer.layers.index(layer)
+        #     self.viewer.layers.move(layer_index, 0)
 
 
 def load_cellpose_dependencies(self, omni=False):

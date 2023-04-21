@@ -1922,6 +1922,7 @@ class Ui_tab_widget(object):
         self.download_sort_order_2.setCurrentIndex(0)
         self.download_sort_order_1.setCurrentIndex(0)
         self.tabWidget_4.setCurrentIndex(0)
+        self.export_location.setCurrentIndex(1)
         self.export_scalebar_size_units.setCurrentIndex(1)
         self.export_scalebar_thickness.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(tab_widget)
