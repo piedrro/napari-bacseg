@@ -829,6 +829,8 @@ def get_filtered_database_metadata(self):
                 sort_names.append("image_debris")
 
         if len(sort_names) > 0:
+            if len(sort_names) != len(sort_directions):
+                sort_directions = [False] * len(sort_names)
             user_metadata = user_metadata.sort_values(sort_names, ascending=sort_directions).reset_index(drop=True)
 
         import_limit = self.database_download_limit.currentText()
