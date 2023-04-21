@@ -230,7 +230,7 @@ class BacSeg(QWidget):
         self.fold = self.findChild(QPushButton, "fold")
         self.unfold = self.findChild(QPushButton, "unfold")
         self.unfold_progressbar = self.findChild(QPushButton, "unfold_progressbar")
-        self.alignment_channel =  self.findChild(QComboBox, "alignment_channel")
+        self.alignment_channel = self.findChild(QComboBox, "alignment_channel")
         self.align_active_image = self.findChild(QPushButton, "align_active_image")
         self.align_all_images = self.findChild(QPushButton, "align_all_images")
 
@@ -250,8 +250,6 @@ class BacSeg(QWidget):
         self.overlay_debris = self.findChild(QCheckBox, "overlay_debris")
         self.overlay_laplacian = self.findChild(QCheckBox, "overlay_laplacian")
         self.overlay_range = self.findChild(QCheckBox, "overlay_range")
-
-
 
         # cellpose controls + variables from Qt Desinger References
         self.cellpose_segmentation = False
@@ -323,7 +321,6 @@ class BacSeg(QWidget):
         self.scalebar_resolution = self.findChild(QLineEdit, "scalebar_resolution")
         self.scalebar_units = self.findChild(QComboBox, "scalebar_units")
 
-
         self.set_quality_mode = self.findChild(QComboBox, "set_quality_mode")
         self.set_focus_0 = self.findChild(QPushButton, "set_focus_0")
         self.set_focus_1 = self.findChild(QPushButton, "set_focus_1")
@@ -338,36 +335,36 @@ class BacSeg(QWidget):
         self.set_debris_4 = self.findChild(QPushButton, "set_debris_4")
         self.set_debris_5 = self.findChild(QPushButton, "set_debris_5")
 
-        self.modify_panzoom.setEnabled(False)
-        self.modify_add.setEnabled(False)
-        self.modify_extend.setEnabled(False)
-        self.modify_join.setEnabled(False)
-        self.modify_split.setEnabled(False)
-        self.modify_delete.setEnabled(False)
-        self.modify_refine.setEnabled(False)
-        self.classify_single.setEnabled(False)
-        self.classify_dividing.setEnabled(False)
-        self.classify_divided.setEnabled(False)
-        self.classify_vertical.setEnabled(False)
-        self.classify_broken.setEnabled(False)
-        self.classify_edge.setEnabled(False)
+        # self.modify_panzoom.setEnabled(False)
+        # self.modify_add.setEnabled(False)
+        # self.modify_extend.setEnabled(False)
+        # self.modify_join.setEnabled(False)
+        # self.modify_split.setEnabled(False)
+        # self.modify_delete.setEnabled(False)
+        # self.modify_refine.setEnabled(False)
+        # self.classify_single.setEnabled(False)
+        # self.classify_dividing.setEnabled(False)
+        # self.classify_divided.setEnabled(False)
+        # self.classify_vertical.setEnabled(False)
+        # self.classify_broken.setEnabled(False)
+        # self.classify_edge.setEnabled(False)
 
         # upload tab controls from Qt Desinger References
         self.database_path = ""
         self.user_metadata_keys = 6
 
         self.metadata_columns = ["date_uploaded", "date_created", "date_modified", "file_name", "channel", "file_list", "channel_list", "segmentation_file", "segmentation_channel", "akseg_hash",
-            "user_initial", "content", "microscope", "modality", "source", "strain", "phenotype", "stain_target", "antibiotic", "treatment time (mins)", "antibiotic concentration", "mounting method", "protocol",
-            "folder", "parent_folder", "num_segmentations", "image_laplacian", "image_focus","image_debris","segmented", "labelled", "segmentation_curated", "label_curated", "posX", "posY", "posZ",
-            "image_load_path", "image_save_path", "mask_load_path", "mask_save_path", "label_load_path", "label_save_path"]
+            "user_initial", "content", "microscope", "modality", "source", "strain", "phenotype", "stain_target", "antibiotic", "treatment time (mins)", "antibiotic concentration", "mounting method",
+            "protocol", "folder", "parent_folder", "num_segmentations", "image_laplacian", "image_focus", "image_debris", "segmented", "labelled", "segmentation_curated", "label_curated", "posX",
+            "posY", "posZ", "image_load_path", "image_save_path", "mask_load_path", "mask_save_path", "label_load_path", "label_save_path", ]
 
-        user_key_list = np.arange(1,self.user_metadata_keys+1).tolist()
+        user_key_list = np.arange(1, self.user_metadata_keys + 1).tolist()
         user_key_list.reverse()
 
         for key in user_key_list:
             user_key = f"user_meta{key}"
-            self.metadata_columns.insert(22,str(user_key))
-            setattr(self, f"upload_usermeta{key}", self.findChild(QComboBox, f"upload_usermeta{key}"))
+            self.metadata_columns.insert(22, str(user_key))
+            setattr(self, f"upload_usermeta{key}", self.findChild(QComboBox, f"upload_usermeta{key}"), )
 
         self.upload_initial = self.findChild(QComboBox, "upload_initial")
         self.upload_content = self.findChild(QComboBox, "upload_content")
@@ -444,7 +441,6 @@ class BacSeg(QWidget):
         self.export_cropzoom = self.findChild(QCheckBox, "export_crop_zoom")
         self.export_mask_background = self.findChild(QCheckBox, "export_mask_background")
 
-
         self.export_autocontrast = self.findChild(QCheckBox, "export_autocontrast")
         self.export_statistics_pixelsize = self.findChild(QLineEdit, "export_statistics_pixelsize")
         self.export_statistics_active = self.findChild(QPushButton, "export_statistics_active")
@@ -501,7 +497,6 @@ class BacSeg(QWidget):
         self.cellpose_train_model.clicked.connect(self._trainCellpose)
         self.cellpose_segchannel.currentTextChanged.connect(self._updateSegChannels)
 
-
         # modify tab events
         self.modify_panzoom.clicked.connect(self._modifyMode(mode="panzoom"))
         self.modify_segment.clicked.connect(self._modifyMode(mode="segment"))
@@ -520,18 +515,18 @@ class BacSeg(QWidget):
         self.classify_edge.clicked.connect(self._modifyMode(mode="edge"))
 
         self.viewer.bind_key(key="b", func=self.set_blurred, overwrite=True)
-        self.set_focus_1.clicked.connect(partial(self.set_image_quality, mode = "focus", value=1))
-        self.set_focus_2.clicked.connect(partial(self.set_image_quality, mode = "focus", value=2))
-        self.set_focus_3.clicked.connect(partial(self.set_image_quality, mode = "focus", value=3))
-        self.set_focus_4.clicked.connect(partial(self.set_image_quality, mode = "focus", value=4))
-        self.set_focus_5.clicked.connect(partial(self.set_image_quality, mode = "focus", value=5))
+        self.set_focus_1.clicked.connect(partial(self.set_image_quality, mode="focus", value=1))
+        self.set_focus_2.clicked.connect(partial(self.set_image_quality, mode="focus", value=2))
+        self.set_focus_3.clicked.connect(partial(self.set_image_quality, mode="focus", value=3))
+        self.set_focus_4.clicked.connect(partial(self.set_image_quality, mode="focus", value=4))
+        self.set_focus_5.clicked.connect(partial(self.set_image_quality, mode="focus", value=5))
         self.viewer.bind_key(key="f", func=self.set_focused, overwrite=True)
 
-        self.set_debris_1.clicked.connect(partial(self.set_image_quality, mode = "debris", value=1))
-        self.set_debris_2.clicked.connect(partial(self.set_image_quality, mode = "debris", value=2))
-        self.set_debris_3.clicked.connect(partial(self.set_image_quality, mode = "debris", value=3))
-        self.set_debris_4.clicked.connect(partial(self.set_image_quality, mode = "debris", value=4))
-        self.set_debris_5.clicked.connect(partial(self.set_image_quality, mode = "debris", value=5))
+        self.set_debris_1.clicked.connect(partial(self.set_image_quality, mode="debris", value=1))
+        self.set_debris_2.clicked.connect(partial(self.set_image_quality, mode="debris", value=2))
+        self.set_debris_3.clicked.connect(partial(self.set_image_quality, mode="debris", value=3))
+        self.set_debris_4.clicked.connect(partial(self.set_image_quality, mode="debris", value=4))
+        self.set_debris_5.clicked.connect(partial(self.set_image_quality, mode="debris", value=5))
 
         self.modify_viewmasks.stateChanged.connect(self._viewerControls("viewmasks"))
         self.modify_viewlabels.stateChanged.connect(self._viewerControls("viewlabels"))
@@ -569,8 +564,6 @@ class BacSeg(QWidget):
 
         self.update_metadata.clicked.connect(self.update_database_metadata)
 
-
-
         # viewer event that call updateFileName when the slider is modified
         self.contours = []
         self.viewer.dims.events.current_step.connect(self._sliderEvent)
@@ -581,7 +574,6 @@ class BacSeg(QWidget):
 
         self.classLayer = self.viewer.add_labels(np.zeros((1, 100, 100), dtype=np.uint16), opacity=0.25, name="Classes", color=self.class_colours, metadata={0: {"image_name": ""}}, visible=False, )
         self.segLayer = self.viewer.add_labels(np.zeros((1, 100, 100), dtype=np.uint16), opacity=1, name="Segmentations", metadata={0: {"image_name": ""}}, )
-
 
         self.segLayer.contour = 1
 
@@ -638,27 +630,21 @@ class BacSeg(QWidget):
 
         # viewer events
         self.viewer.layers.events.inserted.connect(self._manualImport)
+        self.viewer.layers.events.removed.connect(self._updateSegmentationCombo)
         self.viewer.layers.selection.events.changed.connect(self._updateFileName)
 
         self.threadpool = QThreadPool()  # self.load_dev_data()
 
         self.widget_notifications = True
 
-
     def _align_images(self, viewer=None, mode="active"):
-
-        from skimage import exposure
         import scipy
         from skimage.registration import phase_cross_correlation
 
         try:
-
-            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations",
-                                                                                            "Classes",
-                                                                                            "center_lines"]]
+            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
 
             if len(layer_names) > 2:
-
                 num_images = self.viewer.layers[layer_names[0]].data.shape[0]
 
                 if mode == "active":
@@ -672,20 +658,14 @@ class BacSeg(QWidget):
                 target_channels = [layer for layer in layer_names if layer != alignment_channel]
 
                 for channel in target_channels:
-
                     image_stack = self.viewer.layers[channel].data.copy()
                     target_image_stack = self.viewer.layers[alignment_channel].data.copy()
 
                     for fov in fov_list:
-
                         target_image = image_stack[fov, :, :]
                         alignment_image = target_image_stack[fov, :, :]
 
-                        shift, error, diffphase = phase_cross_correlation(
-                            alignment_image,
-                            target_image,
-                            upsample_factor=100
-                        )
+                        shift, error, diffphase = phase_cross_correlation(alignment_image, target_image, upsample_factor=100)
 
                         shifted_img = scipy.ndimage.shift(target_image, shift)
 
@@ -698,23 +678,19 @@ class BacSeg(QWidget):
         except:
             pass
 
-
-
     def set_blurred(self, viewer=None):
         self.set_image_quality(mode="focus", value=1)
 
     def set_focused(self, viewer=None):
         self.set_image_quality(mode="focus", value=5)
 
-    def set_image_quality(self, mode = "", value =""):
-
+    def set_image_quality(self, mode="", value=""):
         try:
             layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
 
             update_mode = self.set_quality_mode.currentIndex()
 
             if len(layer_names) > 0:
-
                 current_fov = self.viewer.dims.current_step[0]
                 n_frames = self.viewer.dims.nsteps[0]
                 active_layer = self.viewer.layers.selection.active.name
@@ -734,7 +710,6 @@ class BacSeg(QWidget):
 
                 for layer in layers:
                     for frame in frames:
-
                         meta = self.viewer.layers[layer].metadata.copy()
 
                         meta[frame][f"image_{mode}"] = value
@@ -745,8 +720,6 @@ class BacSeg(QWidget):
 
         except:
             print(traceback.format_exc())
-            pass
-
 
     def wrapper(self, func, *args, **kwargs):
         try:
@@ -1022,7 +995,6 @@ class BacSeg(QWidget):
         self.threadpool.start(worker)
 
     def _uploadDatabase(self, viewer=None, mode=""):
-
         def _event(viewer):
             try:
                 if (self.database_path != "" and os.path.exists(self.database_path) == True):
@@ -1278,6 +1250,7 @@ class BacSeg(QWidget):
             self.label.setText(str(slider_value))
 
     def _updateSegmentationCombo(self):
+
         layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
 
         self.cellpose_segchannel.clear()
@@ -1306,9 +1279,7 @@ class BacSeg(QWidget):
         self.export_colicoords_mode.addItems(["None (OpenCV Stats)", "Mask"] + refine_layers)
 
     def _sliderEvent(self, current_step):
-
         try:
-
             active_layer = self.viewer.layers.selection.active
 
             crop = active_layer.corner_pixels.T
@@ -1324,21 +1295,16 @@ class BacSeg(QWidget):
         self._update_active_midlines()
 
     def _updateScaleBar(self):
-
         layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Classes", "center_lines"]]
 
         try:
-
             if self.scalebar_show.isChecked() and len(layer_names) > 0:
-
                 pixel_resolution = float(self.scalebar_resolution.text())
                 scalebar_units = self.scalebar_units.currentText()
 
                 if pixel_resolution > 0:
-
                     for layer in layer_names:
-
-                        self.viewer.layers[layer].scale = [1,pixel_resolution, pixel_resolution]
+                        self.viewer.layers[layer].scale = [1, pixel_resolution, pixel_resolution, ]
 
                         self.viewer.scale_bar.visible = True
                         self.viewer.scale_bar.unit = scalebar_units
@@ -1346,11 +1312,9 @@ class BacSeg(QWidget):
 
             else:
                 self.viewer.scale_bar.visible = False
-                pass
 
         except:
             self.viewer.scale_bar.visible = False
-            pass
 
     def _autoContrast(self):
         try:
@@ -1371,7 +1335,7 @@ class BacSeg(QWidget):
                     image_crop = image[y1:y2, x1:x2]
 
                     contrast_limit = np.percentile(image_crop[image_crop != 0], (1, 99))
-                    contrast_limit = [int(contrast_limit[0]*0.5), int(contrast_limit[1]*2)]
+                    contrast_limit = [int(contrast_limit[0] * 0.5), int(contrast_limit[1] * 2), ]
 
                     if contrast_limit[1] > contrast_limit[0]:
                         self.viewer.layers[str(active_layer)].contrast_limits = contrast_limit
@@ -1380,7 +1344,6 @@ class BacSeg(QWidget):
             pass
 
     def _updateFileName(self):
-
         try:
             current_fov = self.viewer.dims.current_step[0]
             active_layer = self.viewer.layers.selection.active
@@ -1390,34 +1353,34 @@ class BacSeg(QWidget):
 
             viewer_text = ""
 
-            if self.overlay_filename.isChecked() and "image_name" in metadata.keys():
+            if (self.overlay_filename.isChecked() and "image_name" in metadata.keys()):
                 viewer_text = f"File Name: {metadata['image_name']}"
             if self.overlay_folder.isChecked() and "folder" in metadata.keys():
                 viewer_text = viewer_text + f"\nFolder: {metadata['folder']}"
-            if self.overlay_microscope.isChecked() and "microscope" in metadata.keys():
-                viewer_text = viewer_text + f"\nMicroscope: {metadata['microscope']}"
-            if self.overlay_datemodified.isChecked() and "date_modified" in metadata.keys():
-                viewer_text = viewer_text + f"\nDate Modified: {metadata['date_modified']}"
-            if self.overlay_content.isChecked() and "content" in metadata.keys():
+            if (self.overlay_microscope.isChecked() and "microscope" in metadata.keys()):
+                viewer_text = (viewer_text + f"\nMicroscope: {metadata['microscope']}")
+            if (self.overlay_datemodified.isChecked() and "date_modified" in metadata.keys()):
+                viewer_text = (viewer_text + f"\nDate Modified: {metadata['date_modified']}")
+            if (self.overlay_content.isChecked() and "content" in metadata.keys()):
                 viewer_text = viewer_text + f"\nContent: {metadata['content']}"
             if self.overlay_strain.isChecked() and "strain" in metadata.keys():
                 viewer_text = viewer_text + f"\nStrain: {metadata['strain']}"
-            if self.overlay_phenotype.isChecked() and "phenotype" in metadata.keys():
-                viewer_text = viewer_text + f"\nPhenotype: {metadata['phenotype']}"
-            if self.overlay_antibiotic.isChecked() and "antibiotic" in metadata.keys():
-                viewer_text = viewer_text + f"\nAntibiotic: {metadata['antibiotic']}"
+            if (self.overlay_phenotype.isChecked() and "phenotype" in metadata.keys()):
+                viewer_text = (viewer_text + f"\nPhenotype: {metadata['phenotype']}")
+            if (self.overlay_antibiotic.isChecked() and "antibiotic" in metadata.keys()):
+                viewer_text = (viewer_text + f"\nAntibiotic: {metadata['antibiotic']}")
             if self.overlay_stain.isChecked() and "stain" in metadata.keys():
                 viewer_text = viewer_text + f"\nStain: {metadata['stain']}"
-            if self.overlay_staintarget.isChecked() and "stain_target" in metadata.keys():
-                viewer_text = viewer_text + f"\nStain Target: {metadata['stain_target']}"
-            if self.overlay_modality.isChecked() and "modality" in metadata.keys():
-                viewer_text = viewer_text + f"\nModality: {metadata['modality']}"
-            if self.overlay_lightsource.isChecked() and "source" in metadata.keys():
-                viewer_text = viewer_text + f"\nLight Source: {metadata['source']}"
-            if self.overlay_focus.isChecked() and "image_focus" in metadata.keys():
-                viewer_text = viewer_text + f"\nImage Focus: {metadata['image_focus']}"
-            if self.overlay_debris.isChecked() and "image_debris" in metadata.keys():
-                viewer_text = viewer_text + f"\nImage Debris: {metadata['image_debris']}"
+            if (self.overlay_staintarget.isChecked() and "stain_target" in metadata.keys()):
+                viewer_text = (viewer_text + f"\nStain Target: {metadata['stain_target']}")
+            if (self.overlay_modality.isChecked() and "modality" in metadata.keys()):
+                viewer_text = (viewer_text + f"\nModality: {metadata['modality']}")
+            if (self.overlay_lightsource.isChecked() and "source" in metadata.keys()):
+                viewer_text = (viewer_text + f"\nLight Source: {metadata['source']}")
+            if (self.overlay_focus.isChecked() and "image_focus" in metadata.keys()):
+                viewer_text = (viewer_text + f"\nImage Focus: {metadata['image_focus']}")
+            if (self.overlay_debris.isChecked() and "image_debris" in metadata.keys()):
+                viewer_text = (viewer_text + f"\nImage Debris: {metadata['image_debris']}")
             if self.overlay_laplacian.isChecked():
                 image_laplacian = np.mean(cv2.Laplacian(image, cv2.CV_64F))
                 viewer_text = viewer_text + f"\nLaplacian: {image_laplacian}"
@@ -1525,8 +1488,6 @@ class BacSeg(QWidget):
                 self.classLayer.data = new_class_stack
                 self.segLayer.metadata = new_metadata
 
-
-
         # sets labels such that only label contours are shown
         self.segLayer.contour = 1
         self.segLayer.opacity = 1
@@ -1543,9 +1504,7 @@ class BacSeg(QWidget):
         self._updateScaleBar()
 
     def _reorderLayers(self):
-
         try:
-
             layer_names = [layer.name for layer in self.viewer.layers if layer.name in ["Segmentations", "Classes", "center_lines"]]
 
             for layer in ["center_lines", "Classes", "Segmentations"]:
@@ -1557,7 +1516,6 @@ class BacSeg(QWidget):
             pass
 
     def _autoClassify(self, reset=False):
-
         mask_stack = self.segLayer.data.copy()
         label_stack = self.classLayer.data.copy()
 
