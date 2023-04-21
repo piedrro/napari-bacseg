@@ -234,6 +234,25 @@ class BacSeg(QWidget):
         self.align_active_image = self.findChild(QPushButton, "align_active_image")
         self.align_all_images = self.findChild(QPushButton, "align_all_images")
 
+        self.overlay_filename = self.findChild(QCheckBox, "overlay_filename")
+        self.overlay_folder = self.findChild(QCheckBox, "overlay_folder")
+        self.overlay_microscope = self.findChild(QCheckBox, "overlay_microscope")
+        self.overlay_datemodified = self.findChild(QCheckBox, "overlay_datemodified")
+        self.overlay_content = self.findChild(QCheckBox, "overlay_content")
+        self.overlay_phenotype = self.findChild(QCheckBox, "overlay_phenotype")
+        self.overlay_strain = self.findChild(QCheckBox, "overlay_strain")
+        self.overlay_staintarget = self.findChild(QCheckBox, "overlay_staintarget")
+        self.overlay_antibiotic = self.findChild(QCheckBox, "overlay_antibiotic")
+        self.overlay_stain = self.findChild(QCheckBox, "overlay_stain")
+        self.overlay_modality = self.findChild(QCheckBox, "overlay_modality")
+        self.overlay_lightsource = self.findChild(QCheckBox, "overlay_lightsource")
+        self.overlay_focus = self.findChild(QCheckBox, "overlay_focus")
+        self.overlay_debris = self.findChild(QCheckBox, "overlay_debris")
+        self.overlay_laplacian = self.findChild(QCheckBox, "overlay_laplacian")
+        self.overlay_range = self.findChild(QCheckBox, "overlay_range")
+
+
+
         # cellpose controls + variables from Qt Desinger References
         self.cellpose_segmentation = False
         self.cellpose_model = None
@@ -452,6 +471,22 @@ class BacSeg(QWidget):
         self.scalebar_show.stateChanged.connect(self._updateScaleBar)
         self.scalebar_resolution.textChanged.connect(self._updateScaleBar)
         self.scalebar_units.currentTextChanged.connect(self._updateScaleBar)
+        self.overlay_filename.stateChanged.connect(self._updateFileName)
+        self.overlay_folder.stateChanged.connect(self._updateFileName)
+        self.overlay_microscope.stateChanged.connect(self._updateFileName)
+        self.overlay_datemodified.stateChanged.connect(self._updateFileName)
+        self.overlay_content.stateChanged.connect(self._updateFileName)
+        self.overlay_phenotype.stateChanged.connect(self._updateFileName)
+        self.overlay_strain.stateChanged.connect(self._updateFileName)
+        self.overlay_antibiotic.stateChanged.connect(self._updateFileName)
+        self.overlay_stain.stateChanged.connect(self._updateFileName)
+        self.overlay_staintarget.stateChanged.connect(self._updateFileName)
+        self.overlay_modality.stateChanged.connect(self._updateFileName)
+        self.overlay_lightsource.stateChanged.connect(self._updateFileName)
+        self.overlay_focus.stateChanged.connect(self._updateFileName)
+        self.overlay_debris.stateChanged.connect(self._updateFileName)
+        self.overlay_laplacian.stateChanged.connect(self._updateFileName)
+        self.overlay_range.stateChanged.connect(self._updateFileName)
 
         # cellpose events
         self.cellpose_flowthresh.valueChanged.connect(lambda: self._updateSliderLabel("cellpose_flowthresh", "cellpose_flowthresh_label"))
@@ -1345,6 +1380,7 @@ class BacSeg(QWidget):
             pass
 
     def _updateFileName(self):
+
         try:
             current_fov = self.viewer.dims.current_step[0]
             active_layer = self.viewer.layers.selection.active
@@ -1352,59 +1388,48 @@ class BacSeg(QWidget):
             image = self.viewer.layers[str(active_layer)].data[current_fov]
             metadata = self.viewer.layers[str(active_layer)].metadata[current_fov]
 
-            file_name = metadata["image_name"]
-            channel = metadata["channel"]
+            viewer_text = ""
 
+            if self.overlay_filename.isChecked() and "image_name" in metadata.keys():
+                viewer_text = f"File Name: {metadata['image_name']}"
+            if self.overlay_folder.isChecked() and "folder" in metadata.keys():
+                viewer_text = viewer_text + f"\nFolder: {metadata['folder']}"
+            if self.overlay_microscope.isChecked() and "microscope" in metadata.keys():
+                viewer_text = viewer_text + f"\nMicroscope: {metadata['microscope']}"
+            if self.overlay_datemodified.isChecked() and "date_modified" in metadata.keys():
+                viewer_text = viewer_text + f"\nDate Modified: {metadata['date_modified']}"
+            if self.overlay_content.isChecked() and "content" in metadata.keys():
+                viewer_text = viewer_text + f"\nContent: {metadata['content']}"
+            if self.overlay_strain.isChecked() and "strain" in metadata.keys():
+                viewer_text = viewer_text + f"\nStrain: {metadata['strain']}"
+            if self.overlay_phenotype.isChecked() and "phenotype" in metadata.keys():
+                viewer_text = viewer_text + f"\nPhenotype: {metadata['phenotype']}"
+            if self.overlay_antibiotic.isChecked() and "antibiotic" in metadata.keys():
+                viewer_text = viewer_text + f"\nAntibiotic: {metadata['antibiotic']}"
+            if self.overlay_stain.isChecked() and "stain" in metadata.keys():
+                viewer_text = viewer_text + f"\nStain: {metadata['stain']}"
+            if self.overlay_staintarget.isChecked() and "stain_target" in metadata.keys():
+                viewer_text = viewer_text + f"\nStain Target: {metadata['stain_target']}"
+            if self.overlay_modality.isChecked() and "modality" in metadata.keys():
+                viewer_text = viewer_text + f"\nModality: {metadata['modality']}"
+            if self.overlay_lightsource.isChecked() and "source" in metadata.keys():
+                viewer_text = viewer_text + f"\nLight Source: {metadata['source']}"
+            if self.overlay_focus.isChecked() and "image_focus" in metadata.keys():
+                viewer_text = viewer_text + f"\nImage Focus: {metadata['image_focus']}"
+            if self.overlay_debris.isChecked() and "image_debris" in metadata.keys():
+                viewer_text = viewer_text + f"\nImage Debris: {metadata['image_debris']}"
+            if self.overlay_laplacian.isChecked():
+                image_laplacian = np.mean(cv2.Laplacian(image, cv2.CV_64F))
+                viewer_text = viewer_text + f"\nLaplacian: {image_laplacian}"
+            if self.overlay_range.isChecked():
+                image_range = np.max(image) - np.min(image)
+                viewer_text = viewer_text + f"\nRange: {image_range}"
 
-
-            viewer_text = f"File Name: {file_name}"
-
-            if "modality" in metadata.keys():
-                modality = metadata["modality"]
-                viewer_text = viewer_text + f"\nModality: {modality}"
+            if viewer_text != "":
+                self.viewer.text_overlay.visible = True
+                self.viewer.text_overlay.text = viewer_text.lstrip("\n")
             else:
-                viewer_text = viewer_text + f"\nModality: None"
-
-            if "light_source" in metadata.keys():
-                light_source = metadata["light_source"]
-                viewer_text = viewer_text + f"\nLight Source: {light_source}"
-            else:
-                viewer_text = viewer_text + f"\nLight Source: None"
-
-            if "stain" in metadata.keys():
-                stain = metadata["stain"]
-                viewer_text = viewer_text + f"\nStain: {stain}"
-            else:
-                viewer_text = viewer_text + f"\nStain: None"
-
-            if "stain_target" in metadata.keys():
-                stain_target = metadata["stain_target"]
-                viewer_text = viewer_text + f"\nStain Target: {stain_target}"
-            else:
-                viewer_text = viewer_text + f"\nStain Target: None"
-
-            if "image_focus" in metadata.keys():
-                image_focus = metadata["image_focus"]
-                viewer_text = viewer_text + f"\nImage Focus: {image_focus}"
-            else:
-                viewer_text = viewer_text + f"\nImage Focus: None"
-
-            if "image_debris" in metadata.keys():
-                image_debris = metadata["image_debris"]
-                viewer_text = viewer_text + f"\nImage Debris: {image_debris}"
-            else:
-                viewer_text = viewer_text + f"\nImage Debris: None"
-
-            image_range = np.max(image) - np.min(image)
-            image_laplacian = np.mean(cv2.Laplacian(image, cv2.CV_64F))
-
-            viewer_text = viewer_text + f"\nImage Laplacian: {image_laplacian:.2f}"
-            viewer_text = viewer_text + f"\nImage Range: {image_range}"
-
-
-            self.viewer.text_overlay.visible = True
-
-            self.viewer.text_overlay.text = viewer_text
+                self.viewer.text_overlay.visible = False
 
         except:
             pass
@@ -1532,6 +1557,7 @@ class BacSeg(QWidget):
             pass
 
     def _autoClassify(self, reset=False):
+
         mask_stack = self.segLayer.data.copy()
         label_stack = self.classLayer.data.copy()
 
