@@ -603,6 +603,15 @@ def _modifyMode(self, mode, viewer=None):
             self.modify_segment.setEnabled(True)
             self.modify_classify.setEnabled(False)
 
+        if mode == "clicktozoom":
+            self.viewer.layers.selection.select_only(self.segLayer)
+
+            self.interface_mode = "segment"
+            self.segmentation_mode = "clicktozoom"
+            # self.modify_panzoom.setEnabled(True)
+            # self.modify_segment.setEnabled(True)
+            # self.modify_classify.setEnabled(True)
+
         if mode == "add":
             self.viewer.layers.selection.select_only(self.segLayer)
 

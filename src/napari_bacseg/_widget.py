@@ -570,6 +570,7 @@ class BacSeg(QWidget):
         self.viewer.bind_key(key="s", func=self._modifyMode(mode="split"), overwrite=True)
         self.viewer.bind_key(key="d", func=self._modifyMode(mode="delete"), overwrite=True)
         self.viewer.bind_key(key="r", func=self._modifyMode(mode="refine"), overwrite=True)
+        self.viewer.bind_key(key="k", func=self._modifyMode(mode="clicktozoom"), overwrite=True)
         self.viewer.bind_key(key="Control-1", func=self._modifyMode(mode="single"), overwrite=True, )
         self.viewer.bind_key(key="Control-2", func=self._modifyMode(mode="dividing"), overwrite=True, )
         self.viewer.bind_key(key="Control-3", func=self._modifyMode(mode="divided"), overwrite=True, )
@@ -612,6 +613,7 @@ class BacSeg(QWidget):
 
         # mouse events
         self.segLayer.mouse_drag_callbacks.append(self._segmentationEvents)
+        # self.segLayer.mouse_move_callbac1ks.append(self._zoomEvents)
         self.segLayer.mouse_double_click_callbacks.append(self._doubeClickEvents)
 
         # viewer events
@@ -624,7 +626,6 @@ class BacSeg(QWidget):
         self.widget_notifications = True
 
     def _align_images(self, viewer=None, mode="active"):
-
         import scipy
         from skimage.registration import phase_cross_correlation
 
@@ -1007,7 +1008,10 @@ class BacSeg(QWidget):
                 if self.unfolded == True:
                     self.fold_images()
 
-                from napari_bacseg._utils_database_IO import (get_filtered_database_metadata, read_bacseg_images, )
+                from napari_bacseg._utils_database_IO import (get_filtered_database_metadata, read_bacseg_images)
+                from napari_bacseg._utils_database_IO import read_user_metadata, backup_user_metadata
+
+
 
                 self.get_filtered_database_metadata = self.wrapper(get_filtered_database_metadata)
                 self.read_bacseg_images = self.wrapper(read_bacseg_images)
@@ -1237,7 +1241,6 @@ class BacSeg(QWidget):
             self.label.setText(str(slider_value))
 
     def _updateSegmentationCombo(self):
-
         layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
 
         self.cellpose_segchannel.clear()
@@ -1282,7 +1285,8 @@ class BacSeg(QWidget):
         self._update_active_midlines()
 
     def _updateScaleBar(self):
-        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Classes", "center_lines"]]
+
+        layer_names = [layer.name for layer in self.viewer.layers]
 
         try:
             if self.scalebar_show.isChecked() and len(layer_names) > 0:
