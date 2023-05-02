@@ -71,96 +71,71 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
         if int(import_limit) > len(measurements):
             import_limit = len(measurements)
 
-    for i in range(int(import_limit)):
+    if import_limit == str(1):
         try:
-            measurement = measurements.get_group(list(measurements.groups)[i])
-            iter += 1
+            measurement = measurements.get_group(list(measurements.groups)[0])
+            imported_data = [download_bacseg_files(measurement, channels, database_path)]
+            progress_callback.emit(100)
+        except:
+            pass
+    else:
 
-            segmentation_channel = measurement["segmentation_channel"].unique()[0]
+        measurements = [measurements.get_group(i) for i in measurements.groups][:int(import_limit)]
 
-            segmentation_file = measurement[measurement["channel"] == segmentation_channel]["file_name"].item()
-            user_initial = measurement[measurement["channel"] == segmentation_channel]["user_initial"].item()
-            folder = measurement[measurement["channel"] == segmentation_channel]["folder"].item()
+        with Pool(4) as pool:
+            iter = []
 
-            json_path = os.path.join(database_path, "Images", user_initial, "json", folder, segmentation_file)
+            def callback(*args):
+                iter.append(1)
+                progress = (len(iter) / int(import_limit)) * 100
 
-            mask, label = import_coco_json(json_path)
-
-            for j in range(len(channels)):
-                channel = channels[j]
-
-                measurement_channels = measurement["channel"].unique()
-
-                if channel in measurement_channels:
-                    dat = measurement[measurement["channel"] == channel]
-
-                    progress = int(((iter + 1) / int(import_limit)) * 100)
+                if progress_callback != None:
                     try:
                         progress_callback.emit(progress)
                     except:
                         pass
 
-                    if self.widget_notifications:
-                        show_info("loading image[" + str(channel) + "] " + str(i + 1) + " of " + str(int(import_limit)))
+                return
 
-                    file_name = dat["file_name"].item()
-                    user_initial = dat["user_initial"].item()
-                    folder = dat["folder"].item()
+            results = [pool.apply_async(download_bacseg_files, args=(measurement,
+                                                                     channels,
+                                                                     database_path), callback=callback, ) for measurement in measurements]
 
-                    image_path = os.path.join(database_path, "Images", user_initial, "images", folder, file_name, )
-                    image_path = os.path.abspath(image_path)
+            try:
+                results[-1].get()
+            except:
+                print(traceback.format_exc())
+            else:
+                results = [r.get() for r in results]
+                imported_data = [dat for dat in results if dat != {}]
+                pool.close()
+                pool.join()
 
-                    image = tifffile.imread(image_path)
+    try:
 
-                    with tifffile.TiffFile(image_path) as tif:
-                        try:
-                            meta = tif.pages[0].tags["ImageDescription"].value
-                            meta = json.loads(meta)
-                        except:
-                            meta = {}
+        imported_images = {}
 
-                    meta["import_mode"] = "BacSeg"
+        for dat in imported_data:
+            for channel, channel_data in dat.items():
 
-                    for key, value in dat.to_dict("records")[0].items():
-                        meta[key] = value
+                image = channel_data["images"]
+                mask = channel_data["masks"]
+                label = channel_data["classes"]
+                meta = channel_data["metadata"]
 
-                    if "segmentation_file" in meta.keys():
-                        if meta["segmentation_file"] in [None, "None"]:
-                            meta["segmentation_file"] = list_from_string(measurement["file_list"].iloc[0])[0]
-                            meta["segmentation_channel"] = list_from_string(measurement["channel_list"].iloc[0])[0]
-
+                if channel not in imported_images.keys():
+                    imported_images[channel] = dict(images=[image], masks=[mask], classes=[label], metadata={0:meta}, )
                 else:
-                    image = np.zeros((100, 100), dtype=np.uint16)
-                    mask = np.zeros((100, 100), dtype=np.uint16)
-                    label = np.zeros((100, 100), dtype=np.uint16)
+                    image_index = len(imported_images[channel]["images"])
 
-                    meta = {}
-
-                    meta["image_name"] = "missing image channel"
-                    meta["image_path"] = "missing image channel"
-                    meta["folder"] = (None,)
-                    meta["parent_folder"] = (None,)
-                    meta["akseg_hash"] = None
-                    meta["fov_mode"] = None
-                    meta["import_mode"] = "BacSeg"
-                    meta["contrast_limit"] = None
-                    meta["contrast_alpha"] = None
-                    meta["contrast_beta"] = None
-                    meta["contrast_gamma"] = None
-                    meta["dims"] = [image.shape[-1], image.shape[-2]]
-                    meta["crop"] = [0, image.shape[-2], 0, image.shape[-1]]
-                    meta["light_source"] = channel
-
-                if channel not in imported_images:
-                    imported_images[channel] = dict(images=[image], masks=[mask], classes=[label], metadata={i: meta}, )
-                else:
                     imported_images[channel]["images"].append(image)
                     imported_images[channel]["masks"].append(mask)
                     imported_images[channel]["classes"].append(label)
-                    imported_images[channel]["metadata"][i] = meta
+                    imported_images[channel]["metadata"][image_index] = meta
 
-        except:
-            print(traceback.format_exc())
+    except:
+        print(traceback.format_exc())
+        pass
 
     imported_data = dict(imported_images=imported_images)
 
@@ -384,13 +359,7 @@ def download_bacseg_files(measurement, channels, database_path):
                 meta["crop"] = [0, image.shape[-2], 0, image.shape[-1]]
                 meta["light_source"] = channel
 
-            if channel not in imported_images:
-                imported_images[channel] = dict(images=[image], masks=[mask], classes=[label], metadata={i: meta}, )
-            else:
-                imported_images[channel]["images"].append(image)
-                imported_images[channel]["masks"].append(mask)
-                imported_images[channel]["classes"].append(label)
-                imported_images[channel]["metadata"][i] = meta
+            imported_images[channel] = dict(images=image, masks=mask, classes=label, metadata=meta)
 
     except:
         pass
