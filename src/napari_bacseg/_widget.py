@@ -340,7 +340,7 @@ class BacSeg(QWidget):
         self.user_metadata_keys = 6
 
         self.metadata_columns = ["date_uploaded", "date_created", "date_modified", "file_name", "channel", "file_list", "channel_list", "segmentation_file", "segmentation_channel", "akseg_hash",
-            "user_initial", "content", "microscope", "modality", "source", "strain", "phenotype", "stain_target", "antibiotic", "treatment time (mins)", "antibiotic concentration", "mounting method",
+            "user_initial", "content", "microscope", "modality", "source", "strain", "phenotype","stain", "stain_target", "antibiotic", "treatment time (mins)", "antibiotic concentration", "mounting method",
             "protocol", "folder", "parent_folder", "num_segmentations", "image_laplacian", "image_focus", "image_debris", "segmented", "labelled", "segmentation_curated", "label_curated", "posX",
             "posY", "posZ", "image_load_path", "image_save_path", "mask_load_path", "mask_save_path", "label_load_path", "label_save_path", ]
 

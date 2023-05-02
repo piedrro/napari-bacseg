@@ -18,13 +18,11 @@ from napari_bacseg._utils_json import export_coco_json, import_coco_json
 
 
 def check_metadata_format(metadata, expected_columns):
-    if "stains" in metadata.columns:
-        metadata = metadata.rename(columns={"stains": "stain"})
 
-    missing_columns = list(set(expected_columns) - set(metadata.columns))
-    extra_columns = list(set(metadata.columns) - set(expected_columns))
+    missing_columns = list(set(expected_columns) - set(metadata.columns.tolist()))
+    extra_columns = list(set(metadata.columns.tolist()) - set(expected_columns))
 
-    all_columns = expected_columns + extra_columns
+    all_columns = list(set(expected_columns + extra_columns))
 
     metadata[missing_columns] = pd.DataFrame([[None] * len(missing_columns)], index=metadata.index)
 
@@ -329,8 +327,12 @@ def download_bacseg_files(measurement, channels, database_path):
 
                 meta["import_mode"] = "BacSeg"
 
-                for key, value in dat.to_dict("records")[0].items():
-                    meta[key] = value
+                try:
+                    for key, value in dat.to_dict("records")[0].items():
+                        pass
+                        # meta[key] = value
+                except:
+                    pass
 
                 if "segmentation_file" in meta.keys():
                     if meta["segmentation_file"] in [None, "None"]:
