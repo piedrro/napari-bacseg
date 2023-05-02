@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import tifffile
 from napari.utils.notifications import show_info
-
+from csv import Sniffer
 from napari_bacseg._utils_json import export_coco_json, import_coco_json
 
 
@@ -643,9 +643,8 @@ def _upload_bacseg_database(self, progress_callback, mode):
             user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
 
             if os.path.exists(user_metadata_path):
-                user_metadata = pd.read_csv(user_metadata_path, sep=",", low_memory=False)
 
-                user_metadata, expected_columns = check_metadata_format(user_metadata, self.metadata_columns)
+                user_metadata, expected_columns = read_user_metadata(self, user_metadata_path=user_metadata_path)
 
                 metadata_file_names = user_metadata["file_name"].tolist()
                 metadata_akseg_hash = user_metadata["akseg_hash"].tolist()
@@ -785,15 +784,16 @@ def _upload_bacseg_database(self, progress_callback, mode):
         print(traceback.format_exc())
 
 
-def read_user_metadata(self):
+def read_user_metadata(self, user_metadata_path = ""):
 
     try:
 
-        database_path = self.database_path
+        if user_metadata_path == "":
 
-        user_initial = self.upload_initial.currentText()
+            database_path = self.database_path
+            user_initial = self.upload_initial.currentText()
 
-        user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
+            user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
 
         if os.path.isfile(user_metadata_path) == False:
             if self.widget_notifications:
@@ -804,7 +804,17 @@ def read_user_metadata(self):
             channels = []
 
         else:
-            user_metadata = pd.read_csv(user_metadata_path, sep=",", low_memory=False)
+
+            sniffer = Sniffer()
+
+            # checks the delimiter of the metadata file
+
+            with open(user_metadata_path, 'r') as f:
+                for row in range(10):
+                    line = next(f).strip()
+                    delim = sniffer.sniff(line)
+
+            user_metadata = pd.read_csv(user_metadata_path, sep=delim.delimiter, low_memory=False)
 
             user_metadata, expected_columns = check_metadata_format(user_metadata, self.metadata_columns)
 
@@ -824,8 +834,8 @@ def backup_user_metadata(self, user_metadata = ""):
 
     try:
 
-        if user_metadata is not []:
-            user_metadata = self.user_metadata
+        if type(user_metadata) is str:
+            user_metadata, _ = read_user_metadata(self)
 
         database_path = self.database_path
 
@@ -852,161 +862,168 @@ def backup_user_metadata(self, user_metadata = ""):
 
 def get_filtered_database_metadata(self):
 
-    database_metadata = {"user_initial": self.upload_initial.currentText(), "content": self.upload_content.currentText(), "microscope": self.upload_microscope.currentText(), "phenotype": self.upload_phenotype.currentText(), "strain": self.upload_strain.currentText(), "antibiotic": self.upload_antibiotic.currentText(), "antibiotic concentration": self.upload_abxconcentration.currentText(), "treatment time (mins)": self.upload_treatmenttime.currentText(), "mounting method": self.upload_mount.currentText(), "protocol": self.upload_protocol.currentText(), }
+    try:
 
-    num_user_keys = self.user_metadata_keys
+        database_metadata = {"user_initial": self.upload_initial.currentText(), "content": self.upload_content.currentText(), "microscope": self.upload_microscope.currentText(), "phenotype": self.upload_phenotype.currentText(), "strain": self.upload_strain.currentText(), "antibiotic": self.upload_antibiotic.currentText(), "antibiotic concentration": self.upload_abxconcentration.currentText(), "treatment time (mins)": self.upload_treatmenttime.currentText(), "mounting method": self.upload_mount.currentText(), "protocol": self.upload_protocol.currentText(), }
 
-    for key in range(1, num_user_keys + 1):
-        control_name = f"upload_usermeta{key}"
-        combo_box = getattr(self, control_name)
-        combo_box_text = combo_box.currentText()
-        database_metadata[f"user_meta{key}"] = combo_box_text
+        num_user_keys = self.user_metadata_keys
 
-    database_metadata = {key: val for key, val in database_metadata.items() if val not in ["", "Required for upload", "example_item1", "example_item2", "example_item3", ]}
+        for key in range(1, num_user_keys + 1):
+            control_name = f"upload_usermeta{key}"
+            combo_box = getattr(self, control_name)
+            combo_box_text = combo_box.currentText()
+            database_metadata[f"user_meta{key}"] = combo_box_text
 
-    database_path = self.database_path
+        database_metadata = {key: val for key, val in database_metadata.items() if val not in ["", "Required for upload", "example_item1", "example_item2", "example_item3", ]}
 
-    user_initial = database_metadata["user_initial"]
+        database_path = self.database_path
 
-    user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
+        user_initial = database_metadata["user_initial"]
 
-    if os.path.isfile(user_metadata_path) == False:
-        if self.widget_notifications:
-            show_info("Could not find metadata for user: " + user_initial)
+        user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
 
-        measurements = []
-        file_paths = []
-        channels = []
+        if os.path.isfile(user_metadata_path) == False:
+            if self.widget_notifications:
+                show_info("Could not find metadata for user: " + user_initial)
 
-    else:
-        user_metadata = pd.read_csv(user_metadata_path, sep=",", low_memory=False)
+            measurements = []
+            file_paths = []
+            channels = []
 
-        user_metadata, expected_columns = check_metadata_format(user_metadata, self.metadata_columns)
-
-        user_metadata["segmentation_channel"] = user_metadata["segmentation_channel"].astype(str)
-
-        for key, value in database_metadata.items():
-            user_metadata = user_metadata[user_metadata[key] == value]
-
-        if self.upload_segmentation_combo.currentIndex() == 1:
-            user_metadata = user_metadata[user_metadata["segmented"] == False]
-        if self.upload_segmentation_combo.currentIndex() == 2:
-            user_metadata = user_metadata[user_metadata["segmented"] == True & (user_metadata["segmentation_curated"] == False)]
-        if self.upload_segmentation_combo.currentIndex() == 3:
-            user_metadata = user_metadata[(user_metadata["segmented"] == True) & (user_metadata["segmentation_curated"] == True)]
-        if self.upload_label_combo.currentIndex() == 1:
-            user_metadata = user_metadata[user_metadata["labelled"] == False]
-        if self.upload_label_combo.currentIndex() == 2:
-            user_metadata = user_metadata[user_metadata["labelled"] == True & (user_metadata["label_curated"] == False)]
-        if self.upload_label_combo.currentIndex() == 3:
-            user_metadata = user_metadata[(user_metadata["labelled"] == True) & (user_metadata["label_curated"] == True)]
-
-        user_metadata.sort_values(by=["posX", "posY", "posZ"], ascending=True)
-
-        sort_names = []
-        sort_directions = []
-
-        if self.download_sort_order_1.currentIndex() > 1:
-            if self.download_sort_direction_1.currentIndex() == 1:
-                sort_directions.append(True)
-            if self.download_sort_direction_1.currentIndex() == 2:
-                sort_directions.append(False)
-
-        if self.download_sort_order_2.currentIndex() > 1:
-            if self.download_sort_direction_2.currentIndex() == 1:
-                sort_directions.append(True)
-            if self.download_sort_direction_2.currentIndex() == 2:
-                sort_directions.append(False)
-
-        if self.download_sort_order_1.currentIndex() == 1:
-            user_metadata = user_metadata.sample(frac=1).reset_index(drop=True)
-        if self.download_sort_order_1.currentIndex() == 2:
-            sort_names.append("date_uploaded")
-        if self.download_sort_order_1.currentIndex() == 3:
-            sort_names.append("date_modified")
-        if self.download_sort_order_1.currentIndex() == 4:
-            if "image_laplacian" in user_metadata.columns:
-                sort_names.append("image_laplacian")
-        if self.download_sort_order_1.currentIndex() == 5:
-            if "num_segmentations" in user_metadata.columns:
-                sort_names.append("num_segmentations")
-        if self.download_sort_order_1.currentIndex() == 6:
-            if "image_focus" in user_metadata.columns:
-                sort_names.append("image_focus")
-        if self.download_sort_order_1.currentIndex() == 7:
-            if "image_debris" in user_metadata.columns:
-                sort_names.append("image_debris")
-
-        if self.download_sort_order_2.currentIndex() == 1:
-            user_metadata = user_metadata.sample(frac=1).reset_index(drop=True)
-        if self.download_sort_order_2.currentIndex() == 2:
-            sort_names.append("date_uploaded")
-        if self.download_sort_order_2.currentIndex() == 3:
-            sort_names.append("date_modified")
-        if self.download_sort_order_2.currentIndex() == 4:
-            if "image_laplacian" in user_metadata.columns:
-                sort_names.append("image_laplacian")
-        if self.download_sort_order_2.currentIndex() == 5:
-            if "num_segmentations" in user_metadata.columns:
-                sort_names.append("num_segmentations")
-        if self.download_sort_order_2.currentIndex() == 6:
-            if "image_focus" in user_metadata.columns:
-                sort_names.append("image_focus")
-        if self.download_sort_order_2.currentIndex() == 7:
-            if "image_debris" in user_metadata.columns:
-                sort_names.append("image_debris")
-
-        if len(sort_names) > 0:
-            if len(sort_names) != len(sort_directions):
-                sort_directions = [False] * len(sort_names)
-            user_metadata = user_metadata.sort_values(sort_names, ascending=sort_directions).reset_index(drop=True)
-
-        import_limit = self.database_download_limit.currentText()
-
-        segmentation_files = user_metadata["segmentation_file"].unique()
-        num_measurements = len(segmentation_files)
-
-        if import_limit == "All":
-            import_limit = num_measurements
         else:
-            if int(import_limit) > num_measurements:
+
+            user_metadata, expected_columns = read_user_metadata(self)
+
+            user_metadata["segmentation_channel"] = user_metadata["segmentation_channel"].astype(str)
+
+            for key, value in database_metadata.items():
+                if key in user_metadata.columns:
+                    user_metadata = user_metadata[user_metadata[key] == value]
+
+            if self.upload_segmentation_combo.currentIndex() == 1:
+                user_metadata = user_metadata[user_metadata["segmented"] == False]
+            if self.upload_segmentation_combo.currentIndex() == 2:
+                user_metadata = user_metadata[user_metadata["segmented"] == True & (user_metadata["segmentation_curated"] == False)]
+            if self.upload_segmentation_combo.currentIndex() == 3:
+                user_metadata = user_metadata[(user_metadata["segmented"] == True) & (user_metadata["segmentation_curated"] == True)]
+            if self.upload_label_combo.currentIndex() == 1:
+                user_metadata = user_metadata[user_metadata["labelled"] == False]
+            if self.upload_label_combo.currentIndex() == 2:
+                user_metadata = user_metadata[user_metadata["labelled"] == True & (user_metadata["label_curated"] == False)]
+            if self.upload_label_combo.currentIndex() == 3:
+                user_metadata = user_metadata[(user_metadata["labelled"] == True) & (user_metadata["label_curated"] == True)]
+
+            user_metadata.sort_values(by=["posX", "posY", "posZ"], ascending=True)
+
+            sort_names = []
+            sort_directions = []
+
+            if self.download_sort_order_1.currentIndex() > 1:
+                if self.download_sort_direction_1.currentIndex() == 1:
+                    sort_directions.append(True)
+                if self.download_sort_direction_1.currentIndex() == 2:
+                    sort_directions.append(False)
+
+            if self.download_sort_order_2.currentIndex() > 1:
+                if self.download_sort_direction_2.currentIndex() == 1:
+                    sort_directions.append(True)
+                if self.download_sort_direction_2.currentIndex() == 2:
+                    sort_directions.append(False)
+
+            if self.download_sort_order_1.currentIndex() == 1:
+                user_metadata = user_metadata.sample(frac=1).reset_index(drop=True)
+            if self.download_sort_order_1.currentIndex() == 2:
+                sort_names.append("date_uploaded")
+            if self.download_sort_order_1.currentIndex() == 3:
+                sort_names.append("date_modified")
+            if self.download_sort_order_1.currentIndex() == 4:
+                if "image_laplacian" in user_metadata.columns:
+                    sort_names.append("image_laplacian")
+            if self.download_sort_order_1.currentIndex() == 5:
+                if "num_segmentations" in user_metadata.columns:
+                    sort_names.append("num_segmentations")
+            if self.download_sort_order_1.currentIndex() == 6:
+                if "image_focus" in user_metadata.columns:
+                    sort_names.append("image_focus")
+            if self.download_sort_order_1.currentIndex() == 7:
+                if "image_debris" in user_metadata.columns:
+                    sort_names.append("image_debris")
+
+            if self.download_sort_order_2.currentIndex() == 1:
+                user_metadata = user_metadata.sample(frac=1).reset_index(drop=True)
+            if self.download_sort_order_2.currentIndex() == 2:
+                sort_names.append("date_uploaded")
+            if self.download_sort_order_2.currentIndex() == 3:
+                sort_names.append("date_modified")
+            if self.download_sort_order_2.currentIndex() == 4:
+                if "image_laplacian" in user_metadata.columns:
+                    sort_names.append("image_laplacian")
+            if self.download_sort_order_2.currentIndex() == 5:
+                if "num_segmentations" in user_metadata.columns:
+                    sort_names.append("num_segmentations")
+            if self.download_sort_order_2.currentIndex() == 6:
+                if "image_focus" in user_metadata.columns:
+                    sort_names.append("image_focus")
+            if self.download_sort_order_2.currentIndex() == 7:
+                if "image_debris" in user_metadata.columns:
+                    sort_names.append("image_debris")
+
+            if len(sort_names) > 0:
+                if len(sort_names) != len(sort_directions):
+                    sort_directions = [False] * len(sort_names)
+                user_metadata = user_metadata.sort_values(sort_names, ascending=sort_directions).reset_index(drop=True)
+
+            import_limit = self.database_download_limit.currentText()
+
+            segmentation_files = user_metadata["segmentation_file"].unique()
+            num_measurements = len(segmentation_files)
+
+            if import_limit == "All":
                 import_limit = num_measurements
+            else:
+                if int(import_limit) > num_measurements:
+                    import_limit = num_measurements
 
-        user_metadata = user_metadata[user_metadata["segmentation_file"].isin(segmentation_files[: int(import_limit)])]
+            user_metadata = user_metadata[user_metadata["segmentation_file"].isin(segmentation_files[: int(import_limit)])]
 
-        user_metadata["path"] = user_metadata["image_save_path"]
+            user_metadata["path"] = user_metadata["image_save_path"]
 
-        channels = user_metadata["channel"].unique().tolist()
-        file_paths = user_metadata["image_save_path"].tolist()
+            channels = user_metadata["channel"].unique().tolist()
+            file_paths = user_metadata["image_save_path"].tolist()
 
-        len1 = len(user_metadata)
+            len1 = len(user_metadata)
 
-        user_metadata = user_metadata[~user_metadata["segmentation_file"].isin(["None", None, np.nan])]
-        user_metadata = user_metadata[~user_metadata["folder"].isin(["None", None, np.nan])]
+            user_metadata = user_metadata[~user_metadata["segmentation_file"].isin(["None", None, np.nan])]
+            user_metadata = user_metadata[~user_metadata["folder"].isin(["None", None, np.nan])]
 
-        len2 = len(user_metadata)
+            len2 = len(user_metadata)
 
-        if len2 < len1:
-            show_info(f"{len1 - len2} files with missing critical metadata removed.")
+            if len2 < len1:
+                show_info(f"{len1 - len2} files with missing critical metadata removed.")
 
-        sort_columns = []
+            sort_columns = []
 
-        if "folder" in user_metadata.columns:
-            sort_columns.append("folder")
-            user_metadata.loc[user_metadata["folder"].isna(), "folder"] = "None"
-        if "segmentation_file" in user_metadata.columns:
-            sort_columns.append("segmentation_file")
-            user_metadata.loc[user_metadata["segmentation_file"].isna(), "segmentation_file"] = "None"
-        if "posX" in user_metadata.columns:
-            sort_columns.append("posX")
-            user_metadata.loc[user_metadata["posX"].isna(), "posX"] = 0
-        if "posY" in user_metadata.columns:
-            sort_columns.append("posY")
-            user_metadata.loc[user_metadata["posY"].isna(), "posY"] = 0
-        if "posZ" in user_metadata.columns:
-            sort_columns.append("posZ")
-            user_metadata.loc[user_metadata["posZ"].isna(), "posZ"] = 0
+            if "folder" in user_metadata.columns:
+                sort_columns.append("folder")
+                user_metadata.loc[user_metadata["folder"].isna(), "folder"] = "None"
+            if "segmentation_file" in user_metadata.columns:
+                sort_columns.append("segmentation_file")
+                user_metadata.loc[user_metadata["segmentation_file"].isna(), "segmentation_file"] = "None"
+            if "posX" in user_metadata.columns:
+                sort_columns.append("posX")
+                user_metadata.loc[user_metadata["posX"].isna(), "posX"] = 0
+            if "posY" in user_metadata.columns:
+                sort_columns.append("posY")
+                user_metadata.loc[user_metadata["posY"].isna(), "posY"] = 0
+            if "posZ" in user_metadata.columns:
+                sort_columns.append("posZ")
+                user_metadata.loc[user_metadata["posZ"].isna(), "posZ"] = 0
 
-        measurements = user_metadata.groupby(sort_columns)
+            measurements = user_metadata.groupby(sort_columns)
+
+    except:
+        print(traceback.format_exc())
+        measurements, file_paths, channels = None, None, None
+        pass
 
     return measurements, file_paths, channels

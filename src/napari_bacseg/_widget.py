@@ -1011,8 +1011,6 @@ class BacSeg(QWidget):
                 from napari_bacseg._utils_database_IO import (get_filtered_database_metadata, read_bacseg_images)
                 from napari_bacseg._utils_database_IO import read_user_metadata, backup_user_metadata
 
-
-
                 self.get_filtered_database_metadata = self.wrapper(get_filtered_database_metadata)
                 self.read_bacseg_images = self.wrapper(read_bacseg_images)
 
@@ -1389,6 +1387,7 @@ class BacSeg(QWidget):
             pass
 
     def _process_import(self, imported_data, rearrange=True):
+
         layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
 
         if self.clear_previous.isChecked() == True:
@@ -1402,6 +1401,7 @@ class BacSeg(QWidget):
         imported_images = imported_data["imported_images"]
 
         for layer_name, layer_data in imported_images.items():
+
             images = layer_data["images"]
             masks = layer_data["masks"]
             classes = layer_data["classes"]

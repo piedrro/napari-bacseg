@@ -392,6 +392,7 @@ class test_bacseg(unittest.TestCase):
         return database_directory
 
     def get_database_metadata(self, user_initial="all"):
+
         database_directory = self.BacSeg.database_path
 
         if user_initial != "all":

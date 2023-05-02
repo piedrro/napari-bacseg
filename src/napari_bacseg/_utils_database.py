@@ -10,6 +10,7 @@ from glob2 import glob
 from napari.utils.notifications import show_info
 from qtpy.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QLabel, QProgressBar, QPushButton, QTabWidget, )
 
+from napari_bacseg._utils_database_IO import read_user_metadata
 
 def _create_bacseg_database(self, viewer=None, database_name="BacSeg", path=None):
 
@@ -437,7 +438,7 @@ def read_file_metadata(self):
 
         if os.path.exists(user_metadata_path):
 
-            user_metadata = pd.read_csv(user_metadata_path, sep=",", low_memory=False)
+            user_metadata, _ = read_user_metadata(self, user_metadata_path = user_metadata_path)
 
             for key, dfkey in control_dict.items():
 
@@ -461,6 +462,7 @@ def _populateUSERMETA(self):
 
     try:
         _, usermeta = read_txt_metadata(self, self.database_path)
+
         file_usermeta = read_file_metadata(self)
 
         user_initial = self.upload_initial.currentText()
