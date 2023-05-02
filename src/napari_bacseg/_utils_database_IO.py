@@ -14,7 +14,7 @@ import pandas as pd
 import tifffile
 from napari.utils.notifications import show_info
 
-from napari_bacseg._utils_json import export_coco_json
+from napari_bacseg._utils_json import export_coco_json, import_coco_json
 
 
 def check_metadata_format(metadata, expected_columns):
@@ -57,6 +57,9 @@ def list_from_string(string):
 
 
 def read_bacseg_images(self, progress_callback, measurements, channels):
+
+    database_path = self.database_path
+
     imported_images = {}
     iter = 1
 
@@ -72,6 +75,16 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
         try:
             measurement = measurements.get_group(list(measurements.groups)[i])
             iter += 1
+
+            segmentation_channel = measurement["segmentation_channel"].unique()[0]
+
+            segmentation_file = measurement[measurement["channel"] == segmentation_channel]["file_name"].item()
+            user_initial = measurement[measurement["channel"] == segmentation_channel]["user_initial"].item()
+            folder = measurement[measurement["channel"] == segmentation_channel]["folder"].item()
+
+            json_path = os.path.join(database_path, "Images", user_initial, "json", folder, segmentation_file)
+
+            mask, label = import_coco_json(json_path)
 
             for j in range(len(channels)):
                 channel = channels[j]
@@ -94,19 +107,10 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
                     user_initial = dat["user_initial"].item()
                     folder = dat["folder"].item()
 
-                    database_path = self.database_path
-
                     image_path = os.path.join(database_path, "Images", user_initial, "images", folder, file_name, )
-                    mask_path = os.path.join(database_path, "Images", user_initial, "masks", folder, file_name, )
-                    label_path = os.path.join(database_path, "Images", user_initial, "labels", folder, file_name, )
-
                     image_path = os.path.abspath(image_path)
-                    mask_path = os.path.abspath(mask_path)
-                    label_path = os.path.abspath(label_path)
 
                     image = tifffile.imread(image_path)
-                    mask = tifffile.imread(mask_path)
-                    label = tifffile.imread(label_path)
 
                     with tifffile.TiffFile(image_path) as tif:
                         try:
@@ -308,6 +312,93 @@ def generate_multichannel_stack(self):
     return multi_image_stack, multi_meta_stack, layer_names
 
 
+def download_bacseg_files(measurement, channels, database_path):
+
+    imported_images = {}
+
+    try:
+
+        segmentation_channel = measurement["segmentation_channel"].unique()[0]
+
+        segmentation_file = measurement[measurement["channel"] == segmentation_channel]["file_name"].item()
+        user_initial = measurement[measurement["channel"] == segmentation_channel]["user_initial"].item()
+        folder = measurement[measurement["channel"] == segmentation_channel]["folder"].item()
+
+        json_path = os.path.join(database_path, "Images", user_initial, "json", folder, segmentation_file)
+
+        mask, label = import_coco_json(json_path)
+
+        for j in range(len(channels)):
+            channel = channels[j]
+
+            measurement_channels = measurement["channel"].unique()
+
+            if channel in measurement_channels:
+                dat = measurement[measurement["channel"] == channel]
+
+                file_name = dat["file_name"].item()
+                user_initial = dat["user_initial"].item()
+                folder = dat["folder"].item()
+
+                image_path = os.path.join(database_path, "Images", user_initial, "images", folder, file_name, )
+                image_path = os.path.abspath(image_path)
+
+                image = tifffile.imread(image_path)
+
+                with tifffile.TiffFile(image_path) as tif:
+                    try:
+                        meta = tif.pages[0].tags["ImageDescription"].value
+                        meta = json.loads(meta)
+                    except:
+                        meta = {}
+
+                meta["import_mode"] = "BacSeg"
+
+                for key, value in dat.to_dict("records")[0].items():
+                    meta[key] = value
+
+                if "segmentation_file" in meta.keys():
+                    if meta["segmentation_file"] in [None, "None"]:
+                        meta["segmentation_file"] = list_from_string(measurement["file_list"].iloc[0])[0]
+                        meta["segmentation_channel"] = list_from_string(measurement["channel_list"].iloc[0])[0]
+
+            else:
+                image = np.zeros((100, 100), dtype=np.uint16)
+                mask = np.zeros((100, 100), dtype=np.uint16)
+                label = np.zeros((100, 100), dtype=np.uint16)
+
+                meta = {}
+
+                meta["image_name"] = "missing image channel"
+                meta["image_path"] = "missing image channel"
+                meta["folder"] = (None,)
+                meta["parent_folder"] = (None,)
+                meta["akseg_hash"] = None
+                meta["fov_mode"] = None
+                meta["import_mode"] = "BacSeg"
+                meta["contrast_limit"] = None
+                meta["contrast_alpha"] = None
+                meta["contrast_beta"] = None
+                meta["contrast_gamma"] = None
+                meta["dims"] = [image.shape[-1], image.shape[-2]]
+                meta["crop"] = [0, image.shape[-2], 0, image.shape[-1]]
+                meta["light_source"] = channel
+
+            if channel not in imported_images:
+                imported_images[channel] = dict(images=[image], masks=[mask], classes=[label], metadata={i: meta}, )
+            else:
+                imported_images[channel]["images"].append(image)
+                imported_images[channel]["masks"].append(mask)
+                imported_images[channel]["classes"].append(label)
+                imported_images[channel]["metadata"][i] = meta
+
+    except:
+        pass
+
+    return imported_images
+
+
+
 def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
     file_metadata_list = []
 
@@ -443,15 +534,22 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
                 json_path = os.path.join(json_dir, file_name.replace(".tif", ".txt"))
                 class_path = os.path.join(class_dir, file_name)
 
+                segmentation_file = get_meta_value(meta, "segmentation_file")
+
+                if segmentation_file is None:
+                    segmentation_channel = channel_list[0]
+                    segmentation_file = image_meta[segmentation_channel]["image_name"]
+                    meta["segmentation_file"] = segmentation_file
+                    meta["segmentation_channel"] = segmentation_channel
+
                 if upload_images is True:
                     if (os.path.isfile(image_path) is False or import_mode == "BacSeg" or overwrite_images is True or overwrite_metadata is True):
                         tifffile.imwrite(os.path.abspath(image_path), img, metadata=meta)
 
                 if upload_segmentations is True:
                     if (os.path.isfile(mask_path) is False or import_mode == "BacSeg" or overwrite_masks is True or overwrite_metadata is True):
-                        tifffile.imwrite(mask_path, mask, metadata=meta)
-                        tifffile.imwrite(class_path, class_mask, metadata=meta)
-                        export_coco_json(file_name, img, mask, class_mask, json_path)
+                        if file_name == segmentation_file:
+                            export_coco_json(file_name, img, mask, class_mask, json_path)
 
                 if "mask_path" not in meta.keys():
                     meta["mask_path"] = None
@@ -473,6 +571,7 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
 
 
 def generate_upload_tempfiles(user_metadata, image_stack, meta_stack, mask_stack, class_stack, save_dir, overwrite_images, overwrite_masks, overwrite_metadata, overwrite_selected_metadata, overwrite_all_metadata, upload_images, upload_segmentations, upload_metadata, ):
+
     upload_tempfiles = []
 
     upload_dir = os.path.join(tempfile.gettempdir(), "BacSeg")
@@ -485,6 +584,7 @@ def generate_upload_tempfiles(user_metadata, image_stack, meta_stack, mask_stack
 
     for i in range(len(image_stack)):
         try:
+
             image = image_stack[i]
             image_meta = meta_stack[i]
             mask = mask_stack[i]
@@ -543,6 +643,7 @@ def _upload_bacseg_database(self, progress_callback, mode):
                 show_info("Could not find BacSeg Database")
 
         else:
+
             user_initial = self.upload_initial.currentText()
             content = self.upload_content.currentText()
             microscope = self.upload_microscope.currentText()

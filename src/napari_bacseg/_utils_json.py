@@ -105,6 +105,8 @@ def export_coco_json(image_name, image, mask, label, file_path):
 
 def import_coco_json(json_path):
 
+    json_path = os.path.splitext(json_path)[0] + ".txt"
+
     with open(json_path, 'r') as f:
         dat = json.load(f)
 
