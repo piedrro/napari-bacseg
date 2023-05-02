@@ -989,14 +989,16 @@ class BacSeg(QWidget):
                     if self.unfolded == True:
                         self.fold_images()
 
-                    from napari_bacseg._utils_database_IO import (_upload_bacseg_database, )
+                    if self.upload_initial.currentText() in ["", "Required for upload"]:
+                        show_info("Please select the user initial.")
+                    else:
+                        from napari_bacseg._utils_database_IO import (_upload_bacseg_database, )
 
-                    self._upload_bacseg_database = self.wrapper(_upload_bacseg_database)
+                        self._upload_bacseg_database = self.wrapper(_upload_bacseg_database)
 
-                    worker = Worker(self._upload_bacseg_database, mode=mode)
-                    worker.signals.progress.connect(partial(self._Progresbar, progressbar="database"))
-                    self.threadpool.start(worker)
-
+                        worker = Worker(self._upload_bacseg_database, mode=mode)
+                        worker.signals.progress.connect(partial(self._Progresbar, progressbar="database"))
+                        self.threadpool.start(worker)
             except:
                 pass
 
@@ -1008,25 +1010,31 @@ class BacSeg(QWidget):
                 if self.unfolded == True:
                     self.fold_images()
 
-                from napari_bacseg._utils_database_IO import (get_filtered_database_metadata, read_bacseg_images)
-                from napari_bacseg._utils_database_IO import read_user_metadata, backup_user_metadata
+                if self.upload_initial.currentText() in ["", "Required for upload"]:
 
-                self.get_filtered_database_metadata = self.wrapper(get_filtered_database_metadata)
-                self.read_bacseg_images = self.wrapper(read_bacseg_images)
-
-                self.active_import_mode = "BacSeg"
-
-                (measurements, file_paths, channels,) = self.get_filtered_database_metadata()
-
-                if len(file_paths) == 0:
-                    if self.widget_notifications:
-                        show_info("no matching database files found")
+                    show_info("Please select the user initial.")
 
                 else:
-                    worker = Worker(self.read_bacseg_images, measurements=measurements, channels=channels, )
-                    worker.signals.result.connect(self._process_import)
-                    worker.signals.progress.connect(partial(self._Progresbar, progressbar="database"))
-                    self.threadpool.start(worker)
+
+                    from napari_bacseg._utils_database_IO import (get_filtered_database_metadata, read_bacseg_images)
+                    from napari_bacseg._utils_database_IO import read_user_metadata, backup_user_metadata
+
+                    self.get_filtered_database_metadata = self.wrapper(get_filtered_database_metadata)
+                    self.read_bacseg_images = self.wrapper(read_bacseg_images)
+
+                    self.active_import_mode = "BacSeg"
+
+                    (measurements, file_paths, channels,) = self.get_filtered_database_metadata()
+
+                    if len(file_paths) == 0:
+                        if self.widget_notifications:
+                            show_info("no matching database files found")
+
+                    else:
+                        worker = Worker(self.read_bacseg_images, measurements=measurements, channels=channels, )
+                        worker.signals.result.connect(self._process_import)
+                        worker.signals.progress.connect(partial(self._Progresbar, progressbar="database"))
+                        self.threadpool.start(worker)
 
         except:
             print(traceback.format_exc())
