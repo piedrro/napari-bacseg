@@ -2345,8 +2345,6 @@ def generate_export_image(
                     scalebar_thickness=scalebar_thickness,
                 )
 
-                print(True)
-
             image.append(blank)
 
     if mode == "rgb":

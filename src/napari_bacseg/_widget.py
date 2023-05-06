@@ -1061,6 +1061,7 @@ class BacSeg(QWidget):
                             show_info("no matching database files found")
 
                     else:
+
                         worker = Worker(self.read_bacseg_images, measurements=measurements, channels=channels, )
                         worker.signals.result.connect(self._process_import)
                         worker.signals.progress.connect(partial(self._Progresbar, progressbar="database"))

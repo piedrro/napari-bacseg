@@ -68,6 +68,8 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
         if int(import_limit) > len(measurements):
             import_limit = len(measurements)
 
+    show_info(f"Downloading {len(measurements)} files.")
+
     if import_limit == str(1):
         try:
             measurement = measurements.get_group(list(measurements.groups)[0])
@@ -229,7 +231,6 @@ def generate_multichannel_stack(self):
 
                         for key in range(1, num_user_keys + 1):
                             meta[f"usermeta{key}"] = metadata[f"usermeta{key}"]
-                            print(meta[f"usermeta{key}"], metadata[f"usermeta{key}"], )
 
                     if (meta["import_mode"] == "BacSeg" and overwrite_all_metadata is True):
                         metadata = {key: val for key, val in metadata.items() if val != "Required for upload"}
@@ -839,7 +840,7 @@ def backup_user_metadata(self, user_metadata=""):
 
 def get_filtered_database_metadata(self):
     try:
-        database_metadata = {"user_initial": self.upload_initial.currentText(), "content": self.upload_content.currentText(), "microscope": self.upload_microscope.currentText(), "phenotype": self.upload_phenotype.currentText(), "strain": self.upload_strain.currentText(), "antibiotic": self.upload_antibiotic.currentText(), "antibiotic concentration": self.upload_abxconcentration.currentText(), "treatment time (mins)": float(self.upload_treatmenttime.currentText()), "mounting method": self.upload_mount.currentText(), "protocol": self.upload_protocol.currentText(), }
+        database_metadata = {"user_initial": self.upload_initial.currentText(), "content": self.upload_content.currentText(), "microscope": self.upload_microscope.currentText(), "phenotype": self.upload_phenotype.currentText(), "strain": self.upload_strain.currentText(), "antibiotic": self.upload_antibiotic.currentText(), "antibiotic concentration": self.upload_abxconcentration.currentText(), "treatment time (mins)": self.upload_treatmenttime.currentText(), "mounting method": self.upload_mount.currentText(), "protocol": self.upload_protocol.currentText(), }
 
         num_user_keys = self.user_metadata_keys
 
@@ -869,6 +870,7 @@ def get_filtered_database_metadata(self):
             user_metadata, expected_columns = read_user_metadata(self)
 
             user_metadata["segmentation_channel"] = user_metadata["segmentation_channel"].astype(str)
+            user_metadata["treatment time (mins)"] = user_metadata["treatment time (mins)"].astype(str)
 
             for key, value in database_metadata.items():
                 if key in user_metadata.columns:
@@ -994,6 +996,8 @@ def get_filtered_database_metadata(self):
                 user_metadata.loc[user_metadata["posZ"].isna(), "posZ"] = 0
 
             measurements = user_metadata.groupby(sort_columns)
+
+            show_info(f"Found {len(file_paths)//len(channels)} matching database files.")
 
     except:
         print(traceback.format_exc())

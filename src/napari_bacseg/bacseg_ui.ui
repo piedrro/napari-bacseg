@@ -1003,6 +1003,9 @@
           </item>
           <item row="0" column="1">
            <widget class="QComboBox" name="zoom_magnification">
+            <property name="editable">
+             <bool>true</bool>
+            </property>
             <item>
              <property name="text">
               <string>0 (Home)</string>
@@ -1025,6 +1028,11 @@
             </item>
             <item>
              <property name="text">
+              <string>40</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
               <string>50</string>
              </property>
             </item>
@@ -1036,6 +1044,21 @@
             <item>
              <property name="text">
               <string>200</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>300</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>400</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>500</string>
              </property>
             </item>
            </widget>
