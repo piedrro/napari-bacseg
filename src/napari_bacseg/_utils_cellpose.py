@@ -57,6 +57,36 @@ def export_cellpose(file_path, image, mask):
     )
 
 
+def _postpocess_cellpose(self, mask):
+    try:
+        min_seg_size = int(self.cellpose_min_seg_size.currentText())
+
+        print(min_seg_size)
+
+        post_processed_mask = np.zeros(mask.shape, dtype=np.uint16)
+
+        mask_ids = sorted(np.unique(mask))
+
+        for i in range(1, len(mask_ids)):
+            cell_mask = np.zeros(mask.shape, dtype=np.uint8)
+            cell_mask[mask == i] = 255
+
+            contours, _ = cv2.findContours(
+                cell_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+            )
+
+            cnt = contours[0]
+
+            area = cv2.contourArea(cnt)
+
+            if area > min_seg_size:
+                post_processed_mask[mask == i] = i
+    except:
+        post_processed_mask = mask
+
+    return post_processed_mask
+
+
 def _run_cellpose(self, progress_callback, images):
     mask_stack = []
 
@@ -97,6 +127,8 @@ def _run_cellpose(self, progress_callback, images):
                     min_size=min_size,
                     batch_size=3,
                 )
+
+                mask = _postpocess_cellpose(self, mask)
 
                 masks.append(mask)
 
@@ -147,7 +179,6 @@ def _process_cellpose(self, segmentation_data):
 
 
 def load_cellpose_dependencies(self, omni=False):
-
     if self.widget_notifications:
         show_info("Loading Cellpose dependencies")
 
@@ -195,7 +226,7 @@ def _initialise_cellpose_model(
                 omnipose_model = False
                 if self.widget_notifications:
                     show_info(
-                        f"Loading Omnipose Model: {os.path.basename(model_path)}"
+                        f"Loading Cellpose Model: {os.path.basename(model_path)}"
                     )
             else:
                 if self.widget_notifications:
