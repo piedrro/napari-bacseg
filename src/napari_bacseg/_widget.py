@@ -726,7 +726,7 @@ class BacSeg(QWidget):
         self.fold.clicked.connect(self.fold_images)
         self.unfold.clicked.connect(self.unfold_images)
         self.tiler_object = None
-        self.tile_dict = {"Segmentations": [], "Classes": []}
+        self.tile_dict = {"Segmentations": [], "Classes": [], "Nucleoid": []}
         self.unfolded = False
         self.align_active_image.clicked.connect(
             partial(self._align_images, mode="active")
@@ -928,6 +928,12 @@ class BacSeg(QWidget):
             color=self.class_colours,
             metadata={0: {"image_name": ""}},
             visible=False,
+        )
+        self.nucLayer = self.viewer.add_labels(
+            np.zeros((1, 100, 100), dtype=np.uint16),
+            opacity=1,
+            name="Nucleoid",
+            metadata={0: {"image_name": ""}},
         )
         self.segLayer = self.viewer.add_labels(
             np.zeros((1, 100, 100), dtype=np.uint16),
@@ -1162,7 +1168,7 @@ class BacSeg(QWidget):
                 layer.name
                 for layer in self.viewer.layers
                 if layer.name
-                not in ["Segmentations", "Classes", "center_lines"]
+                not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
             ]
 
             if len(layer_names) > 2:
@@ -1222,7 +1228,7 @@ class BacSeg(QWidget):
                 layer.name
                 for layer in self.viewer.layers
                 if layer.name
-                not in ["Segmentations", "Classes", "center_lines"]
+                not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
             ]
 
             update_mode = self.set_quality_mode.currentIndex()
@@ -1284,6 +1290,7 @@ class BacSeg(QWidget):
 
             if selected_layer not in [
                 "Segmentations",
+                "Nucleoid",
                 "Classes",
                 "center_lines",
             ]:
@@ -1692,7 +1699,8 @@ class BacSeg(QWidget):
         layer_names = [
             layer.name
             for layer in self.viewer.layers
-            if layer.name not in ["Segmentations", "Classes", "center_lines"]
+            if layer.name
+            not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
         ]
 
         segChannel = self.cellpose_segchannel.currentText()
@@ -1967,7 +1975,8 @@ class BacSeg(QWidget):
         layer_names = [
             layer.name
             for layer in self.viewer.layers
-            if layer.name not in ["Segmentations", "Classes", "center_lines"]
+            if layer.name
+            not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
         ]
 
         self.cellpose_segchannel.clear()
@@ -2048,7 +2057,12 @@ class BacSeg(QWidget):
                     layer.name
                     for layer in self.viewer.layers
                     if layer.name
-                    not in ["Segmentations", "Classes", "center_lines"]
+                    not in [
+                        "Segmentations",
+                        "Nucleoid",
+                        "Classes",
+                        "center_lines",
+                    ]
                 ]
 
                 if len(layer_names) != 0:
@@ -2200,7 +2214,8 @@ class BacSeg(QWidget):
         layer_names = [
             layer.name
             for layer in self.viewer.layers
-            if layer.name not in ["Segmentations", "Classes", "center_lines"]
+            if layer.name
+            not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
         ]
 
         if self.clear_previous.isChecked() == True:
@@ -2386,10 +2401,16 @@ class BacSeg(QWidget):
             layer_names = [
                 layer.name
                 for layer in self.viewer.layers
-                if layer.name in ["Segmentations", "Classes", "center_lines"]
+                if layer.name
+                in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
             ]
 
-            for layer in ["center_lines", "Classes", "Segmentations"]:
+            for layer in [
+                "center_lines",
+                "Classes",
+                "Nucleoid",
+                "Segmentations",
+            ]:
                 if layer in layer_names:
                     layer_index = self.viewer.layers.index(layer)
                     self.viewer.layers.move(layer_index, -1)

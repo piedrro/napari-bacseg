@@ -19,20 +19,36 @@ from napari_bacseg._utils_json import export_coco_json, import_coco_json
 
 
 def check_metadata_format(metadata, expected_columns):
-    missing_columns = list(set(expected_columns) - set(metadata.columns.tolist()))
-    extra_columns = list(set(metadata.columns.tolist()) - set(expected_columns))
+    missing_columns = list(
+        set(expected_columns) - set(metadata.columns.tolist())
+    )
+    extra_columns = list(
+        set(metadata.columns.tolist()) - set(expected_columns)
+    )
 
     all_columns = list(set(expected_columns + extra_columns))
 
-    metadata[missing_columns] = pd.DataFrame([[None] * len(missing_columns)], index=metadata.index)
+    metadata[missing_columns] = pd.DataFrame(
+        [[None] * len(missing_columns)], index=metadata.index
+    )
 
     date = datetime.datetime.now()
 
-    metadata.loc[metadata["date_uploaded"].isin(["None", None, np.nan, 0]), ["date_uploaded", "date_created", "date_modified"],] = str(date)
+    metadata.loc[
+        metadata["date_uploaded"].isin(["None", None, np.nan, 0]),
+        ["date_uploaded", "date_created", "date_modified"],
+    ] = str(date)
 
     metadata = metadata[all_columns]
 
-    metadata = metadata.astype({"segmented": bool, "labelled": bool, "segmentation_curated": bool, "label_curated": bool, })
+    metadata = metadata.astype(
+        {
+            "segmented": bool,
+            "labelled": bool,
+            "segmentation_curated": bool,
+            "label_curated": bool,
+        }
+    )
 
     return metadata, all_columns
 
@@ -73,12 +89,16 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
     if import_limit == str(1):
         try:
             measurement = measurements.get_group(list(measurements.groups)[0])
-            imported_data = [download_bacseg_files(measurement, channels, database_path)]
+            imported_data = [
+                download_bacseg_files(measurement, channels, database_path)
+            ]
             progress_callback.emit(100)
         except:
             pass
     else:
-        measurements = [measurements.get_group(i) for i in measurements.groups][: int(import_limit)]
+        measurements = [
+            measurements.get_group(i) for i in measurements.groups
+        ][: int(import_limit)]
         with Pool(4) as pool:
             iter = []
 
@@ -94,7 +114,14 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
 
                 return
 
-            results = [pool.apply_async(download_bacseg_files, args=(measurement, channels, database_path), callback=callback, ) for measurement in measurements]
+            results = [
+                pool.apply_async(
+                    download_bacseg_files,
+                    args=(measurement, channels, database_path),
+                    callback=callback,
+                )
+                for measurement in measurements
+            ]
 
             try:
                 results[-1].get()
@@ -117,7 +144,12 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
                 meta = channel_data["metadata"]
 
                 if channel not in imported_images.keys():
-                    imported_images[channel] = dict(images=[image], masks=[mask], classes=[label], metadata={0: meta}, )
+                    imported_images[channel] = dict(
+                        images=[image],
+                        masks=[mask],
+                        classes=[label],
+                        metadata={0: meta},
+                    )
                 else:
                     image_index = len(imported_images[channel]["images"])
 
@@ -168,7 +200,18 @@ def generate_multichannel_stack(self):
         labelled = True
         labelled_curated = True
 
-    metadata = dict(user_initial=user_initial, content=content, microscope=microscope, antibiotic=antibiotic, abxconcentration=abxconcentration, treatmenttime=treatmenttime, mount=mount, protocol=protocol, strain=strain, phenotype=phenotype, )
+    metadata = dict(
+        user_initial=user_initial,
+        content=content,
+        microscope=microscope,
+        antibiotic=antibiotic,
+        abxconcentration=abxconcentration,
+        treatmenttime=treatmenttime,
+        mount=mount,
+        protocol=protocol,
+        strain=strain,
+        phenotype=phenotype,
+    )
 
     num_user_keys = self.user_metadata_keys
 
@@ -178,7 +221,12 @@ def generate_multichannel_stack(self):
         combo_box_value = combo_box.currentText()
         metadata[f"usermeta{key}"] = combo_box_value
 
-    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
+    layer_names = [
+        layer.name
+        for layer in self.viewer.layers
+        if layer.name
+        not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
+    ]
 
     layer_names.reverse()
 
@@ -200,7 +248,9 @@ def generate_multichannel_stack(self):
 
         try:
             for j in range(len(layer_names)):
-                segmentation_file = self.viewer.layers[segChannel].metadata[i]["image_name"]
+                segmentation_file = self.viewer.layers[segChannel].metadata[i][
+                    "image_name"
+                ]
 
                 layer = str(layer_names[j])
 
@@ -213,7 +263,10 @@ def generate_multichannel_stack(self):
 
                     meta["user_initial"] = user_initial
 
-                    if (meta["import_mode"] != "BacSeg" or overwrite_all_metadata is True):
+                    if (
+                        meta["import_mode"] != "BacSeg"
+                        or overwrite_all_metadata is True
+                    ):
                         meta["microscope"] = microscope
                         meta["image_content"] = content
                         meta["antibiotic"] = antibiotic
@@ -232,14 +285,25 @@ def generate_multichannel_stack(self):
                         for key in range(1, num_user_keys + 1):
                             meta[f"usermeta{key}"] = metadata[f"usermeta{key}"]
 
-                    if (meta["import_mode"] == "BacSeg" and overwrite_all_metadata is True):
-                        metadata = {key: val for key, val in metadata.items() if val != "Required for upload"}
+                    if (
+                        meta["import_mode"] == "BacSeg"
+                        and overwrite_all_metadata is True
+                    ):
+                        metadata = {
+                            key: val
+                            for key, val in metadata.items()
+                            if val != "Required for upload"
+                        }
 
                         for key, value in metadata.items():
                             meta[key] = value
 
                     if overwrite_selected_metadata is True:
-                        metadata = {key: val for key, val in metadata.items() if val not in ["", "Required for upload"]}
+                        metadata = {
+                            key: val
+                            for key, val in metadata.items()
+                            if val not in ["", "Required for upload"]
+                        }
 
                         for key, value in metadata.items():
                             meta[key] = value
@@ -250,13 +314,27 @@ def generate_multichannel_stack(self):
                     meta["labels_curated"] = labelled_curated
 
                     if self.cellpose_segmentation == True:
-                        meta["cellpose_segmentation"] = self.cellpose_segmentation
-                        meta["flow_threshold"] = float(self.cellpose_flowthresh_label.text())
-                        meta["mask_threshold"] = float(self.cellpose_maskthresh_label.text())
-                        meta["min_size"] = int(self.cellpose_minsize_label.text())
-                        meta["diameter"] = int(self.cellpose_diameter_label.text())
-                        meta["cellpose_model"] = self.cellpose_segmodel.currentText()
-                        meta["custom_model"] = os.path.abspath(self.cellpose_custom_model_path)
+                        meta[
+                            "cellpose_segmentation"
+                        ] = self.cellpose_segmentation
+                        meta["flow_threshold"] = float(
+                            self.cellpose_flowthresh_label.text()
+                        )
+                        meta["mask_threshold"] = float(
+                            self.cellpose_maskthresh_label.text()
+                        )
+                        meta["min_size"] = int(
+                            self.cellpose_minsize_label.text()
+                        )
+                        meta["diameter"] = int(
+                            self.cellpose_diameter_label.text()
+                        )
+                        meta[
+                            "cellpose_model"
+                        ] = self.cellpose_segmodel.currentText()
+                        meta["custom_model"] = os.path.abspath(
+                            self.cellpose_custom_model_path
+                        )
 
                     rgb_images.append(img)
                     rgb_meta[layer] = meta
@@ -284,11 +362,24 @@ def download_bacseg_files(measurement, channels, database_path):
     try:
         segmentation_channel = measurement["segmentation_channel"].unique()[0]
 
-        segmentation_file = measurement[measurement["channel"] == segmentation_channel]["file_name"].item()
-        user_initial = measurement[measurement["channel"] == segmentation_channel]["user_initial"].item()
-        folder = measurement[measurement["channel"] == segmentation_channel]["folder"].item()
+        segmentation_file = measurement[
+            measurement["channel"] == segmentation_channel
+        ]["file_name"].item()
+        user_initial = measurement[
+            measurement["channel"] == segmentation_channel
+        ]["user_initial"].item()
+        folder = measurement[measurement["channel"] == segmentation_channel][
+            "folder"
+        ].item()
 
-        json_path = os.path.join(database_path, "Images", user_initial, "json", folder, segmentation_file, )
+        json_path = os.path.join(
+            database_path,
+            "Images",
+            user_initial,
+            "json",
+            folder,
+            segmentation_file,
+        )
 
         mask, label = import_coco_json(json_path)
 
@@ -304,7 +395,14 @@ def download_bacseg_files(measurement, channels, database_path):
                 user_initial = dat["user_initial"].item()
                 folder = dat["folder"].item()
 
-                image_path = os.path.join(database_path, "Images", user_initial, "images", folder, file_name, )
+                image_path = os.path.join(
+                    database_path,
+                    "Images",
+                    user_initial,
+                    "images",
+                    folder,
+                    file_name,
+                )
                 image_path = os.path.abspath(image_path)
 
                 image = tifffile.imread(image_path)
@@ -323,8 +421,12 @@ def download_bacseg_files(measurement, channels, database_path):
 
                 if "segmentation_file" in meta.keys():
                     if meta["segmentation_file"] in [None, "None"]:
-                        meta["segmentation_file"] = list_from_string(measurement["file_list"].iloc[0])[0]
-                        meta["segmentation_channel"] = list_from_string(measurement["channel_list"].iloc[0])[0]
+                        meta["segmentation_file"] = list_from_string(
+                            measurement["file_list"].iloc[0]
+                        )[0]
+                        meta["segmentation_channel"] = list_from_string(
+                            measurement["channel_list"].iloc[0]
+                        )[0]
 
             else:
                 image = np.zeros((100, 100), dtype=np.uint16)
@@ -348,7 +450,9 @@ def download_bacseg_files(measurement, channels, database_path):
                 meta["crop"] = [0, image.shape[-2], 0, image.shape[-1]]
                 meta["light_source"] = channel
 
-            imported_images[channel] = dict(images=image, masks=mask, classes=label, metadata=meta)
+            imported_images[channel] = dict(
+                images=image, masks=mask, classes=label, metadata=meta
+            )
 
     except:
         pass
@@ -411,7 +515,10 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
 
             if file_name in metadata_file_names:
                 try:
-                    date_uploaded = user_metadata[(user_metadata["file_name"] == file_name) & (user_metadata["folder"] == folder)]["date_uploaded"].item()
+                    date_uploaded = user_metadata[
+                        (user_metadata["file_name"] == file_name)
+                        & (user_metadata["folder"] == folder)
+                    ]["date_uploaded"].item()
                 except:
                     date_uploaded = datetime.datetime.now()
             else:
@@ -421,7 +528,10 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
                 date_created = meta["date_created"]
             elif file_name in metadata_file_names:
                 try:
-                    date_created = user_metadata[(user_metadata["file_name"] == file_name) & (user_metadata["folder"] == folder)]["date_created"].item()
+                    date_created = user_metadata[
+                        (user_metadata["file_name"] == file_name)
+                        & (user_metadata["folder"] == folder)
+                    ]["date_created"].item()
                 except:
                     date_created = datetime.datetime.now()
             else:
@@ -430,9 +540,18 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
             date_modified = datetime.datetime.now()
 
             # stops user from overwriting BacSeg files, unless they have opened them from BacSeg for curation
-            if (akseg_hash in metadata_akseg_hash and import_mode != "BacSeg" and overwrite_images == False and overwrite_masks == False and overwrite_metadata is False):
+            if (
+                akseg_hash in metadata_akseg_hash
+                and import_mode != "BacSeg"
+                and overwrite_images == False
+                and overwrite_masks == False
+                and overwrite_metadata is False
+            ):
                 if widget_notifications:
-                    show_info("file already exists  in BacSeg Database:   " + file_name)
+                    show_info(
+                        "file already exists  in BacSeg Database:   "
+                        + file_name
+                    )
 
                 file_metadata = None
 
@@ -440,31 +559,51 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
                 if import_mode == "BacSeg":
                     if overwrite_selected_metadata is True:
                         if widget_notifications:
-                            show_info("Overwriting selected metadata on BacSeg Database:   " + file_name)
+                            show_info(
+                                "Overwriting selected metadata on BacSeg Database:   "
+                                + file_name
+                            )
 
                     elif overwrite_all_metadata is True:
                         if widget_notifications:
-                            show_info("Overwriting all metadata on BacSeg Database:   " + file_name)
+                            show_info(
+                                "Overwriting all metadata on BacSeg Database:   "
+                                + file_name
+                            )
 
                     else:
                         if widget_notifications:
-                            show_info("Editing file on BacSeg Database:   " + file_name)
+                            show_info(
+                                "Editing file on BacSeg Database:   "
+                                + file_name
+                            )
 
                 elif overwrite_images is True and overwrite_masks is True:
                     if widget_notifications:
-                        show_info("Overwriting image + mask/label on BacSeg Database:   " + file_name)
+                        show_info(
+                            "Overwriting image + mask/label on BacSeg Database:   "
+                            + file_name
+                        )
 
                 elif overwrite_images is True:
                     if widget_notifications:
-                        show_info("Overwriting image on BacSeg Database:   " + file_name)
+                        show_info(
+                            "Overwriting image on BacSeg Database:   "
+                            + file_name
+                        )
 
                 elif overwrite_masks is True:
                     if widget_notifications:
-                        show_info("Overwriting mask/label on BacSeg Database:   " + file_name)
+                        show_info(
+                            "Overwriting mask/label on BacSeg Database:   "
+                            + file_name
+                        )
 
                 else:
                     if widget_notifications:
-                        show_info("Uploading file to BacSeg Database:   " + file_name)
+                        show_info(
+                            "Uploading file to BacSeg Database:   " + file_name
+                        )
 
                 y1, y2, x1, x2 = meta["crop"]
 
@@ -477,7 +616,9 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
                 class_mask = class_mask[y1:y2, x1:x2]
 
                 unique_segmentations = np.unique(mask)
-                unique_segmentations = np.delete(unique_segmentations, np.where(unique_segmentations == 0))
+                unique_segmentations = np.delete(
+                    unique_segmentations, np.where(unique_segmentations == 0)
+                )
 
                 num_segmentations = len(unique_segmentations)
                 image_laplacian = cv2.Laplacian(img, cv2.CV_64F).var()
@@ -488,35 +629,109 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
 
                 image_path = os.path.join(image_dir, file_name)
                 mask_path = os.path.join(mask_dir, file_name)
-                json_path = os.path.join(json_dir, file_name.replace(".tif", ".txt"))
+                json_path = os.path.join(
+                    json_dir, file_name.replace(".tif", ".txt")
+                )
                 class_path = os.path.join(class_dir, file_name)
 
                 segmentation_file = get_meta_value(meta, "segmentation_file")
 
                 if segmentation_file is None:
                     segmentation_channel = channel_list[0]
-                    segmentation_file = image_meta[segmentation_channel]["image_name"]
+                    segmentation_file = image_meta[segmentation_channel][
+                        "image_name"
+                    ]
                     meta["segmentation_file"] = segmentation_file
                     meta["segmentation_channel"] = segmentation_channel
 
                 if upload_images is True:
-                    if (os.path.isfile(image_path) is False or import_mode == "BacSeg" or overwrite_images is True or overwrite_metadata is True):
-                        tifffile.imwrite(os.path.abspath(image_path), img, metadata=meta)
+                    if (
+                        os.path.isfile(image_path) is False
+                        or import_mode == "BacSeg"
+                        or overwrite_images is True
+                        or overwrite_metadata is True
+                    ):
+                        tifffile.imwrite(
+                            os.path.abspath(image_path), img, metadata=meta
+                        )
 
                 if upload_segmentations is True:
-                    if (os.path.isfile(mask_path) is False or import_mode == "BacSeg" or overwrite_masks is True or overwrite_metadata is True):
+                    if (
+                        os.path.isfile(mask_path) is False
+                        or import_mode == "BacSeg"
+                        or overwrite_masks is True
+                        or overwrite_metadata is True
+                    ):
                         if file_name == segmentation_file:
-                            export_coco_json(file_name, img, mask, class_mask, json_path)
+                            export_coco_json(
+                                file_name, img, mask, class_mask, json_path
+                            )
 
                 if "mask_path" not in meta.keys():
                     meta["mask_path"] = None
                 if "label_path" not in meta.keys():
                     meta["label_path"] = None
 
-                file_metadata = {"date_uploaded": date_uploaded, "date_created": date_created, "date_modified": date_modified, "file_name": file_name, "channel": get_meta_value(meta, "channel"), "file_list": get_meta_value(meta, "file_list"), "channel_list": get_meta_value(meta, "channel_list"), "segmentation_file": get_meta_value(meta, "segmentation_file"), "segmentation_channel": get_meta_value(meta, "segmentation_channel"), "strain": get_meta_value(meta, "strain"), "phenotype": get_meta_value(meta, "phenotype"), "akseg_hash": get_meta_value(meta, "akseg_hash"), "user_initial": get_meta_value(meta, "user_initial"), "content": get_meta_value(meta, "image_content"), "microscope": get_meta_value(meta, "microscope"), "modality": get_meta_value(meta, "modality"), "source": get_meta_value(meta, "light_source"), "stain": get_meta_value(meta, "stain"), "stain_target": get_meta_value(meta, "stain_target"), "antibiotic": get_meta_value(meta, "antibiotic"), "treatment time (mins)": get_meta_value(meta, "treatmenttime"), "antibiotic concentration": get_meta_value(meta, "abxconcentration"), "mounting method": get_meta_value(meta, "mount"), "protocol": get_meta_value(meta, "protocol"), "folder": get_meta_value(meta, "folder"), "parent_folder": get_meta_value(meta, "parent_folder"), "num_segmentations": num_segmentations, "image_laplacian": image_laplacian, "image_focus": get_meta_value(meta, "image_focus"), "image_debris": get_meta_value(meta, "image_debris"), "segmented": get_meta_value(meta, "segmented"), "labelled": get_meta_value(meta, "labelled"), "segmentation_curated": get_meta_value(meta, "segmentations_curated"), "label_curated": get_meta_value(meta, "labels_curated"), "posX": posX, "posY": posY, "posZ": posZ, "image_load_path": get_meta_value(meta, "image_path"), "image_save_path": image_path, "mask_load_path": get_meta_value(meta, "mask_path"), "mask_save_path": mask_path, "label_load_path": get_meta_value(meta, "label_path"), "label_save_path": class_path, }
+                file_metadata = {
+                    "date_uploaded": date_uploaded,
+                    "date_created": date_created,
+                    "date_modified": date_modified,
+                    "file_name": file_name,
+                    "channel": get_meta_value(meta, "channel"),
+                    "file_list": get_meta_value(meta, "file_list"),
+                    "channel_list": get_meta_value(meta, "channel_list"),
+                    "segmentation_file": get_meta_value(
+                        meta, "segmentation_file"
+                    ),
+                    "segmentation_channel": get_meta_value(
+                        meta, "segmentation_channel"
+                    ),
+                    "strain": get_meta_value(meta, "strain"),
+                    "phenotype": get_meta_value(meta, "phenotype"),
+                    "akseg_hash": get_meta_value(meta, "akseg_hash"),
+                    "user_initial": get_meta_value(meta, "user_initial"),
+                    "content": get_meta_value(meta, "image_content"),
+                    "microscope": get_meta_value(meta, "microscope"),
+                    "modality": get_meta_value(meta, "modality"),
+                    "source": get_meta_value(meta, "light_source"),
+                    "stain": get_meta_value(meta, "stain"),
+                    "stain_target": get_meta_value(meta, "stain_target"),
+                    "antibiotic": get_meta_value(meta, "antibiotic"),
+                    "treatment time (mins)": get_meta_value(
+                        meta, "treatmenttime"
+                    ),
+                    "antibiotic concentration": get_meta_value(
+                        meta, "abxconcentration"
+                    ),
+                    "mounting method": get_meta_value(meta, "mount"),
+                    "protocol": get_meta_value(meta, "protocol"),
+                    "folder": get_meta_value(meta, "folder"),
+                    "parent_folder": get_meta_value(meta, "parent_folder"),
+                    "num_segmentations": num_segmentations,
+                    "image_laplacian": image_laplacian,
+                    "image_focus": get_meta_value(meta, "image_focus"),
+                    "image_debris": get_meta_value(meta, "image_debris"),
+                    "segmented": get_meta_value(meta, "segmented"),
+                    "labelled": get_meta_value(meta, "labelled"),
+                    "segmentation_curated": get_meta_value(
+                        meta, "segmentations_curated"
+                    ),
+                    "label_curated": get_meta_value(meta, "labels_curated"),
+                    "posX": posX,
+                    "posY": posY,
+                    "posZ": posZ,
+                    "image_load_path": get_meta_value(meta, "image_path"),
+                    "image_save_path": image_path,
+                    "mask_load_path": get_meta_value(meta, "mask_path"),
+                    "mask_save_path": mask_path,
+                    "label_load_path": get_meta_value(meta, "label_path"),
+                    "label_save_path": class_path,
+                }
 
                 for key in range(1, num_user_keys + 1):
-                    file_metadata[f"user_meta{key}"] = get_meta_value(meta, f"usermeta{key}")
+                    file_metadata[f"user_meta{key}"] = get_meta_value(
+                        meta, f"usermeta{key}"
+                    )
 
                 file_metadata_list.append(file_metadata)
 
@@ -527,7 +742,22 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
     return file_metadata_list
 
 
-def generate_upload_tempfiles(user_metadata, image_stack, meta_stack, mask_stack, class_stack, save_dir, overwrite_images, overwrite_masks, overwrite_metadata, overwrite_selected_metadata, overwrite_all_metadata, upload_images, upload_segmentations, upload_metadata, ):
+def generate_upload_tempfiles(
+    user_metadata,
+    image_stack,
+    meta_stack,
+    mask_stack,
+    class_stack,
+    save_dir,
+    overwrite_images,
+    overwrite_masks,
+    overwrite_metadata,
+    overwrite_selected_metadata,
+    overwrite_all_metadata,
+    upload_images,
+    upload_segmentations,
+    upload_metadata,
+):
     upload_tempfiles = []
 
     upload_dir = os.path.join(tempfile.gettempdir(), "BacSeg")
@@ -566,7 +796,26 @@ def generate_upload_tempfiles(user_metadata, image_stack, meta_stack, mask_stack
             if os.path.exists(class_dir) == False:
                 os.makedirs(class_dir)
 
-            upload_data = dict(user_metadata=user_metadata, image=image, image_meta=image_meta, mask=mask, class_mask=class_mask, save_dir=save_dir, overwrite_images=overwrite_images, overwrite_masks=overwrite_masks, overwrite_metadata=overwrite_metadata, overwrite_selected_metadata=overwrite_selected_metadata, overwrite_all_metadata=overwrite_all_metadata, image_dir=image_dir, mask_dir=mask_dir, json_dir=json_dir, class_dir=class_dir, upload_images=upload_images, upload_segmentations=upload_segmentations, upload_metadata=upload_metadata, )
+            upload_data = dict(
+                user_metadata=user_metadata,
+                image=image,
+                image_meta=image_meta,
+                mask=mask,
+                class_mask=class_mask,
+                save_dir=save_dir,
+                overwrite_images=overwrite_images,
+                overwrite_masks=overwrite_masks,
+                overwrite_metadata=overwrite_metadata,
+                overwrite_selected_metadata=overwrite_selected_metadata,
+                overwrite_all_metadata=overwrite_all_metadata,
+                image_dir=image_dir,
+                mask_dir=mask_dir,
+                json_dir=json_dir,
+                class_dir=class_dir,
+                upload_images=upload_images,
+                upload_segmentations=upload_segmentations,
+                upload_metadata=upload_metadata,
+            )
 
             # if "segmentation_file" in user_metadata:
             #     print("segmentation_file in user_metadata")
@@ -578,7 +827,9 @@ def generate_upload_tempfiles(user_metadata, image_stack, meta_stack, mask_stack
             if os.path.isdir(upload_dir) is False:
                 os.mkdir(upload_dir)
 
-            temp_path = tempfile.TemporaryFile(prefix="BacSeg", suffix=".npy", dir=upload_dir).name
+            temp_path = tempfile.TemporaryFile(
+                prefix="BacSeg", suffix=".npy", dir=upload_dir
+            ).name
 
             np.save(temp_path, upload_data)
 
@@ -609,9 +860,13 @@ def _upload_bacseg_database(self, progress_callback, mode):
             overwrite_images = self.upload_overwrite_images.isChecked()
             overwrite_masks = self.upload_overwrite_masks.isChecked()
             overwrite_all_metadata = self.overwrite_all_metadata.isChecked()
-            overwrite_selected_metadata = (self.overwrite_selected_metadata.isChecked())
+            overwrite_selected_metadata = (
+                self.overwrite_selected_metadata.isChecked()
+            )
             upload_images = self.upload_images_setting.isChecked()
-            upload_segmentations = (self.upload_segmentations_setting.isChecked())
+            upload_segmentations = (
+                self.upload_segmentations_setting.isChecked()
+            )
             upload_metadata = self.upload_metadata_setting.isChecked()
             strain = self.upload_strain.currentText()
             phenotype = self.upload_phenotype.currentText()
@@ -620,15 +875,25 @@ def _upload_bacseg_database(self, progress_callback, mode):
 
             save_dir = os.path.join(database_path, "Images", user_initial)
 
-            if (overwrite_all_metadata is True or overwrite_selected_metadata is True):
+            if (
+                overwrite_all_metadata is True
+                or overwrite_selected_metadata is True
+            ):
                 overwrite_metadata = True
             else:
                 overwrite_metadata = False
 
-            user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
+            user_metadata_path = os.path.join(
+                database_path,
+                "Images",
+                user_initial,
+                f"{user_initial}_file_metadata.txt",
+            )
 
             if os.path.exists(user_metadata_path):
-                user_metadata, expected_columns = read_user_metadata(self, user_metadata_path=user_metadata_path)
+                user_metadata, expected_columns = read_user_metadata(
+                    self, user_metadata_path=user_metadata_path
+                )
 
                 metadata_file_names = user_metadata["file_name"].tolist()
                 metadata_akseg_hash = user_metadata["akseg_hash"].tolist()
@@ -641,8 +906,18 @@ def _upload_bacseg_database(self, progress_callback, mode):
 
                 user_metadata = pd.DataFrame(columns=self.metadata_columns)
 
-            channel_labels = ["modality", "light_source", "stain", "stain_target", ]
-            channel_metadata = [layer.metadata[0] for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
+            channel_labels = [
+                "modality",
+                "light_source",
+                "stain",
+                "stain_target",
+            ]
+            channel_metadata = [
+                layer.metadata[0]
+                for layer in self.viewer.layers
+                if layer.name
+                not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
+            ]
 
             metalabels = []
 
@@ -655,13 +930,28 @@ def _upload_bacseg_database(self, progress_callback, mode):
 
             metalabels = metalabels + [user_initial, content, microscope]
 
-            if ("Required for upload" in metalabels and self.active_import_mode != "BacSeg"):
+            if (
+                "Required for upload" in metalabels
+                and self.active_import_mode != "BacSeg"
+            ):
                 if self.widget_notifications:
-                    show_info("Please fill out channel (all channels) and image metadata before uploading files")
+                    show_info(
+                        "Please fill out channel (all channels) and image metadata before uploading files"
+                    )
 
             else:
                 segChannel = self.cellpose_segchannel.currentText()
-                channel_list = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Classes", "center_lines"]]
+                channel_list = [
+                    layer.name
+                    for layer in self.viewer.layers
+                    if layer.name
+                    not in [
+                        "Segmentations",
+                        "Nucleoid",
+                        "Classes",
+                        "center_lines",
+                    ]
+                ]
 
                 if segChannel == "":
                     if self.widget_notifications:
@@ -672,7 +962,11 @@ def _upload_bacseg_database(self, progress_callback, mode):
 
                     image_layer = self.viewer.layers[segChannel]
 
-                    (image_stack, meta_stack, channel_list,) = generate_multichannel_stack(self)
+                    (
+                        image_stack,
+                        meta_stack,
+                        channel_list,
+                    ) = generate_multichannel_stack(self)
                     mask_stack = self.segLayer.data
                     class_stack = self.classLayer.data
 
@@ -680,15 +974,40 @@ def _upload_bacseg_database(self, progress_callback, mode):
                         if mode == "active":
                             current_step = self.viewer.dims.current_step[0]
 
-                            image_stack = np.expand_dims(image_stack[current_step], axis=0)
-                            mask_stack = np.expand_dims(mask_stack[current_step], axis=0)
-                            class_stack = np.expand_dims(class_stack[current_step], axis=0)
-                            meta_stack = np.expand_dims(meta_stack[current_step], axis=0)
+                            image_stack = np.expand_dims(
+                                image_stack[current_step], axis=0
+                            )
+                            mask_stack = np.expand_dims(
+                                mask_stack[current_step], axis=0
+                            )
+                            class_stack = np.expand_dims(
+                                class_stack[current_step], axis=0
+                            )
+                            meta_stack = np.expand_dims(
+                                meta_stack[current_step], axis=0
+                            )
 
-                    upload_tempfiles = generate_upload_tempfiles(user_metadata, image_stack, meta_stack, mask_stack, class_stack, save_dir, overwrite_images, overwrite_masks, overwrite_metadata, overwrite_selected_metadata, overwrite_all_metadata, upload_images, upload_segmentations, upload_metadata, )
+                    upload_tempfiles = generate_upload_tempfiles(
+                        user_metadata,
+                        image_stack,
+                        meta_stack,
+                        mask_stack,
+                        class_stack,
+                        save_dir,
+                        overwrite_images,
+                        overwrite_masks,
+                        overwrite_metadata,
+                        overwrite_selected_metadata,
+                        overwrite_all_metadata,
+                        upload_images,
+                        upload_segmentations,
+                        upload_metadata,
+                    )
 
                     if mode == "active":
-                        results = upload_bacseg_files(upload_tempfiles[0], num_user_keys)
+                        results = upload_bacseg_files(
+                            upload_tempfiles[0], num_user_keys
+                        )
 
                     else:
                         with Pool(4) as pool:
@@ -696,7 +1015,9 @@ def _upload_bacseg_database(self, progress_callback, mode):
 
                             def callback(*args):
                                 iter.append(1)
-                                progress = (len(iter) / len(upload_tempfiles)) * 100
+                                progress = (
+                                    len(iter) / len(upload_tempfiles)
+                                ) * 100
 
                                 if progress_callback != None:
                                     try:
@@ -706,7 +1027,14 @@ def _upload_bacseg_database(self, progress_callback, mode):
 
                                 return
 
-                            results = [pool.apply_async(upload_bacseg_files, args=(i, num_user_keys), callback=callback, ) for i in upload_tempfiles]
+                            results = [
+                                pool.apply_async(
+                                    upload_bacseg_files,
+                                    args=(i, num_user_keys),
+                                    callback=callback,
+                                )
+                                for i in upload_tempfiles
+                            ]
 
                             try:
                                 results[-1].get()
@@ -714,54 +1042,118 @@ def _upload_bacseg_database(self, progress_callback, mode):
                                 print(traceback.format_exc())
                             else:
                                 results = [r.get() for r in results]
-                                results = [file_metadata for file_metadata_list in results for file_metadata in file_metadata_list if file_metadata != None]
+                                results = [
+                                    file_metadata
+                                    for file_metadata_list in results
+                                    for file_metadata in file_metadata_list
+                                    if file_metadata != None
+                                ]
                                 pool.close()
                                 pool.join()
 
-                            results = [dat for dat in results if results != None]
+                            results = [
+                                dat for dat in results if results != None
+                            ]
 
                     if upload_metadata is True:
                         for file_metadata in results:
                             if file_metadata != None:
                                 akseg_hash = file_metadata["akseg_hash"]
 
-                                file_metadata = pd.DataFrame.from_dict(file_metadata, dtype=object)
+                                file_metadata = pd.DataFrame.from_dict(
+                                    file_metadata, dtype=object
+                                )
 
                                 columns = file_metadata.columns.tolist()
-                                column_dict = {col: "first" for col in columns if col not in ["file_list", "channel_list"]}
+                                column_dict = {
+                                    col: "first"
+                                    for col in columns
+                                    if col not in ["file_list", "channel_list"]
+                                }
 
-                                df = (file_metadata.groupby(["file_name"]).agg({**{"file_list": lambda x: x.tolist(), "channel_list": lambda x: x.tolist(), }, **column_dict, })).reset_index(drop=True)
+                                df = (
+                                    file_metadata.groupby(["file_name"]).agg(
+                                        {
+                                            **{
+                                                "file_list": lambda x: x.tolist(),
+                                                "channel_list": lambda x: x.tolist(),
+                                            },
+                                            **column_dict,
+                                        }
+                                    )
+                                ).reset_index(drop=True)
 
                                 file_metadata = df[columns]
 
-                                file_metadata = file_metadata.astype({"segmented": bool, "labelled": bool, "segmentation_curated": bool, "label_curated": bool, })
+                                file_metadata = file_metadata.astype(
+                                    {
+                                        "segmented": bool,
+                                        "labelled": bool,
+                                        "segmentation_curated": bool,
+                                        "label_curated": bool,
+                                    }
+                                )
 
-                                user_metadata = user_metadata.astype({"segmented": bool, "labelled": bool, "segmentation_curated": bool, "label_curated": bool, })
+                                user_metadata = user_metadata.astype(
+                                    {
+                                        "segmented": bool,
+                                        "labelled": bool,
+                                        "segmentation_curated": bool,
+                                        "label_curated": bool,
+                                    }
+                                )
 
-                                user_metadata.reset_index(drop=True, inplace=True)
-                                file_metadata.reset_index(drop=True, inplace=True)
+                                user_metadata.reset_index(
+                                    drop=True, inplace=True
+                                )
+                                file_metadata.reset_index(
+                                    drop=True, inplace=True
+                                )
 
-                                user_metadata = user_metadata.loc[:, ~user_metadata.columns.duplicated()].copy()
-                                file_metadata = file_metadata.loc[:, ~file_metadata.columns.duplicated()].copy()
+                                user_metadata = user_metadata.loc[
+                                    :, ~user_metadata.columns.duplicated()
+                                ].copy()
+                                file_metadata = file_metadata.loc[
+                                    :, ~file_metadata.columns.duplicated()
+                                ].copy()
 
                                 for column in user_metadata.columns.tolist():
-                                    if (column not in file_metadata.columns.tolist()):
+                                    if (
+                                        column
+                                        not in file_metadata.columns.tolist()
+                                    ):
                                         file_metadata[column] = ""
 
                                 if akseg_hash in metadata_akseg_hash:
-                                    user_metadata = pd.concat((user_metadata, file_metadata), ignore_index=True, axis=0, )  # .reset_index(drop=True)
-                                    user_metadata.drop_duplicates(subset=["akseg_hash"], keep="last", inplace=True, )
+                                    user_metadata = pd.concat(
+                                        (user_metadata, file_metadata),
+                                        ignore_index=True,
+                                        axis=0,
+                                    )  # .reset_index(drop=True)
+                                    user_metadata.drop_duplicates(
+                                        subset=["akseg_hash"],
+                                        keep="last",
+                                        inplace=True,
+                                    )
 
                                 else:
-                                    user_metadata = pd.concat((user_metadata, file_metadata), ignore_index=True, axis=0, ).reset_index(drop=True)
+                                    user_metadata = pd.concat(
+                                        (user_metadata, file_metadata),
+                                        ignore_index=True,
+                                        axis=0,
+                                    ).reset_index(drop=True)
 
                     if upload_metadata is True:
                         user_metadata = user_metadata.astype("str")
 
-                        user_metadata.drop_duplicates(subset=["akseg_hash"], keep="first", inplace=True)
+                        user_metadata.drop_duplicates(
+                            subset=["akseg_hash"], keep="first", inplace=True
+                        )
                         user_metadata = user_metadata[expected_columns]
 
-                        user_metadata.to_csv(user_metadata_path, sep=",", index=False)
+                        user_metadata.to_csv(
+                            user_metadata_path, sep=",", index=False
+                        )
 
     except:
         print(traceback.format_exc())
@@ -773,7 +1165,12 @@ def read_user_metadata(self, user_metadata_path=""):
             database_path = self.database_path
             user_initial = self.upload_initial.currentText()
 
-            user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
+            user_metadata_path = os.path.join(
+                database_path,
+                "Images",
+                user_initial,
+                f"{user_initial}_file_metadata.txt",
+            )
 
         if os.path.isfile(user_metadata_path) == False:
             if self.widget_notifications:
@@ -793,13 +1190,21 @@ def read_user_metadata(self, user_metadata_path=""):
                     line = next(f).strip()
                     delim = sniffer.sniff(line)
 
-            user_metadata = pd.read_csv(user_metadata_path, sep=delim.delimiter, low_memory=False)
+            user_metadata = pd.read_csv(
+                user_metadata_path, sep=delim.delimiter, low_memory=False
+            )
 
-            user_metadata[["treatment time (mins)"]] = user_metadata[["treatment time (mins)"]].apply(pd.to_numeric, downcast="float")
+            user_metadata[["treatment time (mins)"]] = user_metadata[
+                ["treatment time (mins)"]
+            ].apply(pd.to_numeric, downcast="float")
 
-            user_metadata, expected_columns = check_metadata_format(user_metadata, self.metadata_columns)
+            user_metadata, expected_columns = check_metadata_format(
+                user_metadata, self.metadata_columns
+            )
 
-            user_metadata["segmentation_channel"] = user_metadata["segmentation_channel"].astype(str)
+            user_metadata["segmentation_channel"] = user_metadata[
+                "segmentation_channel"
+            ].astype(str)
 
             self.user_metadata = user_metadata
             self.expected_columns = expected_columns
@@ -821,14 +1226,22 @@ def backup_user_metadata(self, user_metadata=""):
 
         todays_date = datetime.datetime.now().strftime("%y%m%d-%H%M")
 
-        user_metadata_path = os.path.join(database_path, "Images", user_initial, "file metadata backup", f"{user_initial}_file_metadata_{todays_date}.txt", )
+        user_metadata_path = os.path.join(
+            database_path,
+            "Images",
+            user_initial,
+            "file metadata backup",
+            f"{user_initial}_file_metadata_{todays_date}.txt",
+        )
 
         if os.path.exists(os.path.dirname(user_metadata_path)) == False:
             os.makedirs(os.path.dirname(user_metadata_path))
 
         user_metadata = user_metadata.astype("str")
 
-        user_metadata.drop_duplicates(subset=["akseg_hash"], keep="first", inplace=True)
+        user_metadata.drop_duplicates(
+            subset=["akseg_hash"], keep="first", inplace=True
+        )
 
         show_info("Creating metadata backup for user: " + user_initial)
 
@@ -840,7 +1253,18 @@ def backup_user_metadata(self, user_metadata=""):
 
 def get_filtered_database_metadata(self):
     try:
-        database_metadata = {"user_initial": self.upload_initial.currentText(), "content": self.upload_content.currentText(), "microscope": self.upload_microscope.currentText(), "phenotype": self.upload_phenotype.currentText(), "strain": self.upload_strain.currentText(), "antibiotic": self.upload_antibiotic.currentText(), "antibiotic concentration": self.upload_abxconcentration.currentText(), "treatment time (mins)": self.upload_treatmenttime.currentText(), "mounting method": self.upload_mount.currentText(), "protocol": self.upload_protocol.currentText(), }
+        database_metadata = {
+            "user_initial": self.upload_initial.currentText(),
+            "content": self.upload_content.currentText(),
+            "microscope": self.upload_microscope.currentText(),
+            "phenotype": self.upload_phenotype.currentText(),
+            "strain": self.upload_strain.currentText(),
+            "antibiotic": self.upload_antibiotic.currentText(),
+            "antibiotic concentration": self.upload_abxconcentration.currentText(),
+            "treatment time (mins)": self.upload_treatmenttime.currentText(),
+            "mounting method": self.upload_mount.currentText(),
+            "protocol": self.upload_protocol.currentText(),
+        }
 
         num_user_keys = self.user_metadata_keys
 
@@ -850,13 +1274,29 @@ def get_filtered_database_metadata(self):
             combo_box_text = combo_box.currentText()
             database_metadata[f"user_meta{key}"] = combo_box_text
 
-        database_metadata = {key: val for key, val in database_metadata.items() if val not in ["", "Required for upload", "example_item1", "example_item2", "example_item3", ]}
+        database_metadata = {
+            key: val
+            for key, val in database_metadata.items()
+            if val
+            not in [
+                "",
+                "Required for upload",
+                "example_item1",
+                "example_item2",
+                "example_item3",
+            ]
+        }
 
         database_path = self.database_path
 
         user_initial = database_metadata["user_initial"]
 
-        user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
+        user_metadata_path = os.path.join(
+            database_path,
+            "Images",
+            user_initial,
+            f"{user_initial}_file_metadata.txt",
+        )
 
         if os.path.isfile(user_metadata_path) == False:
             if self.widget_notifications:
@@ -869,27 +1309,49 @@ def get_filtered_database_metadata(self):
         else:
             user_metadata, expected_columns = read_user_metadata(self)
 
-            user_metadata["segmentation_channel"] = user_metadata["segmentation_channel"].astype(str)
-            user_metadata["treatment time (mins)"] = user_metadata["treatment time (mins)"].astype(str)
+            user_metadata["segmentation_channel"] = user_metadata[
+                "segmentation_channel"
+            ].astype(str)
+            user_metadata["treatment time (mins)"] = user_metadata[
+                "treatment time (mins)"
+            ].astype(str)
 
             for key, value in database_metadata.items():
                 if key in user_metadata.columns:
                     user_metadata = user_metadata[user_metadata[key] == value]
 
             if self.upload_segmentation_combo.currentIndex() == 1:
-                user_metadata = user_metadata[user_metadata["segmented"] == False]
+                user_metadata = user_metadata[
+                    user_metadata["segmented"] == False
+                ]
             if self.upload_segmentation_combo.currentIndex() == 2:
-                user_metadata = user_metadata[user_metadata["segmented"] == True & (user_metadata["segmentation_curated"] == False)]
+                user_metadata = user_metadata[
+                    user_metadata["segmented"]
+                    == True & (user_metadata["segmentation_curated"] == False)
+                ]
             if self.upload_segmentation_combo.currentIndex() == 3:
-                user_metadata = user_metadata[(user_metadata["segmented"] == True) & (user_metadata["segmentation_curated"] == True)]
+                user_metadata = user_metadata[
+                    (user_metadata["segmented"] == True)
+                    & (user_metadata["segmentation_curated"] == True)
+                ]
             if self.upload_label_combo.currentIndex() == 1:
-                user_metadata = user_metadata[user_metadata["labelled"] == False]
+                user_metadata = user_metadata[
+                    user_metadata["labelled"] == False
+                ]
             if self.upload_label_combo.currentIndex() == 2:
-                user_metadata = user_metadata[user_metadata["labelled"] == True & (user_metadata["label_curated"] == False)]
+                user_metadata = user_metadata[
+                    user_metadata["labelled"]
+                    == True & (user_metadata["label_curated"] == False)
+                ]
             if self.upload_label_combo.currentIndex() == 3:
-                user_metadata = user_metadata[(user_metadata["labelled"] == True) & (user_metadata["label_curated"] == True)]
+                user_metadata = user_metadata[
+                    (user_metadata["labelled"] == True)
+                    & (user_metadata["label_curated"] == True)
+                ]
 
-            user_metadata.sort_values(by=["posX", "posY", "posZ"], ascending=True)
+            user_metadata.sort_values(
+                by=["posX", "posY", "posZ"], ascending=True
+            )
 
             sort_names = []
             sort_directions = []
@@ -907,7 +1369,9 @@ def get_filtered_database_metadata(self):
                     sort_directions.append(False)
 
             if self.download_sort_order_1.currentIndex() == 1:
-                user_metadata = user_metadata.sample(frac=1).reset_index(drop=True)
+                user_metadata = user_metadata.sample(frac=1).reset_index(
+                    drop=True
+                )
             if self.download_sort_order_1.currentIndex() == 2:
                 sort_names.append("date_uploaded")
             if self.download_sort_order_1.currentIndex() == 3:
@@ -926,7 +1390,9 @@ def get_filtered_database_metadata(self):
                     sort_names.append("image_debris")
 
             if self.download_sort_order_2.currentIndex() == 1:
-                user_metadata = user_metadata.sample(frac=1).reset_index(drop=True)
+                user_metadata = user_metadata.sample(frac=1).reset_index(
+                    drop=True
+                )
             if self.download_sort_order_2.currentIndex() == 2:
                 sort_names.append("date_uploaded")
             if self.download_sort_order_2.currentIndex() == 3:
@@ -947,12 +1413,16 @@ def get_filtered_database_metadata(self):
             if len(sort_names) > 0:
                 if len(sort_names) != len(sort_directions):
                     sort_directions = [False] * len(sort_names)
-                user_metadata = user_metadata.sort_values(sort_names, ascending=sort_directions).reset_index(drop=True)
+                user_metadata = user_metadata.sort_values(
+                    sort_names, ascending=sort_directions
+                ).reset_index(drop=True)
 
             import_limit = self.database_download_limit.currentText()
 
             segmentation_files = user_metadata["segmentation_file"].unique()
             num_measurements = len(segmentation_files)
+
+            print(num_measurements)
 
             if import_limit == "All":
                 import_limit = num_measurements
@@ -960,7 +1430,11 @@ def get_filtered_database_metadata(self):
                 if int(import_limit) > num_measurements:
                     import_limit = num_measurements
 
-            user_metadata = user_metadata[user_metadata["segmentation_file"].isin(segmentation_files[: int(import_limit)])]
+            user_metadata = user_metadata[
+                user_metadata["segmentation_file"].isin(
+                    segmentation_files[: int(import_limit)]
+                )
+            ]
 
             user_metadata["path"] = user_metadata["image_save_path"]
 
@@ -969,22 +1443,35 @@ def get_filtered_database_metadata(self):
 
             len1 = len(user_metadata)
 
-            user_metadata = user_metadata[~user_metadata["segmentation_file"].isin(["None", None, np.nan])]
-            user_metadata = user_metadata[~user_metadata["folder"].isin(["None", None, np.nan])]
+            user_metadata = user_metadata[
+                ~user_metadata["segmentation_file"].isin(
+                    ["None", None, np.nan]
+                )
+            ]
+            user_metadata = user_metadata[
+                ~user_metadata["folder"].isin(["None", None, np.nan])
+            ]
 
             len2 = len(user_metadata)
 
             if len2 < len1:
-                show_info(f"{len1 - len2} files with missing critical metadata removed.")
+                show_info(
+                    f"{len1 - len2} files with missing critical metadata removed."
+                )
 
             sort_columns = []
 
             if "folder" in user_metadata.columns:
                 sort_columns.append("folder")
-                user_metadata.loc[user_metadata["folder"].isna(), "folder"] = "None"
+                user_metadata.loc[
+                    user_metadata["folder"].isna(), "folder"
+                ] = "None"
             if "segmentation_file" in user_metadata.columns:
                 sort_columns.append("segmentation_file")
-                user_metadata.loc[user_metadata["segmentation_file"].isna(), "segmentation_file",] = "None"
+                user_metadata.loc[
+                    user_metadata["segmentation_file"].isna(),
+                    "segmentation_file",
+                ] = "None"
             if "posX" in user_metadata.columns:
                 sort_columns.append("posX")
                 user_metadata.loc[user_metadata["posX"].isna(), "posX"] = 0
@@ -997,7 +1484,9 @@ def get_filtered_database_metadata(self):
 
             measurements = user_metadata.groupby(sort_columns)
 
-            show_info(f"Found {len(file_paths)//len(channels)} matching database files.")
+            show_info(
+                f"Found {len(file_paths)//len(channels)} matching database files."
+            )
 
     except:
         print(traceback.format_exc())

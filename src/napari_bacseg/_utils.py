@@ -1209,7 +1209,7 @@ def import_bacseg(self, progress_callback, file_paths):
             if os.path.exists(json_path):
                 from napari_bacseg._utils_json import import_coco_json
 
-                mask, label = import_coco_json(json_path)
+                mask, nmask, label = import_coco_json(json_path)
                 mask = crop_image(mask, crop_mode)
                 label = crop_image(label, crop_mode)
 
@@ -1687,7 +1687,8 @@ def align_image_channels(self):
     layer_names = [
         layer.name
         for layer in self.viewer.layers
-        if layer.name not in ["Segmentations", "Classes", "center_lines"]
+        if layer.name
+        not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
     ]
 
     if self.import_align.isChecked() and len(layer_names) > 1:
@@ -1871,7 +1872,7 @@ def import_JSON(self, progress_callback, file_paths):
 
             from napari_bacseg._utils_json import import_coco_json
 
-            mask, labels = import_coco_json(json_path)
+            mask, nmask, labels = import_coco_json(json_path)
 
             crop_mode = self.import_crop_mode.currentIndex()
             image = crop_image(image, crop_mode)
@@ -2022,7 +2023,8 @@ def import_masks(self, file_paths, file_extension=""):
     layer_names = [
         layer.name
         for layer in self.viewer.layers
-        if layer.name not in ["Segmentations", "Classes", "center_lines"]
+        if layer.name
+        not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
     ]
 
     matching_masks = []
@@ -2061,7 +2063,7 @@ def import_masks(self, file_paths, file_extension=""):
         if file_format == "txt":
             from napari_bacseg._utils_json import import_coco_json
 
-            mask, label = import_coco_json(mask_path)
+            mask, nmask, label = import_coco_json(mask_path)
             mask_stack[i, :, :][y1:y2, x1:x2] = mask
             class_stack[i, :, :][y1:y2, x1:x2] = label
 
@@ -2254,7 +2256,8 @@ def generate_export_image(
     layer_names = [
         layer.name
         for layer in self.viewer.layers
-        if layer.name not in ["Segmentations", "Classes", "center_lines"]
+        if layer.name
+        not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
     ]
 
     layer_names.reverse()
