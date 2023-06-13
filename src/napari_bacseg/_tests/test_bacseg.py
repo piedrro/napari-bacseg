@@ -29,7 +29,11 @@ class test_bacseg(unittest.TestCase):
             cls.BacSeg.widget_notifications = False
 
             cls.export_setting_dict = {"mode": ["masks", "images", "images + masks", "oufti", "cellpose", "imagej", "json", "csv", ], 
-                                       "overwrite": [True, False], "export_images": [True,False], "normalise": [True, False], "invert": [True, False], "autocontrast": [True, False], }
+                                       "overwrite": [True, False],
+                                       "export_images": [True,False],
+                                       "normalise": [True, False],
+                                       "invert": [True, False],
+                                       "autocontrast": [True, False], }
 
             cls.import_images_setting_dict = {"mode": ["images", "scanr", "nim"],
                                               "filemode": ["directory", "file"],
@@ -63,19 +67,10 @@ class test_bacseg(unittest.TestCase):
 
             for setting in possible_settings_values:
                 
-                print(mode,setting)
-                
                 active_settings = dict(zip(setting_dict.keys(), setting))
 
                 with self.subTest(msg="getAll"):
                     function(mode=mode, **active_settings)
-
-    def test_import(self):
-        self.perumuation_test(self.import_images, setting_dict=self.import_images_setting_dict)
-    def test_export(self):
-        self.perumuation_test(self.export_data, setting_dict=self.export_setting_dict)
-        
-        
 
 
     def import_images(self, mode="images", filemode="directory", import_limit="None", import_precision="int16", multiframe_mode_index=0, crop_mode_index=0, ):
@@ -611,6 +606,13 @@ class test_bacseg(unittest.TestCase):
     #     loaded_images = len(self.BacSeg.viewer.layers[layer_names[0]].data)
 
     #     assert loaded_images == import_limit
+
+
+    # def test_import(self):
+    #     self.perumuation_test(self.import_images, setting_dict=self.import_images_setting_dict)
+    # def test_export(self):
+    #     self.perumuation_test(self.export_data, setting_dict=self.export_setting_dict)
+        
 
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ from napari.utils.notifications import show_info
 # from napari_bacseg._utils_imagej import read_imagej_file
 from skimage import exposure
 from skimage.registration import phase_cross_correlation
-
+import copy
 
 def normalize99(X):
     """normalize image so 0.0 is 0.01st percentile and 1.0 is 99.99th percentile"""
@@ -371,6 +371,8 @@ def import_imagej(self, progress_callback, paths):
     metadata = {}
     imported_images = {}
 
+    img_index = 0
+
     for i in range(len(file_paths)):
         progress = int(((i + 1) / len(file_paths)) * 100)
         try:
@@ -387,48 +389,69 @@ def import_imagej(self, progress_callback, paths):
         import_precision = self.import_precision.currentText()
         multiframe_mode = self.import_multiframe_mode.currentIndex()
         crop_mode = self.import_crop_mode.currentIndex()
-        image, meta = read_image_file(paths, import_precision, multiframe_mode)
+
+        image_list, meta = read_image_file(paths, import_precision, multiframe_mode, crop_mode)
+
+        akseg_hash = get_hash(img_path=paths)
 
         from napari_bacseg._utils_imagej import read_imagej_file
 
-        mask = read_imagej_file(paths, image)
+        file_name = os.path.basename(paths)
 
-        contrast_limit, alpha, beta, gamma = autocontrast_values(image)
+        for index, frame in enumerate(image_list):
 
-        self.active_import_mode = "Dataset"
+            contrast_limit = np.percentile(frame, (1, 99))
+            contrast_limit = [int(contrast_limit[0] * 0.5), int(contrast_limit[1] * 2), ]
 
-        meta["akseg_hash"] = get_hash(img_path=paths)
-        meta["image_name"] = os.path.basename(paths)
-        meta["image_path"] = paths
-        meta["mask_name"] = os.path.basename(paths)
-        meta["mask_path"] = paths
-        meta["label_name"] = None
-        meta["label_path"] = None
-        meta["import_mode"] = "Dataset"
-        meta["contrast_limit"] = contrast_limit
-        meta["contrast_alpha"] = alpha
-        meta["contrast_beta"] = beta
-        meta["contrast_gamma"] = gamma
-        meta["dims"] = [image.shape[-1], image.shape[-2]]
-        meta["crop"] = [0, image.shape[-2], 0, image.shape[-1]]
+            mask = read_imagej_file(paths, frame)
 
-        images.append(image)
-        masks.append(mask)
-        metadata[i] = meta
+            self.active_import_mode = "imagej"
 
-        if imported_images == {}:
-            imported_images["Image"] = dict(images=[image], masks=[mask], nmasks=[], classes=[], metadata={i: meta}, )
-        else:
-            imported_images["Image"]["images"].append(image)
-            imported_images["Image"]["masks"].append(mask)
-            imported_images["Image"]["metadata"][i] = meta
+            if len(image_list) > 1:
+                frame_name = file_name.replace(".", "_") + "_" + str(index) + ".tif"
+            else:
+                frame_name = copy.deepcopy(file_name)
+
+            frame_meta = copy.deepcopy(meta)
+
+            frame_meta["akseg_hash"] = akseg_hash
+            frame_meta["image_name"] = frame_name
+            frame_meta["image_path"] = paths
+            frame_meta["mask_name"] = frame_name
+            frame_meta["mask_path"] = paths
+            frame_meta["label_name"] = None
+            frame_meta["label_path"] = None
+            frame_meta["import_mode"] = "Dataset"
+            frame_meta["contrast_limit"] = contrast_limit
+            frame_meta["contrast_alpha"] = 0
+            frame_meta["contrast_beta"] = 0
+            frame_meta["contrast_gamma"] = 0
+            frame_meta["dims"] = [frame.shape[-1], frame.shape[-2]]
+            frame_meta["crop"] = [0, frame.shape[-2], 0, frame.shape[-1]]
+
+            images.append(frame)
+            masks.append(mask)
+            metadata[img_index] = frame_meta
+
+            if imported_images == {}:
+                imported_images["Image"] = dict(images=[frame], masks=[mask], nmasks=[], classes=[], metadata={img_index: frame_meta}, )
+            else:
+                imported_images["Image"]["images"].append(frame)
+                imported_images["Image"]["masks"].append(mask)
+                imported_images["Image"]["metadata"][img_index] = frame_meta
+
+            img_index += 1
 
     imported_data = dict(imported_images=imported_images)
+
+    for i in range(len(imported_images["Image"]["images"])):
+        print(i, imported_images["Image"]["metadata"][i]["image_name"], i)
 
     return imported_data
 
 
 def read_nim_directory(self, path):
+
     if isinstance(path, list) == False:
         path = [path]
 
@@ -719,12 +742,19 @@ def read_nim_images(self, progress_callback, measurements, channels):
     img_type = np.uint16
     iter = 0
 
+    img_index = {}
+
     for i in range(len(measurements)):
+
         measurement = measurements.get_group(list(measurements.groups)[i])
         measurement_channels = measurement["laser"].tolist()
 
         for j in range(len(channels)):
+
             channel = channels[j]
+
+            if channel not in img_index.keys():
+                img_index[channel] = 0
 
             iter += 1
             progress = int((iter / (len(measurements) * len(channels))) * 100)
@@ -756,96 +786,102 @@ def read_nim_images(self, progress_callback, measurements, channels):
 
                 akseg_hash = get_hash(img_path=path)
 
+                file_name = os.path.basename(path)
+
                 for index, frame in enumerate(image_list):
+
+                    frame_name = copy.deepcopy(file_name)
+                    frame_meta = copy.deepcopy(meta)
 
                     contrast_limit = np.percentile(frame, (1, 99))
                     contrast_limit = [int(contrast_limit[0] * 0.5), int(contrast_limit[1] * 2), ]
 
                     self.active_import_mode = "nim"
 
-                    file_name = os.path.basename(path)
-
-                    if index != 0:
-                        file_name = file_name.replace(".", "_") + "_" + str(index) + ".tif"
+                    if len(image_list) > 1:
+                        frame_name = frame_name.replace(".", "_") + "_" + str(index) + ".tif"
 
                     self.active_import_mode = "NIM"
 
-                    meta["image_name"] = file_name
-                    meta["image_path"] = path
-                    meta["folder"] = folder
-                    meta["parent_folder"] = parent_folder
-                    meta["akseg_hash"] = akseg_hash
-                    meta["import_mode"] = "NIM"
-                    meta["contrast_limit"] = contrast_limit
-                    meta["contrast_alpha"] = 0
-                    meta["contrast_beta"] = 0
-                    meta["contrast_gamma"] = 0
-                    meta["dims"] = [frame.shape[-1], frame.shape[-2]]
-                    meta["crop"] = [0, frame.shape[-2], 0, frame.shape[-1]]
+                    frame_meta["image_name"] = frame_name
+                    frame_meta["image_path"] = path
+                    frame_meta["folder"] = folder
+                    frame_meta["parent_folder"] = parent_folder
+                    frame_meta["akseg_hash"] = akseg_hash
+                    frame_meta["import_mode"] = "NIM"
+                    frame_meta["contrast_limit"] = contrast_limit
+                    frame_meta["contrast_alpha"] = 0
+                    frame_meta["contrast_beta"] = 0
+                    frame_meta["contrast_gamma"] = 0
+                    frame_meta["dims"] = [frame.shape[-1], frame.shape[-2]]
+                    frame_meta["crop"] = [0, frame.shape[-2], 0, frame.shape[-1]]
 
-                    if meta["InstrumentSerial"] == "6D699GN6":
-                        meta["microscope"] = "BIO-NIM"
-                    elif meta["InstrumentSerial"] == "2EC5XTUC":
-                        meta["microscope"] = "JR-NIM"
+                    if frame_meta["InstrumentSerial"] == "6D699GN6":
+                        frame_meta["microscope"] = "BIO-NIM"
+                    elif frame_meta["InstrumentSerial"] == "2EC5XTUC":
+                        frame_meta["microscope"] = "JR-NIM"
                     else:
-                        meta["microscope"] = None
+                        frame_meta["microscope"] = None
 
-                    if meta["IlluminationAngle_deg"] < 1:
-                        meta["modality"] = "Epifluorescence"
-                    elif 1 < meta["IlluminationAngle_deg"] < 53:
-                        meta["modality"] = "HILO"
-                    elif 53 < meta["IlluminationAngle_deg"]:
-                        meta["modality"] = "TIRF"
+                    if frame_meta["IlluminationAngle_deg"] < 1:
+                        frame_meta["modality"] = "Epifluorescence"
+                    elif 1 < frame_meta["IlluminationAngle_deg"] < 53:
+                        frame_meta["modality"] = "HILO"
+                    elif 53 < frame_meta["IlluminationAngle_deg"]:
+                        frame_meta["modality"] = "TIRF"
 
-                    meta["light_source"] = channel
+                    frame_meta["light_source"] = channel
 
-                    if meta["light_source"] == "White Light":
-                        meta["modality"] = "Bright Field"
+                    if frame_meta["light_source"] == "White Light":
+                        frame_meta["modality"] = "Bright Field"
 
                     img_shape = frame.shape
                     img_type = np.array(frame).dtype
 
-                    image_path = meta["image_path"]
+                    image_path = frame_meta["image_path"]
 
                     if "pos_" in image_path:
-                        meta["folder"] = image_path.split("\\")[-4]
-                        meta["parent_folder"] = image_path.split("\\")[-5]
+                        frame_meta["folder"] = image_path.split("\\")[-4]
+                        frame_meta["parent_folder"] = image_path.split("\\")[-5]
 
                     if channel not in nim_images:
-                        nim_images[channel] = dict(images=[frame], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
+                        nim_images[channel] = dict(images=[frame], masks=[], nmasks=[], classes=[], metadata={img_index[channel]: frame_meta}, )
                     else:
                         nim_images[channel]["images"].append(frame)
-                        nim_images[channel]["metadata"][i] = meta
+                        nim_images[channel]["metadata"][img_index[channel]] = frame_meta
 
+                    img_index[channel] += 1
             else:
 
                 for index in range(num_frames):
 
                     frame = np.zeros(img_shape, dtype=img_type)
-                    meta = {}
+                    frame_meta = {}
 
                     self.active_import_mode = "NIM"
 
-                    meta["image_name"] = "missing image channel"
-                    meta["image_path"] = "missing image channel"
-                    meta["folder"] = (None,)
-                    meta["parent_folder"] = (None,)
-                    meta["akseg_hash"] = None
-                    meta["fov_mode"] = None
-                    meta["import_mode"] = "NIM"
-                    meta["contrast_limit"] = None
-                    meta["contrast_alpha"] = None
-                    meta["contrast_beta"] = None
-                    meta["contrast_gamma"] = None
-                    meta["dims"] = [frame.shape[-1], frame.shape[-2]]
-                    meta["crop"] = [0, frame.shape[-2], 0, frame.shape[-1]]
-                    meta["light_source"] = channel
+                    frame_meta["image_name"] = "missing image channel"
+                    frame_meta["image_path"] = "missing image channel"
+                    frame_meta["folder"] = (None,)
+                    frame_meta["parent_folder"] = (None,)
+                    frame_meta["akseg_hash"] = None
+                    frame_meta["fov_mode"] = None
+                    frame_meta["import_mode"] = "NIM"
+                    frame_meta["contrast_limit"] = None
+                    frame_meta["contrast_alpha"] = None
+                    frame_meta["contrast_beta"] = None
+                    frame_meta["contrast_gamma"] = None
+                    frame_meta["dims"] = [frame.shape[-1], frame.shape[-2]]
+                    frame_meta["crop"] = [0, frame.shape[-2], 0, frame.shape[-1]]
+                    frame_meta["light_source"] = channel
 
                     if channel not in nim_images:
-                        nim_images[channel] = dict(images=[frame], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
+                        nim_images[channel] = dict(images=[frame], masks=[], nmasks=[], classes=[], metadata={img_index[channel]: frame_meta}, )
                     else:
                         nim_images[channel]["images"].append(frame)
-                        nim_images[channel]["metadata"][i] = meta
+                        nim_images[channel]["metadata"][img_index[channel]] = frame_meta
+
+                    img_index[channel] += 1
 
     imported_data = dict(imported_images=nim_images)
 
@@ -1010,6 +1046,7 @@ def import_dataset(self, progress_callback, paths):
             import_precision = self.import_precision.currentText()
             multiframe_mode = self.import_multiframe_mode.currentIndex()
             crop_mode = self.import_crop_mode.currentIndex()
+
             image, meta = read_image_file(path, import_precision, multiframe_mode)
 
             crop_mode = self.import_crop_mode.currentIndex()
@@ -1162,7 +1199,7 @@ def import_images(self, progress_callback, file_paths):
     metadata = {}
     imported_images = {}
 
-    iter = 0
+    img_index = 0
 
     for i in range(len(file_paths)):
 
@@ -1172,7 +1209,6 @@ def import_images(self, progress_callback, file_paths):
             progress_callback.emit(progress)
         except:
             pass
-
 
         if self.widget_notifications:
             show_info("loading image " + str(i + 1) + " of " + str(len(file_paths)))
@@ -1188,6 +1224,8 @@ def import_images(self, progress_callback, file_paths):
 
         akseg_hash = get_hash(img_path=file_path)
 
+        file_name = os.path.basename(file_path)
+
         for index, frame in enumerate(image_list):
 
             contrast_limit = np.percentile(frame, (1, 99))
@@ -1195,32 +1233,38 @@ def import_images(self, progress_callback, file_paths):
 
             self.active_import_mode = "image"
 
-            if index != 0:
-                file_name = file_name.replace(".", "_") + "_" + str(index) + ".tif"
+            if len(image_list) > 1:
+                frame_name = file_name.replace(".", "_") + "_" + str(index) + ".tif"
+            else:
+                frame_name = copy.deepcopy(file_name)
 
-            meta["akseg_hash"] = akseg_hash
-            meta["image_name"] = file_name
-            meta["image_path"] = file_path
-            meta["mask_name"] = None
-            meta["mask_path"] = None
-            meta["label_name"] = None
-            meta["label_path"] = None
-            meta["import_mode"] = "image"
-            meta["contrast_limit"] = contrast_limit
-            meta["contrast_alpha"] = 0
-            meta["contrast_beta"] = 0
-            meta["contrast_gamma"] = 0
-            meta["dims"] = [frame.shape[-1], frame.shape[-2]]
-            meta["crop"] = [0, frame.shape[-2], 0, frame.shape[-1]]
+            frame_meta = copy.deepcopy(meta)
+
+            frame_meta["akseg_hash"] = akseg_hash
+            frame_meta["image_name"] = frame_name
+            frame_meta["image_path"] = file_path
+            frame_meta["mask_name"] = None
+            frame_meta["mask_path"] = None
+            frame_meta["label_name"] = None
+            frame_meta["label_path"] = None
+            frame_meta["import_mode"] = "image"
+            frame_meta["contrast_limit"] = contrast_limit
+            frame_meta["contrast_alpha"] = 0
+            frame_meta["contrast_beta"] = 0
+            frame_meta["contrast_gamma"] = 0
+            frame_meta["dims"] = [frame.shape[-1], frame.shape[-2]]
+            frame_meta["crop"] = [0, frame.shape[-2], 0, frame.shape[-1]]
 
             images.append(frame)
-            metadata[i] = meta
+            metadata[i] = frame_meta
 
             if imported_images == {}:
-                imported_images["Image"] = dict(images=[frame], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
+                imported_images["Image"] = dict(images=[frame], masks=[], nmasks=[], classes=[], metadata={img_index: frame_meta}, )
             else:
                 imported_images["Image"]["images"].append(frame)
-                imported_images["Image"]["metadata"][i] = meta
+                imported_images["Image"]["metadata"][img_index] = frame_meta
+
+            img_index += 1
 
     imported_data = dict(imported_images=imported_images)
 

@@ -6,8 +6,9 @@ from roifile import ImagejRoi, roiread
 
 
 def read_imagej_file(path, image, widget_notifications=True):
+
     contours = []
-    mask = np.zeros_like(image)
+    mask = np.zeros(image.shape[-2:], dtype=np.uint16)
 
     # reads overlays sequentially and then converts them to openCV contours
     try:

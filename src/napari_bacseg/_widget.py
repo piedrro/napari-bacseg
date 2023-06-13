@@ -1381,6 +1381,8 @@ class BacSeg(QWidget):
 
             viewer_text = ""
 
+            # print(metadata['image_name'])
+
             if (self.overlay_filename.isChecked() and "image_name" in metadata.keys()):
                 viewer_text = f"File Name: {metadata['image_name']}"
             if self.overlay_folder.isChecked() and "folder" in metadata.keys():
@@ -1446,6 +1448,9 @@ class BacSeg(QWidget):
             masks = layer_data["masks"]
             classes = layer_data["classes"]
             metadata = layer_data["metadata"]
+
+            # for i in range(len(images)):
+            #     print(metadata[i]["image_name"])
 
             if "nmasks" in layer_data.keys():
                 nmasks = layer_data["nmasks"]
