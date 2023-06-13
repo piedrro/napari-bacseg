@@ -212,7 +212,7 @@
         </item>
         <item>
          <property name="text">
-          <string>Keep All Frames</string>
+          <string>Keep All Frames (BETA)</string>
          </property>
         </item>
        </widget>
@@ -4464,219 +4464,657 @@ color: rgb(0, 255, 0);</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_15">
         <item>
-         <layout class="QFormLayout" name="formLayout_6">
-          <item row="1" column="1">
-           <widget class="QComboBox" name="export_mode">
-            <item>
-             <property name="text">
-              <string>Export .tif Images</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Export .tif Masks</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Export .tif Images and Masks</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Export Cellpose</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Export Oufti</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Export ImageJ</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Export JSON</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Export CSV</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_19">
-            <property name="text">
-             <string>Export Mode</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="export_location">
-            <property name="currentIndex">
-             <number>1</number>
-            </property>
-            <item>
-             <property name="text">
-              <string>Import Directory</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Select Directory</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_44">
-            <property name="text">
-             <string>Export Location</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="export_channel">
-            <item>
-             <property name="text">
-              <string>All Channels (Stack)</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>First Three Channels (RGB)</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_45">
-            <property name="text">
-             <string>Image Channel</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QFormLayout" name="formLayout_5">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_26">
-            <property name="text">
-             <string>File Name Modifier</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="export_modifier">
-            <property name="text">
-             <string>_BacSeg</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QGridLayout" name="gridLayout_14">
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="export_overwrite_setting">
-            <property name="text">
-             <string>Overwrite Files</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="export_image_setting">
-            <property name="text">
-             <string>Export Image Files</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_12">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
+         <widget class="QTabWidget" name="tabWidget">
+          <property name="currentIndex">
+           <number>0</number>
           </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Minimum</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>10</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_12">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Image Modifications</string>
-          </property>
+          <widget class="QWidget" name="tab_18">
+           <attribute name="title">
+            <string>Export Frames</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_26">
+            <item>
+             <layout class="QFormLayout" name="formLayout_6">
+              <item row="1" column="1">
+               <widget class="QComboBox" name="export_mode">
+                <item>
+                 <property name="text">
+                  <string>Export .tif Images</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Export .tif Masks</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Export .tif Images and Masks</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Export Cellpose</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Export Oufti</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Export ImageJ</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Export JSON</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Export CSV</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_19">
+                <property name="text">
+                 <string>Export Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="export_location">
+                <property name="currentIndex">
+                 <number>1</number>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Import Directory</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Select Directory</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_44">
+                <property name="text">
+                 <string>Export Location</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="export_channel">
+                <item>
+                 <property name="text">
+                  <string>All Channels (Stack)</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>First Three Channels (RGB)</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_45">
+                <property name="text">
+                 <string>Image Channel</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QFormLayout" name="formLayout_5">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_26">
+                <property name="text">
+                 <string>File Name Modifier</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="export_modifier">
+                <property name="text">
+                 <string>_BacSeg</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QGridLayout" name="gridLayout_32">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="export_image_setting">
+                <property name="text">
+                 <string>Export Image Files</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QCheckBox" name="export_overwrite_setting">
+                <property name="text">
+                 <string>Overwrite Files</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_12">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="export_active">
+              <property name="text">
+               <string>Export Data From Active Frame</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="export_all">
+              <property name="text">
+               <string>Export Data From All Frames</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="tab_19">
+           <attribute name="title">
+            <string>Export Stacks</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_25">
+            <item>
+             <layout class="QFormLayout" name="formLayout_23">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_101">
+                <property name="text">
+                 <string>Image Channel</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="export_stack_channel"/>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_99">
+                <property name="text">
+                 <string>Export Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="export_stack_mode">
+                <item>
+                 <property name="text">
+                  <string>Export .tif Images</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Export .tif Masks</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_100">
+                <property name="text">
+                 <string>Export Location</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="export_stack_location">
+                <property name="currentIndex">
+                 <number>1</number>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Import Directory</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Select Directory</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QFormLayout" name="formLayout_25">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_103">
+                <property name="text">
+                 <string>File Name Modifier</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="export_stack_modifier">
+                <property name="text">
+                 <string>_BacSeg</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QGridLayout" name="gridLayout_33">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="export_stack_image_setting">
+                <property name="text">
+                 <string>Export Image Files</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QCheckBox" name="export_stack_overwrite_setting">
+                <property name="text">
+                 <string>Overwrite Files</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_42">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="export_stack_active">
+              <property name="text">
+               <string>Export Data Stack From Active Channel</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="export_stack_all">
+              <property name="text">
+               <string>Export Data Stack From All Channels</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="tab_20">
+           <attribute name="title">
+            <string>Export Settings</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_27">
+            <item>
+             <widget class="QLabel" name="label_43">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Export Cell Settings</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="export_single">
+                <property name="text">
+                 <string>Single</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="export_vertical">
+                <property name="text">
+                 <string>Vertical</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QCheckBox" name="export_divided">
+                <property name="text">
+                 <string>Divided</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QCheckBox" name="export_dividing">
+                <property name="text">
+                 <string>Dividing</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QCheckBox" name="export_edge">
+                <property name="text">
+                 <string>Edge</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QCheckBox" name="export_broken">
+                <property name="text">
+                 <string>Broken</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_36">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>10</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_49">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Scale Bar Settings</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QGridLayout" name="gridLayout_27">
+              <item row="0" column="2">
+               <widget class="QComboBox" name="export_scalebar_resolution_units">
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>100</height>
+                 </size>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>nm</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>um</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_50">
+                <property name="text">
+                 <string>Pixel Resolution</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="export_scalebar_resolution">
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>100</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_55">
+                <property name="text">
+                 <string>Scale Bar Size</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="export_scalebar_size">
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>20</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QComboBox" name="export_scalebar_size_units">
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>100</height>
+                 </size>
+                </property>
+                <property name="currentIndex">
+                 <number>1</number>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>nm</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>um</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QFormLayout" name="formLayout_19">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_71">
+                <property name="text">
+                 <string>Scale Bar Colour</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="export_scalebar_colour">
+                <item>
+                 <property name="text">
+                  <string>Black</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>White</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_72">
+                <property name="text">
+                 <string>Scale Bar Thickness (pixels)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="export_scalebar_thickness">
+                <property name="currentIndex">
+                 <number>3</number>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>1</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>2</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>5</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>10</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>15</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>20</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_26">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>10</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_12">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Image Modifications</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QGridLayout" name="gridLayout_19">
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="export_autocontrast">
+                <property name="text">
+                 <string>Auto Contrast</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QCheckBox" name="export_normalise">
+                <property name="text">
+                 <string>Normalise</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QCheckBox" name="export_scalebar">
+                <property name="text">
+                 <string>Show Scale Bar</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QCheckBox" name="export_invert">
+                <property name="text">
+                 <string>Invert </string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QCheckBox" name="export_mask_background">
+                <property name="text">
+                 <string>Mask Background</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QCheckBox" name="export_crop_zoom">
+                <property name="text">
+                 <string>Crop to Current Zoom</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
          </widget>
-        </item>
-        <item>
-         <layout class="QGridLayout" name="gridLayout_19">
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="export_autocontrast">
-            <property name="text">
-             <string>Auto Contrast</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="export_normalise">
-            <property name="text">
-             <string>Normalise</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="export_scalebar">
-            <property name="text">
-             <string>Show Scale Bar</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QCheckBox" name="export_invert">
-            <property name="text">
-             <string>Invert </string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QCheckBox" name="export_mask_background">
-            <property name="text">
-             <string>Mask Background</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QCheckBox" name="export_crop_zoom">
-            <property name="text">
-             <string>Crop to Current Zoom</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
         </item>
         <item>
          <spacer name="verticalSpacer_19">
@@ -4690,20 +5128,6 @@ color: rgb(0, 255, 0);</string>
            </size>
           </property>
          </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="export_active">
-          <property name="text">
-           <string>Export Data From Active Image</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="export_all">
-          <property name="text">
-           <string>Export Data From All Images</string>
-          </property>
-         </widget>
         </item>
        </layout>
       </widget>
@@ -4807,287 +5231,6 @@ color: rgb(0, 255, 0);</string>
            <string>Export Cell Statistics From All Images</string>
           </property>
          </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="tab_13">
-       <attribute name="title">
-        <string>Export Settings</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_16">
-        <item>
-         <widget class="QLabel" name="label_43">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Export Cell Settings</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="export_single">
-            <property name="text">
-             <string>Single</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="export_vertical">
-            <property name="text">
-             <string>Vertical</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QCheckBox" name="export_divided">
-            <property name="text">
-             <string>Divided</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="export_dividing">
-            <property name="text">
-             <string>Dividing</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QCheckBox" name="export_edge">
-            <property name="text">
-             <string>Edge</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="export_broken">
-            <property name="text">
-             <string>Broken</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_42">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_49">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Scale Bar Settings</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QGridLayout" name="gridLayout_27">
-          <item row="0" column="2">
-           <widget class="QComboBox" name="export_scalebar_resolution_units">
-            <property name="maximumSize">
-             <size>
-              <width>200</width>
-              <height>100</height>
-             </size>
-            </property>
-            <item>
-             <property name="text">
-              <string>nm</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>um</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_50">
-            <property name="text">
-             <string>Pixel Resolution</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="export_scalebar_resolution">
-            <property name="maximumSize">
-             <size>
-              <width>200</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>100</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_55">
-            <property name="text">
-             <string>Scale Bar Size</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="export_scalebar_size">
-            <property name="maximumSize">
-             <size>
-              <width>200</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>20</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QComboBox" name="export_scalebar_size_units">
-            <property name="maximumSize">
-             <size>
-              <width>200</width>
-              <height>100</height>
-             </size>
-            </property>
-            <property name="currentIndex">
-             <number>1</number>
-            </property>
-            <item>
-             <property name="text">
-              <string>nm</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>um</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QFormLayout" name="formLayout_19">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_71">
-            <property name="text">
-             <string>Scale Bar Colour</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="export_scalebar_colour">
-            <item>
-             <property name="text">
-              <string>Black</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>White</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_72">
-            <property name="text">
-             <string>Scale Bar Thickness (pixels)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="export_scalebar_thickness">
-            <property name="currentIndex">
-             <number>3</number>
-            </property>
-            <item>
-             <property name="text">
-              <string>1</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>2</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>5</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>10</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>15</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>20</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_36">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </widget>

@@ -2158,11 +2158,123 @@ def generate_export_image(self, export_channel, dim, normalize=False, invert=Fal
     return image, mask, nmask, label, metadata, mode
 
 
+def export_stacks(self, progress_callback, mode):
+
+    try:
+
+        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
+
+        export_stack_channel = self.export_stack_channel.currentText()
+        export_stack_mode = self.export_stack_mode.currentText()
+        export_stack_modifier = self.export_stack_modifier.text()
+
+        if mode == "active":
+            export_channels = [self.export_stack_channel.currentText()]
+        else:
+            export_channels = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
+
+        overwrite = self.export_stack_overwrite_setting.isChecked()
+        export_images = self.export_stack_image_setting.isChecked()
+
+        normalise = self.export_normalise.isChecked()
+        invert = self.export_invert.isChecked()
+        autocontrast = self.export_autocontrast.isChecked()
+        scalebar = self.export_scalebar.isChecked()
+        cropzoom = self.export_cropzoom.isChecked()
+        mask_background = self.export_mask_background.isChecked()
+
+        for channel in export_channels:
+
+            image_stack = []
+            mask_stack = []
+
+            dims = self.viewer.layers[channel].data.shape[0]
+
+            for dim in range(dims):
+
+                progress_callback.emit(int((dim / (dims-1)) * 100))
+
+                image, mask, nmask, label, meta, mode = generate_export_image(
+                    self, channel, (dim,),
+                    normalise, invert, autocontrast,
+                    scalebar,
+                    cropzoom, mask_background,
+                )
+
+                if len(image.shape) > 2:
+                    image = image[0]
+                    mask = mask[0]
+
+                image_stack.append(image)
+                mask_stack.append(mask)
+
+            image_stack = np.stack(image_stack, axis=0)
+            mask_stack = np.stack(mask_stack, axis=0)
+
+            file_name = meta["image_name"]
+
+            if "image_path" in meta.keys():
+                image_path = meta["image_path"]
+            if "path" in meta.keys():
+                image_path = meta["path"]
+
+            file_name, file_extension = os.path.splitext(file_name)
+
+            file_name = file_name + export_stack_modifier + ".tif"
+            image_path = image_path.replace(image_path.split("\\")[-1], file_name)
+
+            if (self.export_stack_location.currentText() == "Import Directory" and file_name != None and image_path != None):
+                export_path = os.path.abspath(image_path.replace(file_name, ""))
+
+            elif self.export_stack_location.currentText() == "Select Directory":
+                export_path = os.path.abspath(self.export_directory)
+
+            else:
+                export_path = None
+
+            if os.path.isdir(export_path) != True:
+                if self.widget_notifications:
+                    show_info("Directory does not exist, try selecting a directory instead!")
+
+            else:
+                y1, y2, x1, x2 = meta["crop"]
+
+                if len(image.shape) > 2:
+                    image = image[:, y1:y2, x1:x2]
+                    mask = mask[:, y1:y2, x1:x2]
+                else:
+                    image = image[y1:y2, x1:x2]
+                    mask = mask[y1:y2, x1:x2]
+
+                if os.path.isdir(export_path) == False:
+                    os.makedirs(file_path)
+
+                file_path = export_path + "\\" + file_name
+
+                if os.path.isfile(file_path) == True and overwrite == False:
+                    if self.widget_notifications:
+                        show_info(file_name + " already exists, BacSeg will not overwrite files!")
+
+                else:
+
+                    if export_stack_mode == "Export .tif Images":
+                        tifffile.imwrite(file_path, image_stack, metadata=meta)
+
+                    if export_stack_mode == "Export .tif Masks":
+                        tifffile.imwrite(file_path, mask_stack, metadata=meta)
+
+    except:
+        print(traceback.format_exc())
+        pass
+
+
+
 def export_files(self, progress_callback, mode):
     desktop = os.path.expanduser("~/Desktop")
 
     overwrite = self.export_overwrite_setting.isChecked()
     export_images = self.export_image_setting.isChecked()
+
     normalise = self.export_normalise.isChecked()
     invert = self.export_invert.isChecked()
     autocontrast = self.export_autocontrast.isChecked()

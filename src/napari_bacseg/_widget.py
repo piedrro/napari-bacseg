@@ -434,6 +434,15 @@ class BacSeg(QWidget):
         self.export_cropzoom = self.findChild(QCheckBox, "export_crop_zoom")
         self.export_mask_background = self.findChild(QCheckBox, "export_mask_background")
 
+        self.export_stack_channel = self.findChild(QComboBox, "export_stack_channel")
+        self.export_stack_mode = self.findChild(QComboBox, "export_stack_mode")
+        self.export_stack_location = self.findChild(QComboBox, "export_stack_location")
+        self.export_stack_modifier = self.findChild(QLineEdit, "export_stack_modifier")
+        self.export_stack_image_setting = self.findChild(QCheckBox, "export_stack_image_setting")
+        self.export_stack_overwrite_setting = self.findChild(QCheckBox, "export_stack_overwrite_setting")
+        self.export_stack_active = self.findChild(QPushButton, "export_stack_active")
+        self.export_stack_all = self.findChild(QPushButton, "export_stack_all")
+
         self.export_autocontrast = self.findChild(QCheckBox, "export_autocontrast")
         self.export_statistics_pixelsize = self.findChild(QLineEdit, "export_statistics_pixelsize")
         self.export_statistics_active = self.findChild(QPushButton, "export_statistics_active")
@@ -537,6 +546,8 @@ class BacSeg(QWidget):
         # export events
         self.export_active.clicked.connect(self._export("active"))
         self.export_all.clicked.connect(self._export("all"))
+        self.export_stack_active.clicked.connect(self._export_stack("active"))
+        self.export_stack_all.clicked.connect(self._export_stack("all"))
         self.export_statistics_active.clicked.connect(self._export_statistics("active"))
         self.export_statistics_all.clicked.connect(self._export_statistics("all"))
 
@@ -1191,6 +1202,29 @@ class BacSeg(QWidget):
                 worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
                 self.threadpool.start(worker)
 
+    def _export_stack(self, mode, viewer=None):
+
+        def _event(viewer):
+
+            execute_export = True
+
+            if self.export_location.currentIndex() == 1:
+                desktop = os.path.expanduser("~/Desktop")
+                self.export_directory = QFileDialog.getExistingDirectory(self, "Select Directory", desktop)
+
+                if self.export_directory == "":
+                    execute_export = False
+
+            if execute_export == True:
+                self.export_stacks = self.wrapper(napari_bacseg._utils.export_stacks)
+
+                worker = Worker(self.export_stacks, mode=mode)
+                worker.signals.progress.connect(partial(self._Progresbar, progressbar="export"))
+                self.threadpool.start(worker)
+
+        return _event
+
+
     def _export(self, mode, viewer=None):
         def _event(viewer):
             # if self.unfolded == True:
@@ -1297,6 +1331,9 @@ class BacSeg(QWidget):
         export_layers = layer_names
         export_layers.extend(["All Channels (Stack)", "First Three Channels (RGB)"])
         self.export_channel.addItems(export_layers)
+
+        self.export_stack_channel.clear()
+        self.export_stack_channel.addItems(layer_names)
 
         self.refine_channel.clear()
         refine_layers = ["Mask + " + layer for layer in layer_names]
