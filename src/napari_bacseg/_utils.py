@@ -404,7 +404,11 @@ def read_scanr_images(self, progress_callback, measurements, channels):
 
             if channel not in scanr_images:
                 scanr_images[channel] = dict(
-                    images=[img], masks=[], classes=[], metadata={i: meta}
+                    images=[img],
+                    masks=[],
+                    nmasks=[],
+                    classes=[],
+                    metadata={i: meta},
                 )
             else:
                 scanr_images[channel]["images"].append(img)
@@ -434,6 +438,7 @@ def import_imagej(self, progress_callback, paths):
 
     images = []
     masks = []
+    nmasks = []
     metadata = {}
     imported_images = {}
 
@@ -486,7 +491,11 @@ def import_imagej(self, progress_callback, paths):
 
         if imported_images == {}:
             imported_images["Image"] = dict(
-                images=[image], masks=[mask], classes=[], metadata={i: meta}
+                images=[image],
+                masks=[mask],
+                nmasks=[],
+                classes=[],
+                metadata={i: meta},
             )
         else:
             imported_images["Image"]["images"].append(image)
@@ -925,7 +934,11 @@ def read_nim_images(self, progress_callback, measurements, channels):
 
             if channel not in nim_images:
                 nim_images[channel] = dict(
-                    images=[img], masks=[], classes=[], metadata={i: meta}
+                    images=[img],
+                    masks=[],
+                    nmasks=[],
+                    classes=[],
+                    metadata={i: meta},
                 )
             else:
                 nim_images[channel]["images"].append(img)
@@ -1144,6 +1157,7 @@ def import_dataset(self, progress_callback, paths):
                 imported_images["Image"] = dict(
                     images=[image],
                     masks=[mask],
+                    nmasks=[],
                     classes=[],
                     metadata={i: meta},
                 )
@@ -1220,6 +1234,9 @@ def import_bacseg(self, progress_callback, file_paths):
                 mask = np.zeros(
                     (image.shape[0], image.shape[1]), dtype=np.uint16
                 )
+                nmask = np.zeros(
+                    (image.shape[0], image.shape[1]), dtype=np.uint16
+                )
 
             for j, channel in enumerate(meta_stack["channels"]):
                 img = image[j, :, :]
@@ -1241,12 +1258,14 @@ def import_bacseg(self, progress_callback, file_paths):
                     imported_images[channel] = dict(
                         images=[img],
                         masks=[mask],
+                        nmasks=[],
                         classes=[label],
                         metadata={i: meta},
                     )
                 else:
                     imported_images[channel]["images"].append(img)
                     imported_images[channel]["masks"].append(mask)
+                    imported_images[channel]["nmasks"].append(nmask)
                     imported_images[channel]["classes"].append(label)
                     imported_images[channel]["metadata"][i] = meta
 
@@ -1324,7 +1343,11 @@ def import_images(self, progress_callback, file_paths):
 
         if imported_images == {}:
             imported_images["Image"] = dict(
-                images=[image], masks=[], classes=[], metadata={i: meta}
+                images=[image],
+                masks=[],
+                nmasks=[],
+                classes=[],
+                metadata={i: meta},
             )
         else:
             imported_images["Image"]["images"].append(image)
@@ -1434,7 +1457,11 @@ def import_cellpose(self, progress_callback, file_paths):
 
         if imported_images == {}:
             imported_images["Image"] = dict(
-                images=[img], masks=[mask], classes=[], metadata={i: meta}
+                images=[img],
+                masks=[mask],
+                nmasks=[],
+                classes=[],
+                metadata={i: meta},
             )
         else:
             imported_images["Image"]["images"].append(img)
@@ -1563,6 +1590,7 @@ def import_oufti(self, progress_callback, file_paths):
                 imported_images["Image"] = dict(
                     images=[image],
                     masks=[mask],
+                    nmasks=[],
                     classes=[],
                     metadata={i: meta},
                 )
@@ -1877,6 +1905,7 @@ def import_JSON(self, progress_callback, file_paths):
             crop_mode = self.import_crop_mode.currentIndex()
             image = crop_image(image, crop_mode)
             mask = crop_image(mask, crop_mode)
+            nmask = crop_image(nmask, crop_mode)
             labels = crop_image(labels, crop_mode)
 
             contrast_limit, alpha, beta, gamma = autocontrast_values(image)
@@ -1902,12 +1931,14 @@ def import_JSON(self, progress_callback, file_paths):
                 imported_images["Image"] = dict(
                     images=[image],
                     masks=[mask],
+                    nmasks=[nmask],
                     classes=[labels],
                     metadata={i: meta},
                 )
             else:
                 imported_images["Image"]["images"].append(image)
                 imported_images["Image"]["masks"].append(mask)
+                imported_images["Image"]["nmasks"].append(nmask)
                 imported_images["Image"]["classes"].append(labels)
                 imported_images["Image"]["metadata"][i] = meta
 
@@ -2000,6 +2031,7 @@ def autocontrast_values(image, clip_hist_percent=0.001):
 
 def import_masks(self, file_paths, file_extension=""):
     mask_stack = self.segLayer.data.copy()
+    nmask_stack = self.nucLayer.data.copy()
     class_stack = self.classLayer.data.copy()
 
     if os.path.isdir(file_paths[0]):
@@ -2065,9 +2097,11 @@ def import_masks(self, file_paths, file_extension=""):
 
             mask, nmask, label = import_coco_json(mask_path)
             mask_stack[i, :, :][y1:y2, x1:x2] = mask
+            nmask_stack[i, :, :][y1:y2, x1:x2] = nmask
             class_stack[i, :, :][y1:y2, x1:x2] = label
 
             self.segLayer.data = mask_stack.astype(np.uint16)
+            self.nucLayer.data = nmask_stack.astype(np.uint16)
             self.classLayer.data = class_stack.astype(np.uint16)
 
         if file_format == "npy":
@@ -2233,7 +2267,7 @@ def add_scale_bar(
 
             else:
                 show_info(
-                    f"{int(scalebar_size)} ({scalebar_size_units}) Scale bar is too large for the {(rescaled_pixel_resolution/1000)*w}x{(rescaled_pixel_resolution/1000)*h} (um) image"
+                    f"{int(scalebar_size)} ({scalebar_size_units}) Scale bar is too large for the {(rescaled_pixel_resolution / 1000) * w}x{(rescaled_pixel_resolution / 1000) * h} (um) image"
                 )
 
     except:
@@ -2274,10 +2308,12 @@ def generate_export_image(
         layer_names = layer_names[:3]
 
     mask = self.segLayer.data
+    nmask = self.nucLayer.data
     label = self.classLayer.data
     metadata = self.viewer.layers[layer_names[0]].metadata
 
     mask = mask[dim]
+    nmask = nmask[dim]
     label = label[dim]
     metadata = metadata[dim[0]]
 
@@ -2287,6 +2323,7 @@ def generate_export_image(
         y_range = crop[-2]
         x_range = crop[-1]
         mask = mask[y_range[0] : y_range[1], x_range[0] : x_range[1]]
+        nmask = nmask[y_range[0] : y_range[1], x_range[0] : x_range[1]]
         label = label[y_range[0] : y_range[1], x_range[0] : x_range[1]]
 
     image = []
@@ -2362,7 +2399,7 @@ def generate_export_image(
     else:
         image = image[0]
 
-    return image, mask, label, metadata, mode
+    return image, mask, nmask, label, metadata, mode
 
 
 def export_files(self, progress_callback, mode):
@@ -2402,7 +2439,7 @@ def export_files(self, progress_callback, mode):
                 dim_list.append((image_index,))
 
     for i, dim in enumerate(dim_list):
-        image, mask, label, meta, mode = generate_export_image(
+        image, mask, nmask, label, meta, mode = generate_export_image(
             self,
             export_channel,
             dim,
@@ -2557,7 +2594,9 @@ def export_files(self, progress_callback, mode):
                 if self.export_mode.currentText() == "Export JSON":
                     from napari_bacseg._utils_json import export_coco_json
 
-                    export_coco_json(file_name, image, mask, label, file_path)
+                    export_coco_json(
+                        file_name, image, mask, nmask, label, file_path
+                    )
 
                     if export_images:
                         tifffile.imwrite(file_path, image, metadata=meta)

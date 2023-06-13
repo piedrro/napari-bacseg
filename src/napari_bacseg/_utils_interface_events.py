@@ -34,6 +34,13 @@ def fill_holes(mask, colour):
     return mask
 
 
+def _modify_channel_changed(self, event):
+    if self.modify_channel.currentIndex() == 0:
+        self.viewer.layers.selection.active = self.segLayer
+    else:
+        self.viewer.layers.selection.active = self.nucLayer
+
+
 def _segmentationEvents(self, viewer, event):
     try:
         if "Control" in event.modifiers:
@@ -42,27 +49,34 @@ def _segmentationEvents(self, viewer, event):
         if "Shift" in event.modifiers:
             self._modifyMode(mode="add")
 
+        if self.modify_channel.currentIndex() == 0:
+            modify_channel = self.segLayer
+            self.viewer.layers.selection.active = self.segLayer
+        else:
+            modify_channel = self.nucLayer
+            self.viewer.layers.selection.active = self.nucLayer
+
         if self.interface_mode == "segment":
             # add segmentation
             if self.segmentation_mode in ["add", "extend"]:
-                self.segLayer.mode = "paint"
-                self.segLayer.brush_size = 1
+                modify_channel.mode = "paint"
+                modify_channel.brush_size = 1
 
-                stored_mask = self.segLayer.data.copy()
+                stored_mask = modify_channel.data.copy()
                 stored_class = self.classLayer.data.copy()
-                meta = self.segLayer.metadata.copy()
+                meta = modify_channel.metadata.copy()
 
                 if self.segmentation_mode == "add":
                     new_colour = _newSegColour(self)
                 else:
-                    data_coordinates = self.segLayer.world_to_data(
+                    data_coordinates = modify_channel.world_to_data(
                         event.position
                     )
                     coord = np.round(data_coordinates).astype(int)
-                    new_colour = self.segLayer.get_value(coord)
+                    new_colour = modify_channel.get_value(coord)
 
-                    self.segLayer.selected_label = new_colour
-                    new_colour = self.segLayer.get_value(coord)
+                    modify_channel.selected_label = new_colour
+                    new_colour = modify_channel.get_value(coord)
 
                     new_class = self.classLayer.get_value(coord)
 
@@ -98,7 +112,7 @@ def _segmentationEvents(self, viewer, event):
                         cnt = np.fliplr(cnt)
                         cnt = cnt.reshape((-1, 1, 2))
 
-                        seg_stack = self.segLayer.data
+                        seg_stack = modify_channel.data
 
                         seg_mask = seg_stack[mask_dim]
 
@@ -110,13 +124,13 @@ def _segmentationEvents(self, viewer, event):
 
                         seg_stack[mask_dim] = seg_mask
 
-                        self.segLayer.data = seg_stack
+                        modify_channel.data = seg_stack
 
                         # update class
 
                         class_stack = self.classLayer.data
                         class_colour = self.class_colour
-                        seg_stack = self.segLayer.data
+                        seg_stack = modify_channel.data
 
                         seg_mask = seg_stack[mask_dim]
                         class_mask = class_stack[mask_dim]
@@ -129,30 +143,30 @@ def _segmentationEvents(self, viewer, event):
                         # update metadata
 
                         meta["manual_segmentation"] = True
-                        self.segLayer.metadata = meta
-                        self.segLayer.mode = "pan_zoom"
+                        modify_channel.metadata = meta
+                        modify_channel.mode = "pan_zoom"
                         self.update_image_folds()
 
                     else:
-                        self.segLayer.data = stored_mask
+                        modify_channel.data = stored_mask
                         self.classLayer.data = stored_class
-                        self.segLayer.mode = "pan_zoom"
+                        modify_channel.mode = "pan_zoom"
 
             # join segmentations
             if self.segmentation_mode == "join":
-                self.segLayer.mode = "paint"
-                self.segLayer.brush_size = 1
+                modify_channel.mode = "paint"
+                modify_channel.brush_size = 1
 
-                stored_mask = self.segLayer.data.copy()
+                stored_mask = modify_channel.data.copy()
                 stored_class = self.classLayer.data.copy()
-                meta = self.segLayer.metadata.copy()
+                meta = modify_channel.metadata.copy()
 
-                data_coordinates = self.segLayer.world_to_data(event.position)
+                data_coordinates = modify_channel.world_to_data(event.position)
                 coord = np.round(data_coordinates).astype(int)
-                new_colour = self.segLayer.get_value(coord)
+                new_colour = modify_channel.get_value(coord)
 
-                self.segLayer.selected_label = new_colour
-                new_colour = self.segLayer.get_value(coord)
+                modify_channel.selected_label = new_colour
+                new_colour = modify_channel.get_value(coord)
 
                 new_class = self.classLayer.get_value(coord)
 
@@ -167,11 +181,11 @@ def _segmentationEvents(self, viewer, event):
 
                 # on move
                 while event.type == "mouse_move":
-                    data_coordinates = self.segLayer.world_to_data(
+                    data_coordinates = modify_channel.world_to_data(
                         event.position
                     )
                     coord = np.round(data_coordinates).astype(int)
-                    mask_val = self.segLayer.get_value(coord)
+                    mask_val = modify_channel.get_value(coord)
                     class_val = self.classLayer.get_value(coord)
                     colours.append(mask_val)
                     classes.append(class_val)
@@ -195,7 +209,7 @@ def _segmentationEvents(self, viewer, event):
                         and new_colour not in colours
                         and new_colour != None
                     ):
-                        mask_stack = self.segLayer.data
+                        mask_stack = modify_channel.data
 
                         mask_dim = tuple(list(coords[0][:-2]) + [...])
 
@@ -207,12 +221,12 @@ def _segmentationEvents(self, viewer, event):
 
                         mask_stack[mask_dim] = mask
 
-                        self.segLayer.data = mask_stack
+                        modify_channel.data = mask_stack
 
                         # update class
 
                         class_stack = self.classLayer.data
-                        seg_stack = self.segLayer.data
+                        seg_stack = modify_channel.data
 
                         seg_mask = seg_stack[mask_dim]
                         class_mask = class_stack[mask_dim]
@@ -225,24 +239,24 @@ def _segmentationEvents(self, viewer, event):
                         # update metadata
 
                         meta["manual_segmentation"] = True
-                        self.segLayer.metadata = meta
-                        self.segLayer.mode = "pan_zoom"
+                        modify_channel.metadata = meta
+                        modify_channel.mode = "pan_zoom"
                         self.update_image_folds()
 
                     else:
-                        self.segLayer.data = stored_mask
+                        modify_channel.data = stored_mask
                         self.classLayer.data = stored_class
-                        self.segLayer.mode = "pan_zoom"
+                        modify_channel.mode = "pan_zoom"
 
             # split segmentations
             if self.segmentation_mode == "split":
-                self.segLayer.mode = "paint"
-                self.segLayer.brush_size = 1
+                modify_channel.mode = "paint"
+                modify_channel.brush_size = 1
 
                 new_colour = _newSegColour(self)
-                stored_mask = self.segLayer.data.copy()
+                stored_mask = modify_channel.data.copy()
                 stored_class = self.classLayer.data
-                meta = self.segLayer.metadata.copy()
+                meta = modify_channel.metadata.copy()
 
                 dragged = False
                 colours = []
@@ -250,11 +264,11 @@ def _segmentationEvents(self, viewer, event):
 
                 # on move
                 while event.type == "mouse_move":
-                    data_coordinates = self.segLayer.world_to_data(
+                    data_coordinates = modify_channel.world_to_data(
                         event.position
                     )
                     coords = np.round(data_coordinates).astype(int)
-                    mask_val = self.segLayer.get_value(coords)
+                    mask_val = modify_channel.get_value(coords)
                     colours.append(mask_val)
                     dragged = True
                     yield
@@ -296,7 +310,7 @@ def _segmentationEvents(self, viewer, event):
                             shape_mask[shape_mask == maskref] = 255
                             shape_mask = shape_mask.astype(np.uint8)
 
-                            line_mask = self.segLayer.data.copy()
+                            line_mask = modify_channel.data.copy()
                             line_mask = line_mask[mask_dim]
                             line_mask[line_mask != new_colour] = 0
                             line_mask[line_mask == new_colour] = 255
@@ -312,7 +326,7 @@ def _segmentationEvents(self, viewer, event):
                             split_mask = stored_mask[mask_dim]
                             split_mask[overlap == 255] = new_colour
                             stored_mask[mask_dim] = split_mask
-                            self.segLayer.data = stored_mask
+                            modify_channel.data = stored_mask
 
                             # fill one have of the split shape with the new colour
                             indices = np.where(shape_mask_split == 255)
@@ -322,32 +336,32 @@ def _segmentationEvents(self, viewer, event):
                             )
                             split_dim = np.array(split_dim).flatten().tolist()
 
-                            self.segLayer.fill(split_dim, new_colour)
+                            modify_channel.fill(split_dim, new_colour)
 
                             meta["manual_segmentation"] = True
-                            self.segLayer.metadata = meta
-                            self.segLayer.mode = "pan_zoom"
+                            modify_channel.metadata = meta
+                            modify_channel.mode = "pan_zoom"
                             self.update_image_folds()
 
                         else:
-                            self.segLayer.data = stored_mask
-                            self.segLayer.mode = "pan_zoom"
+                            modify_channel.data = stored_mask
+                            modify_channel.mode = "pan_zoom"
                     else:
-                        self.segLayer.data = stored_mask
-                        self.segLayer.mode = "pan_zoom"
+                        modify_channel.data = stored_mask
+                        modify_channel.mode = "pan_zoom"
                 else:
-                    self.segLayer.data = stored_mask
-                    self.segLayer.mode = "pan_zoom"
+                    modify_channel.data = stored_mask
+                    modify_channel.mode = "pan_zoom"
 
             # delete segmentations
             if self.segmentation_mode == "delete":
-                self.segLayer.mode = "paint"
-                self.segLayer.brush_size = 1
+                modify_channel.mode = "paint"
+                modify_channel.brush_size = 1
 
                 new_colour = _newSegColour(self)
-                stored_mask = self.segLayer.data.copy()
+                stored_mask = modify_channel.data.copy()
                 stored_class = self.classLayer.data
-                meta = self.segLayer.metadata.copy()
+                meta = modify_channel.metadata.copy()
 
                 dragged = False
                 coordinates = []
@@ -361,7 +375,7 @@ def _segmentationEvents(self, viewer, event):
 
                 # on release
                 if dragged:
-                    self.segLayer.data = stored_mask
+                    modify_channel.data = stored_mask
 
                     coordinates = np.round(np.array(coordinates)).astype(
                         np.int32
@@ -373,7 +387,7 @@ def _segmentationEvents(self, viewer, event):
 
                     mask_dim = tuple(list(coordinates[0][:-2]) + [...])
 
-                    seg_stack = self.segLayer.data.copy()
+                    seg_stack = modify_channel.data.copy()
                     class_stack = self.classLayer.data.copy()
 
                     seg_mask = seg_stack[mask_dim]
@@ -392,26 +406,26 @@ def _segmentationEvents(self, viewer, event):
                     seg_stack[mask_dim] = seg_mask
                     class_stack[mask_dim] = class_mask
 
-                    self.segLayer.data = seg_stack
+                    modify_channel.data = seg_stack
                     self.classLayer.data = class_stack
 
                 else:
-                    self.segLayer.data = stored_mask
-                    self.segLayer.mode = "pan_zoom"
+                    modify_channel.data = stored_mask
+                    modify_channel.mode = "pan_zoom"
                     self.update_image_folds()
 
-                    meta = self.segLayer.metadata.copy()
+                    meta = modify_channel.metadata.copy()
 
-                    data_coordinates = self.segLayer.world_to_data(
+                    data_coordinates = modify_channel.world_to_data(
                         event.position
                     )
                     coord = np.round(data_coordinates).astype(int)
-                    mask_val = self.segLayer.get_value(coord)
+                    mask_val = modify_channel.get_value(coord)
 
                     if mask_val != 0:
                         mask_dim = tuple(list(coord[:-2]) + [...])[0]
 
-                        mask_stack = self.segLayer.data
+                        mask_stack = modify_channel.data
                         class_stack = self.classLayer.data
 
                         mask = mask_stack[mask_dim]
@@ -424,13 +438,13 @@ def _segmentationEvents(self, viewer, event):
                         mask_stack[mask_dim] = mask
 
                         self.classLayer.data = class_stack
-                        self.segLayer.data = mask_stack
+                        modify_channel.data = mask_stack
 
                         # update metadata
 
                         meta["manual_segmentation"] = True
-                        self.segLayer.metadata = meta
-                        self.segLayer.mode = "pan_zoom"
+                        modify_channel.metadata = meta
+                        modify_channel.mode = "pan_zoom"
                         self.update_image_folds()
 
             if self.segmentation_mode == "refine":
@@ -446,14 +460,14 @@ def _segmentationEvents(self, viewer, event):
                     ]
                 ]
 
-                self.segLayer.mode == "pan_zoom"
-                self.segLayer.brush_size = 1
+                modify_channel.mode == "pan_zoom"
+                modify_channel.brush_size = 1
 
-                data_coordinates = self.segLayer.world_to_data(event.position)
+                data_coordinates = modify_channel.world_to_data(event.position)
                 coord = np.round(data_coordinates).astype(int)
-                mask_id = self.segLayer.get_value(coord)
+                mask_id = modify_channel.get_value(coord)
 
-                self.segLayer.selected_label = mask_id
+                modify_channel.selected_label = mask_id
 
                 if mask_id != 0:
                     current_fov = self.viewer.dims.current_step[0]
@@ -462,7 +476,7 @@ def _segmentationEvents(self, viewer, event):
                     channel = channel.replace("Mask + ", "")
 
                     label_stack = self.classLayer.data
-                    mask_stack = self.segLayer.data
+                    mask_stack = modify_channel.data
 
                     mask = mask_stack[current_fov, :, :].copy()
                     label = label_stack[current_fov, :, :].copy()
@@ -512,17 +526,17 @@ def _segmentationEvents(self, viewer, event):
                     process_colicoords(self, colicoords_data)
 
         if self.interface_mode == "classify":
-            self.segLayer.mode == "pan_zoom"
-            self.segLayer.brush_size = 1
+            modify_channel.mode == "pan_zoom"
+            modify_channel.brush_size = 1
 
-            data_coordinates = self.segLayer.world_to_data(event.position)
+            data_coordinates = modify_channel.world_to_data(event.position)
             coord = np.round(data_coordinates).astype(int)
-            mask_val = self.segLayer.get_value(coord).copy()
+            mask_val = modify_channel.get_value(coord).copy()
 
-            self.segLayer.selected_label = mask_val
+            modify_channel.selected_label = mask_val
 
             if mask_val != 0:
-                stored_mask = self.segLayer.data.copy()
+                stored_mask = modify_channel.data.copy()
                 stored_class = self.classLayer.data.copy()
 
                 if len(stored_mask.shape) > 2:
@@ -536,18 +550,18 @@ def _segmentationEvents(self, viewer, event):
                     stored_class[current_fov, :, :] = class_mask
 
                     self.classLayer.data = stored_class
-                    self.segLayer.mode = "pan_zoom"
+                    modify_channel.mode = "pan_zoom"
 
                 else:
                     stored_class[stored_mask == mask_val] = self.class_colour
 
                     self.classLayer.data = stored_class
-                    self.segLayer.mode = "pan_zoom"
+                    modify_channel.mode = "pan_zoom"
 
         if self.interface_mode == "panzoom":
             mouse_button = event.button
 
-            data_coordinates = self.segLayer.world_to_data(event.position)
+            data_coordinates = modify_channel.world_to_data(event.position)
             coord = np.round(data_coordinates).astype(int)
 
         if self.modify_auto_panzoom.isChecked() == True:
@@ -561,8 +575,12 @@ def _segmentationEvents(self, viewer, event):
 
 
 def _newSegColour(self):
-    mask_stack = self.segLayer.data
+    if self.modify_channel.currentIndex() == 0:
+        modify_channel = self.segLayer
+    else:
+        modify_channel = self.nucLayer
 
+    mask_stack = modify_channel.data
     current_fov = self.viewer.dims.current_step[0]
 
     if len(mask_stack.shape) > 2:
@@ -573,15 +591,22 @@ def _newSegColour(self):
     colours = np.unique(mask)
     new_colour = max(colours) + 1
 
-    self.segLayer.selected_label = new_colour
+    modify_channel.selected_label = new_colour
 
     return new_colour
 
 
 def _modifyMode(self, mode, viewer=None):
     def _event(viewer):
+        if self.modify_channel.currentIndex() == 0:
+            modify_channel = self.segLayer
+            self.viewer.layers.selection.active = self.segLayer
+        else:
+            modify_channel = self.nucLayer
+            self.viewer.layers.selection.active = self.nucLayer
+
         if mode == "panzoom":
-            self.segLayer.mode = "pan_zoom"
+            modify_channel.mode = "pan_zoom"
 
             self.interface_mode = "panzoom"
             self.modify_panzoom.setEnabled(False)
@@ -590,7 +615,7 @@ def _modifyMode(self, mode, viewer=None):
             self.modify_classify.setEnabled(True)
 
         if mode == "segment":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.interface_mode = "segment"
             self.segmentation_mode = "add"
@@ -599,7 +624,7 @@ def _modifyMode(self, mode, viewer=None):
             self.modify_classify.setEnabled(True)
 
         if mode == "classify":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.interface_mode = "classify"
             self.segmentation_mode = "add"
@@ -609,13 +634,13 @@ def _modifyMode(self, mode, viewer=None):
             self.modify_classify.setEnabled(False)
 
         if mode == "clicktozoom":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.interface_mode = "segment"
             self.segmentation_mode = "clicktozoom"  # self.modify_panzoom.setEnabled(True)  # self.modify_segment.setEnabled(True)  # self.modify_classify.setEnabled(True)
 
         if mode == "add":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.interface_mode = "segment"
             self.segmentation_mode = "add"
@@ -624,7 +649,7 @@ def _modifyMode(self, mode, viewer=None):
             show_info("Add (click/drag to add)")
 
         if mode == "extend":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.interface_mode = "segment"
             self.segmentation_mode = "extend"
@@ -633,7 +658,7 @@ def _modifyMode(self, mode, viewer=None):
             show_info("Extend (click/drag to extend)")
 
         if mode == "join":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.interface_mode = "segment"
             self.segmentation_mode = "join"
@@ -642,7 +667,7 @@ def _modifyMode(self, mode, viewer=None):
             show_info("Join (click/drag to join)")
 
         if mode == "split":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.interface_mode = "segment"
             self.segmentation_mode = "split"
@@ -651,7 +676,7 @@ def _modifyMode(self, mode, viewer=None):
             show_info("Split (click/drag to split)")
 
         if mode == "delete":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.interface_mode = "segment"
             self.segmentation_mode = "delete"
@@ -660,7 +685,7 @@ def _modifyMode(self, mode, viewer=None):
             show_info("Delete (click/drag to delete)")
 
         if mode == "edit_vertex":
-            self.viewer.layers.selection.select_only(self.shapeLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.interface_mode = "shapes"
             self.segmentation_mode = "edit_vertex"
@@ -669,7 +694,7 @@ def _modifyMode(self, mode, viewer=None):
             self.modify_segment.setEnabled(False)
 
         if mode == "refine":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.interface_mode = "segment"
             self.segmentation_mode = "refine"
@@ -678,10 +703,10 @@ def _modifyMode(self, mode, viewer=None):
             show_info("Refine (click to refine)")
 
         if self.interface_mode == "segment":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
         if mode == "single":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.class_mode = mode
             self.class_colour = 1
@@ -692,7 +717,7 @@ def _modifyMode(self, mode, viewer=None):
             show_info("Single (click to classify)")
 
         if mode == "dividing":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.class_mode = mode
             self.class_colour = 2
@@ -703,7 +728,7 @@ def _modifyMode(self, mode, viewer=None):
             show_info("Dividing (click to classify)")
 
         if mode == "divided":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.class_mode = mode
             self.class_colour = 3
@@ -714,7 +739,7 @@ def _modifyMode(self, mode, viewer=None):
             show_info("Divided (click to classify)")
 
         if mode == "vertical":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.class_mode = mode
             self.class_colour = 4
@@ -725,7 +750,7 @@ def _modifyMode(self, mode, viewer=None):
             show_info("Vertical (click to classify)")
 
         if mode == "broken":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.class_mode = mode
             self.class_colour = 5
@@ -736,7 +761,7 @@ def _modifyMode(self, mode, viewer=None):
             show_info("Broken (click to classify)")
 
         if mode == "edge":
-            self.viewer.layers.selection.select_only(self.segLayer)
+            self.viewer.layers.selection.select_only(modify_channel)
 
             self.class_mode = mode
             self.class_colour = 6

@@ -1,12 +1,13 @@
 import datetime
 import json
 import os
+import traceback
 
 import cv2
 import numpy as np
 
 
-def export_coco_json(image_name, image, mask, label, file_path):
+def export_coco_json(image_name, image, mask, nmask, label, file_path):
     file_path = os.path.splitext(file_path)[0] + ".txt"
 
     info = {
@@ -101,6 +102,55 @@ def export_coco_json(image_name, image, mask, label, file_path):
             except:
                 pass
 
+    nmask_ids = np.unique(nmask)
+
+    for j in range(len(nmask_ids)):
+        if j != 0:
+            try:
+                cnt_mask = nmask.copy()
+
+                cnt_mask[cnt_mask != j] = 0
+
+                contours, _ = cv2.findContours(
+                    cnt_mask.astype(np.uint8),
+                    cv2.RETR_EXTERNAL,
+                    cv2.CHAIN_APPROX_NONE,
+                )
+                cnt = contours[0]
+
+                # cnt coco bounding box
+                x, y, w, h = cv2.boundingRect(cnt)
+                y1, y2, x1, x2 = y, (y + h), x, (x + w)
+                coco_BBOX = [x1, y1, h, w]
+
+                # cnt area
+                area = cv2.contourArea(cnt)
+
+                segmentation = cnt.reshape(-1, 1).flatten()
+
+                cnt_labels = np.unique(label[cnt_mask != 0])
+
+                if len(cnt_labels) == 0:
+                    cnt_label = 1
+
+                else:
+                    cnt_label = int(cnt_labels[0])
+
+                annotation = {
+                    "nucleoid_segmentation": [segmentation.tolist()],
+                    "area": area,
+                    "iscrowd": 0,
+                    "image_id": 0,
+                    "bbox": coco_BBOX,
+                    "category_id": cnt_label,
+                    "id": j,
+                }
+
+                annotations.append(annotation)
+
+            except:
+                pass
+
     annotation = {
         "info": info,
         "licenses": licenses,
@@ -116,42 +166,61 @@ def export_coco_json(image_name, image, mask, label, file_path):
 
 
 def import_coco_json(json_path):
-    json_path = os.path.splitext(json_path)[0] + ".txt"
+    try:
+        json_path = os.path.splitext(json_path)[0] + ".txt"
 
-    with open(json_path) as f:
-        dat = json.load(f)
+        with open(json_path) as f:
+            dat = json.load(f)
 
-    h = dat["images"][0]["height"]
-    w = dat["images"][0]["width"]
+        h = dat["images"][0]["height"]
+        w = dat["images"][0]["width"]
 
-    mask = np.zeros((h, w), dtype=np.uint16)
-    nmask = np.zeros((h, w), dtype=np.uint16)
-    labels = np.zeros((h, w), dtype=np.uint16)
+        mask = np.zeros((h, w), dtype=np.uint16)
+        nmask = np.zeros((h, w), dtype=np.uint16)
+        labels = np.zeros((h, w), dtype=np.uint16)
 
-    categories = {}
+        categories = {}
 
-    for i, cat in enumerate(dat["categories"]):
-        cat_id = cat["id"]
-        cat_name = cat["name"]
+        for i, cat in enumerate(dat["categories"]):
+            cat_id = cat["id"]
+            cat_name = cat["name"]
 
-        categories[cat_id] = cat_name
+            categories[cat_id] = cat_name
 
-    annotations = dat["annotations"]
+        annotations = dat["annotations"]
 
-    for i in range(len(annotations)):
-        annot = annotations[i]["segmentation"][0]
-        category_id = annotations[i]["category_id"]
+        for i in range(len(annotations)):
+            annotation = annotations[i]
 
-        # if "nucleoid_segmentation" in annotations[i].keys():
-        #     nucleoid_annot = annotations[i]["nucleoid_segmentation"][0]
-        #     cnt = np.array(nucleoid_annot).reshape(-1, 1, 2).astype(np.int32)
-        #     cv2.drawContours(nmask, [cnt], contourIdx=-1, color=i + 1, thickness=-1)
+            if "segmentation" in annotation.keys():
+                annot = annotation["segmentation"][0]
+                category_id = annotation["category_id"]
 
-        cnt = np.array(annot).reshape(-1, 1, 2).astype(np.int32)
+                cnt = np.array(annot).reshape(-1, 1, 2).astype(np.int32)
 
-        cv2.drawContours(mask, [cnt], contourIdx=-1, color=i + 1, thickness=-1)
-        cv2.drawContours(
-            labels, [cnt], contourIdx=-1, color=category_id, thickness=-1
-        )
+                cv2.drawContours(
+                    mask, [cnt], contourIdx=-1, color=i + 1, thickness=-1
+                )
+                cv2.drawContours(
+                    labels,
+                    [cnt],
+                    contourIdx=-1,
+                    color=category_id,
+                    thickness=-1,
+                )
+
+            if "nucleoid_segmentation" in annotation.keys():
+                nucleoid_annot = annotation["nucleoid_segmentation"][0]
+
+                cnt = (
+                    np.array(nucleoid_annot).reshape(-1, 1, 2).astype(np.int32)
+                )
+
+                cv2.drawContours(
+                    nmask, [cnt], contourIdx=-1, color=i + 1, thickness=-1
+                )
+
+    except:
+        print(traceback.format_exc())
 
     return mask, nmask, labels

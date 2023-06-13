@@ -140,6 +140,7 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
             for channel, channel_data in dat.items():
                 image = channel_data["images"]
                 mask = channel_data["masks"]
+                nmask = channel_data["nmasks"]
                 label = channel_data["classes"]
                 meta = channel_data["metadata"]
 
@@ -147,6 +148,7 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
                     imported_images[channel] = dict(
                         images=[image],
                         masks=[mask],
+                        nmasks=[nmask],
                         classes=[label],
                         metadata={0: meta},
                     )
@@ -155,6 +157,7 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
 
                     imported_images[channel]["images"].append(image)
                     imported_images[channel]["masks"].append(mask)
+                    imported_images[channel]["nmasks"].append(nmask)
                     imported_images[channel]["classes"].append(label)
                     imported_images[channel]["metadata"][image_index] = meta
 
@@ -381,7 +384,7 @@ def download_bacseg_files(measurement, channels, database_path):
             segmentation_file,
         )
 
-        mask, label = import_coco_json(json_path)
+        mask, nmask, label = import_coco_json(json_path)
 
         for j in range(len(channels)):
             channel = channels[j]
@@ -431,6 +434,7 @@ def download_bacseg_files(measurement, channels, database_path):
             else:
                 image = np.zeros((100, 100), dtype=np.uint16)
                 mask = np.zeros((100, 100), dtype=np.uint16)
+                nmask = np.zeros((100, 100), dtype=np.uint16)
                 label = np.zeros((100, 100), dtype=np.uint16)
 
                 meta = {}
@@ -451,7 +455,11 @@ def download_bacseg_files(measurement, channels, database_path):
                 meta["light_source"] = channel
 
             imported_images[channel] = dict(
-                images=image, masks=mask, classes=label, metadata=meta
+                images=image,
+                masks=mask,
+                nmasks=nmask,
+                classes=label,
+                metadata=meta,
             )
 
     except:
@@ -470,6 +478,7 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
         image = dat["image"]
         image_meta = dat["image_meta"]
         mask = dat["mask"]
+        nmask = dat["nmask"]
         class_mask = dat["class_mask"]
         save_dir = dat["save_dir"]
         overwrite_images = dat["overwrite_images"]
@@ -613,6 +622,7 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
                     img = img[y1:y2, x1:x2]
 
                 mask = mask[y1:y2, x1:x2]
+                nmask = nmask[y1:y2, x1:x2]
                 class_mask = class_mask[y1:y2, x1:x2]
 
                 unique_segmentations = np.unique(mask)
@@ -664,7 +674,12 @@ def upload_bacseg_files(path, widget_notifications=True, num_user_keys=6):
                     ):
                         if file_name == segmentation_file:
                             export_coco_json(
-                                file_name, img, mask, class_mask, json_path
+                                file_name,
+                                img,
+                                mask,
+                                nmask,
+                                class_mask,
+                                json_path,
                             )
 
                 if "mask_path" not in meta.keys():
@@ -747,6 +762,7 @@ def generate_upload_tempfiles(
     image_stack,
     meta_stack,
     mask_stack,
+    nmask_stack,
     class_stack,
     save_dir,
     overwrite_images,
@@ -773,6 +789,7 @@ def generate_upload_tempfiles(
             image = image_stack[i]
             image_meta = meta_stack[i]
             mask = mask_stack[i]
+            nmask = nmask_stack[i]
             class_mask = class_stack[i]
 
             meta = image_meta[image_meta["channel_list"][0]]
@@ -801,6 +818,7 @@ def generate_upload_tempfiles(
                 image=image,
                 image_meta=image_meta,
                 mask=mask,
+                nmask=nmask,
                 class_mask=class_mask,
                 save_dir=save_dir,
                 overwrite_images=overwrite_images,
@@ -968,6 +986,7 @@ def _upload_bacseg_database(self, progress_callback, mode):
                         channel_list,
                     ) = generate_multichannel_stack(self)
                     mask_stack = self.segLayer.data
+                    nmask_stack = self.nucLayer.data
                     class_stack = self.classLayer.data
 
                     if len(image_stack) >= 1:
@@ -979,6 +998,9 @@ def _upload_bacseg_database(self, progress_callback, mode):
                             )
                             mask_stack = np.expand_dims(
                                 mask_stack[current_step], axis=0
+                            )
+                            nmask_stack = np.expand_dims(
+                                nmask_stack[current_step], axis=0
                             )
                             class_stack = np.expand_dims(
                                 class_stack[current_step], axis=0
@@ -992,6 +1014,7 @@ def _upload_bacseg_database(self, progress_callback, mode):
                         image_stack,
                         meta_stack,
                         mask_stack,
+                        nmask_stack,
                         class_stack,
                         save_dir,
                         overwrite_images,
@@ -1485,7 +1508,7 @@ def get_filtered_database_metadata(self):
             measurements = user_metadata.groupby(sort_columns)
 
             show_info(
-                f"Found {len(file_paths)//len(channels)} matching database files."
+                f"Found {len(file_paths) // len(channels)} matching database files."
             )
 
     except:

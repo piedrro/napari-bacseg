@@ -182,6 +182,7 @@ class BacSeg(QWidget):
             _deleteallmasks,
             _doubeClickEvents,
             _imageControls,
+            _modify_channel_changed,
             _modifyMode,
             _segmentationEvents,
             _viewerControls,
@@ -212,6 +213,7 @@ class BacSeg(QWidget):
         self._populateUSERMETA = self.wrapper(_populateUSERMETA)
         self._imageControls = self.wrapper(_imageControls)
         self._segmentationEvents = self.wrapper(_segmentationEvents)
+        self._modify_channel_changed = self.wrapper(_modify_channel_changed)
         self._manualImport = self.wrapper(_manualImport)
         self.train_cellpose_model = self.wrapper(train_cellpose_model)
         self._initialise_cellpose_model = self.wrapper(
@@ -409,6 +411,7 @@ class BacSeg(QWidget):
         self.cellpose_min_seg_size = self.findChild(
             QComboBox, "cellpose_min_seg_size"
         )
+        self.cellpose_seg_mode = self.findChild(QComboBox, "cellpose_seg_mode")
 
         # modify tab controls + variables from Qt Desinger References
         self.interface_mode = "panzoom"
@@ -439,6 +442,7 @@ class BacSeg(QWidget):
         self.modify_progressbar = self.findChild(
             QProgressBar, "modify_progressbar"
         )
+        self.modify_channel = self.findChild(QComboBox, "modify_channel")
 
         self.modify_auto_panzoom = self.findChild(
             QCheckBox, "modify_auto_panzoom"
@@ -867,6 +871,9 @@ class BacSeg(QWidget):
         )
         self.find_next.clicked.connect(self._sort_cells("next"))
         self.find_previous.clicked.connect(self._sort_cells("previous"))
+        self.modify_channel.currentTextChanged.connect(
+            self._modify_channel_changed
+        )
 
         # export events
         self.export_active.clicked.connect(self._export("active"))
@@ -1114,6 +1121,8 @@ class BacSeg(QWidget):
 
         # mouse events
         self.segLayer.mouse_drag_callbacks.append(self._segmentationEvents)
+        self.nucLayer.mouse_drag_callbacks.append(self._segmentationEvents)
+
         # self.segLayer.mouse_move_callbac1ks.append(self._zoomEvents)
         self.segLayer.mouse_double_click_callbacks.append(
             self._doubeClickEvents
@@ -2224,6 +2233,7 @@ class BacSeg(QWidget):
                 self.viewer.layers.remove(self.viewer.layers[layer_name])
             # reset segmentation and class layers
             self.segLayer.data = np.zeros((1, 100, 100), dtype=np.uint16)
+            self.nucLayer.data = np.zeros((1, 100, 100), dtype=np.uint16)
             self.classLayer.data = np.zeros((1, 100, 100), dtype=np.uint16)
 
         imported_images = imported_data["imported_images"]
@@ -2236,14 +2246,25 @@ class BacSeg(QWidget):
             classes = layer_data["classes"]
             metadata = layer_data["metadata"]
 
+            if "nmasks" in layer_data.keys():
+                nmasks = layer_data["nmasks"]
+            else:
+                nmasks = []
+
             from napari_bacseg._utils import stack_images
 
             new_image_stack, new_metadata = stack_images(images, metadata)
             new_mask_stack, new_metadata = stack_images(masks, metadata)
+            new_nmask_stack, new_metadata = stack_images(nmasks, metadata)
             new_class_stack, new_metadata = stack_images(classes, metadata)
 
             if len(new_mask_stack) == 0:
                 new_mask_stack = np.zeros(
+                    new_image_stack.shape, dtype=np.uint16
+                )
+
+            if len(new_nmask_stack) == 0:
+                new_nmask_stack = np.zeros(
                     new_image_stack.shape, dtype=np.uint16
                 )
 
@@ -2270,6 +2291,7 @@ class BacSeg(QWidget):
                 current_image_stack = self.viewer.layers[layer_name].data
                 current_metadata = self.viewer.layers[layer_name].metadata
                 current_mask_stack = self.segLayer.data
+                current_nmask_stack = self.nucLayer.data
                 current_class_stack = self.classLayer.data
 
                 if len(current_image_stack) == 0:
@@ -2294,6 +2316,7 @@ class BacSeg(QWidget):
                     )
 
                     self.segLayer.data = new_mask_stack
+                    self.nucLayer.data = new_nmask_stack
                     self.classLayer.data = new_class_stack
                     self.segLayer.metadata = new_metadata
 
@@ -2318,6 +2341,16 @@ class BacSeg(QWidget):
                         new_metadata,
                         current_mask_stack,
                         new_mask_stack,
+                    )
+
+                    (
+                        appended_nmask_stack,
+                        appended_metadata,
+                    ) = append_image_stacks(
+                        current_metadata,
+                        new_metadata,
+                        current_nmask_stack,
+                        new_nmask_stack,
                     )
 
                     (
@@ -2353,6 +2386,7 @@ class BacSeg(QWidget):
                     )
 
                     self.segLayer.data = appended_mask_stack
+                    self.nucLayer.data = appended_nmask_stack
                     self.classLayer.data = appended_class_stack
                     self.segLayer.metadata = appended_metadata
 
@@ -2378,12 +2412,15 @@ class BacSeg(QWidget):
                 )
 
                 self.segLayer.data = new_mask_stack
+                self.nucLayer.data = new_nmask_stack
                 self.classLayer.data = new_class_stack
                 self.segLayer.metadata = new_metadata
 
         # sets labels such that only label contours are shown
         self.segLayer.contour = 1
         self.segLayer.opacity = 1
+        self.nucLayer.contour = 1
+        self.nucLayer.opacity = 1
 
         self._reorderLayers()
         self._updateFileName()

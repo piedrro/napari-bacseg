@@ -321,7 +321,7 @@
         </item>
        </widget>
       </item>
-      <item row="1" column="0">
+      <item row="0" column="0">
        <widget class="QLabel" name="label_27">
         <property name="text">
          <string>Import Mode</string>
@@ -1158,23 +1158,30 @@
         <item>
          <layout class="QFormLayout" name="formLayout_12">
           <item row="0" column="0">
+           <widget class="QLabel" name="label_97">
+            <property name="text">
+             <string>Segmentation Mode</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
            <widget class="QLabel" name="label_2">
             <property name="text">
              <string>Segmentation Channel</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="1" column="1">
            <widget class="QComboBox" name="cellpose_segchannel"/>
           </item>
-          <item row="1" column="0">
+          <item row="2" column="0">
            <widget class="QLabel" name="label">
             <property name="text">
              <string>Cellpose Model</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="2" column="1">
            <widget class="QComboBox" name="cellpose_segmodel">
             <item>
              <property name="text">
@@ -1209,6 +1216,20 @@
             <item>
              <property name="text">
               <string>custom</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="cellpose_seg_mode">
+            <item>
+             <property name="text">
+              <string>Cell Wall</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Nucleiod</string>
              </property>
             </item>
            </widget>
@@ -1846,6 +1867,47 @@
         <property name="text">
          <string>Segment [F2]</string>
         </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_18">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Minimum</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>334</width>
+        <height>14</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <layout class="QFormLayout" name="formLayout_22">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_98">
+        <property name="text">
+         <string>Curate Channel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="modify_channel">
+        <item>
+         <property name="text">
+          <string>Segmentations (Cell Wall)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Nucleoid</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
@@ -4389,7 +4451,7 @@ color: rgb(0, 255, 0);</string>
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_8">
        <attribute name="title">

@@ -155,7 +155,7 @@ class Ui_tab_widget:
         self.label_27 = QtWidgets.QLabel(self.import_tab)
         self.label_27.setObjectName("label_27")
         self.formLayout_8.setWidget(
-            1, QtWidgets.QFormLayout.LabelRole, self.label_27
+            0, QtWidgets.QFormLayout.LabelRole, self.label_27
         )
         self.verticalLayout.addLayout(self.formLayout_8)
         spacerItem2 = QtWidgets.QSpacerItem(
@@ -583,20 +583,25 @@ class Ui_tab_widget:
         self.verticalLayout_10.setObjectName("verticalLayout_10")
         self.formLayout_12 = QtWidgets.QFormLayout()
         self.formLayout_12.setObjectName("formLayout_12")
+        self.label_97 = QtWidgets.QLabel(self.tab_6)
+        self.label_97.setObjectName("label_97")
+        self.formLayout_12.setWidget(
+            0, QtWidgets.QFormLayout.LabelRole, self.label_97
+        )
         self.label_2 = QtWidgets.QLabel(self.tab_6)
         self.label_2.setObjectName("label_2")
         self.formLayout_12.setWidget(
-            0, QtWidgets.QFormLayout.LabelRole, self.label_2
+            1, QtWidgets.QFormLayout.LabelRole, self.label_2
         )
         self.cellpose_segchannel = QtWidgets.QComboBox(self.tab_6)
         self.cellpose_segchannel.setObjectName("cellpose_segchannel")
         self.formLayout_12.setWidget(
-            0, QtWidgets.QFormLayout.FieldRole, self.cellpose_segchannel
+            1, QtWidgets.QFormLayout.FieldRole, self.cellpose_segchannel
         )
         self.label = QtWidgets.QLabel(self.tab_6)
         self.label.setObjectName("label")
         self.formLayout_12.setWidget(
-            1, QtWidgets.QFormLayout.LabelRole, self.label
+            2, QtWidgets.QFormLayout.LabelRole, self.label
         )
         self.cellpose_segmodel = QtWidgets.QComboBox(self.tab_6)
         self.cellpose_segmodel.setObjectName("cellpose_segmodel")
@@ -608,7 +613,14 @@ class Ui_tab_widget:
         self.cellpose_segmodel.addItem("")
         self.cellpose_segmodel.addItem("")
         self.formLayout_12.setWidget(
-            1, QtWidgets.QFormLayout.FieldRole, self.cellpose_segmodel
+            2, QtWidgets.QFormLayout.FieldRole, self.cellpose_segmodel
+        )
+        self.cellpose_seg_mode = QtWidgets.QComboBox(self.tab_6)
+        self.cellpose_seg_mode.setObjectName("cellpose_seg_mode")
+        self.cellpose_seg_mode.addItem("")
+        self.cellpose_seg_mode.addItem("")
+        self.formLayout_12.setWidget(
+            0, QtWidgets.QFormLayout.FieldRole, self.cellpose_seg_mode
         )
         self.verticalLayout_10.addLayout(self.formLayout_12)
         spacerItem13 = QtWidgets.QSpacerItem(
@@ -911,10 +923,6 @@ class Ui_tab_widget:
         self.modify_segment.setObjectName("modify_segment")
         self.gridLayout_3.addWidget(self.modify_segment, 0, 1, 1, 1)
         self.verticalLayout_3.addLayout(self.gridLayout_3)
-        self.modify_auto_panzoom = QtWidgets.QCheckBox(self.tab_3)
-        self.modify_auto_panzoom.setChecked(True)
-        self.modify_auto_panzoom.setObjectName("modify_auto_panzoom")
-        self.verticalLayout_3.addWidget(self.modify_auto_panzoom)
         spacerItem19 = QtWidgets.QSpacerItem(
             334,
             14,
@@ -922,6 +930,32 @@ class Ui_tab_widget:
             QtWidgets.QSizePolicy.Minimum,
         )
         self.verticalLayout_3.addItem(spacerItem19)
+        self.formLayout_22 = QtWidgets.QFormLayout()
+        self.formLayout_22.setObjectName("formLayout_22")
+        self.label_98 = QtWidgets.QLabel(self.tab_3)
+        self.label_98.setObjectName("label_98")
+        self.formLayout_22.setWidget(
+            0, QtWidgets.QFormLayout.LabelRole, self.label_98
+        )
+        self.modify_channel = QtWidgets.QComboBox(self.tab_3)
+        self.modify_channel.setObjectName("modify_channel")
+        self.modify_channel.addItem("")
+        self.modify_channel.addItem("")
+        self.formLayout_22.setWidget(
+            0, QtWidgets.QFormLayout.FieldRole, self.modify_channel
+        )
+        self.verticalLayout_3.addLayout(self.formLayout_22)
+        self.modify_auto_panzoom = QtWidgets.QCheckBox(self.tab_3)
+        self.modify_auto_panzoom.setChecked(True)
+        self.modify_auto_panzoom.setObjectName("modify_auto_panzoom")
+        self.verticalLayout_3.addWidget(self.modify_auto_panzoom)
+        spacerItem20 = QtWidgets.QSpacerItem(
+            334,
+            14,
+            QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Minimum,
+        )
+        self.verticalLayout_3.addItem(spacerItem20)
         self.line_18 = QtWidgets.QFrame(self.tab_3)
         self.line_18.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_18.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -956,13 +990,13 @@ class Ui_tab_widget:
         self.modify_extend.setObjectName("modify_extend")
         self.gridLayout_4.addWidget(self.modify_extend, 0, 1, 1, 1)
         self.verticalLayout_3.addLayout(self.gridLayout_4)
-        spacerItem20 = QtWidgets.QSpacerItem(
+        spacerItem21 = QtWidgets.QSpacerItem(
             334,
             14,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_3.addItem(spacerItem20)
+        self.verticalLayout_3.addItem(spacerItem21)
         self.line_19 = QtWidgets.QFrame(self.tab_3)
         self.line_19.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_19.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -1003,13 +1037,13 @@ class Ui_tab_widget:
         self.classify_single.setObjectName("classify_single")
         self.gridLayout_5.addWidget(self.classify_single, 0, 0, 1, 1)
         self.verticalLayout_3.addLayout(self.gridLayout_5)
-        spacerItem21 = QtWidgets.QSpacerItem(
+        spacerItem22 = QtWidgets.QSpacerItem(
             334,
             14,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_3.addItem(spacerItem21)
+        self.verticalLayout_3.addItem(spacerItem22)
         self.line_21 = QtWidgets.QFrame(self.tab_3)
         self.line_21.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_21.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -1112,13 +1146,13 @@ class Ui_tab_widget:
         self.set_debris_5.setObjectName("set_debris_5")
         self.gridLayout_22.addWidget(self.set_debris_5, 0, 5, 1, 1)
         self.verticalLayout_3.addLayout(self.gridLayout_22)
-        spacerItem22 = QtWidgets.QSpacerItem(
+        spacerItem23 = QtWidgets.QSpacerItem(
             20,
             40,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding,
         )
-        self.verticalLayout_3.addItem(spacerItem22)
+        self.verticalLayout_3.addItem(spacerItem23)
         tab_widget.addTab(self.tab_3, "")
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
@@ -1141,13 +1175,13 @@ class Ui_tab_widget:
         self.oufti_edit_mode.setObjectName("oufti_edit_mode")
         self.gridLayout_10.addWidget(self.oufti_edit_mode, 0, 1, 1, 1)
         self.verticalLayout_7.addLayout(self.gridLayout_10)
-        spacerItem23 = QtWidgets.QSpacerItem(
+        spacerItem24 = QtWidgets.QSpacerItem(
             360,
             13,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_7.addItem(spacerItem23)
+        self.verticalLayout_7.addItem(spacerItem24)
         self.label_20 = QtWidgets.QLabel(self.tab_2)
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -1195,13 +1229,13 @@ class Ui_tab_widget:
         )
         self.gridLayout_16.addLayout(self.gridLayout_17, 0, 1, 1, 1)
         self.verticalLayout_7.addLayout(self.gridLayout_16)
-        spacerItem24 = QtWidgets.QSpacerItem(
+        spacerItem25 = QtWidgets.QSpacerItem(
             360,
             13,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_7.addItem(spacerItem24)
+        self.verticalLayout_7.addItem(spacerItem25)
         self.label_63 = QtWidgets.QLabel(self.tab_2)
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -1227,13 +1261,13 @@ class Ui_tab_widget:
             self.oufti_centre_all_midlines, 0, 1, 1, 1
         )
         self.verticalLayout_7.addLayout(self.gridLayout_15)
-        spacerItem25 = QtWidgets.QSpacerItem(
+        spacerItem26 = QtWidgets.QSpacerItem(
             360,
             13,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_7.addItem(spacerItem25)
+        self.verticalLayout_7.addItem(spacerItem26)
         self.label_61 = QtWidgets.QLabel(self.tab_2)
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -1285,13 +1319,13 @@ class Ui_tab_widget:
             1, QtWidgets.QFormLayout.FieldRole, self.oufti_mesh_dilation
         )
         self.verticalLayout_7.addLayout(self.formLayout_7)
-        spacerItem26 = QtWidgets.QSpacerItem(
+        spacerItem27 = QtWidgets.QSpacerItem(
             20,
             40,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding,
         )
-        self.verticalLayout_7.addItem(spacerItem26)
+        self.verticalLayout_7.addItem(spacerItem27)
         tab_widget.addTab(self.tab_2, "")
         self.upload_tab = QtWidgets.QWidget()
         self.upload_tab.setEnabled(True)
@@ -1340,13 +1374,13 @@ class Ui_tab_widget:
             0, QtWidgets.QFormLayout.FieldRole, self.display_database_path
         )
         self.verticalLayout_4.addLayout(self.formLayout_9)
-        spacerItem27 = QtWidgets.QSpacerItem(
+        spacerItem28 = QtWidgets.QSpacerItem(
             435,
             20,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_4.addItem(spacerItem27)
+        self.verticalLayout_4.addItem(spacerItem28)
         self.metadata_controls = QtWidgets.QTabWidget(self.upload_tab)
         sizePolicy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred
@@ -1806,13 +1840,13 @@ class Ui_tab_widget:
         self.label_overwrite = QtWidgets.QPushButton(self.image_metadata)
         self.label_overwrite.setObjectName("label_overwrite")
         self.verticalLayout_8.addWidget(self.label_overwrite)
-        spacerItem28 = QtWidgets.QSpacerItem(
+        spacerItem29 = QtWidgets.QSpacerItem(
             20,
             40,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding,
         )
-        self.verticalLayout_8.addItem(spacerItem28)
+        self.verticalLayout_8.addItem(spacerItem29)
         self.metadata_controls.addTab(self.image_metadata, "")
         self.user_metadata = QtWidgets.QWidget()
         self.user_metadata.setObjectName("user_metadata")
@@ -1893,25 +1927,25 @@ class Ui_tab_widget:
             5, QtWidgets.QFormLayout.FieldRole, self.upload_usermeta6
         )
         self.verticalLayout_19.addLayout(self.formLayout_2)
-        spacerItem29 = QtWidgets.QSpacerItem(
+        spacerItem30 = QtWidgets.QSpacerItem(
             20,
             40,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding,
         )
-        self.verticalLayout_19.addItem(spacerItem29)
+        self.verticalLayout_19.addItem(spacerItem30)
         self.metadata_controls.addTab(self.user_metadata, "")
         self.verticalLayout_4.addWidget(self.metadata_controls)
         self.update_metadata = QtWidgets.QPushButton(self.upload_tab)
         self.update_metadata.setObjectName("update_metadata")
         self.verticalLayout_4.addWidget(self.update_metadata)
-        spacerItem30 = QtWidgets.QSpacerItem(
+        spacerItem31 = QtWidgets.QSpacerItem(
             435,
             20,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_4.addItem(spacerItem30)
+        self.verticalLayout_4.addItem(spacerItem31)
         self.label_87 = QtWidgets.QLabel(self.upload_tab)
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -1955,13 +1989,13 @@ class Ui_tab_widget:
             1, QtWidgets.QFormLayout.FieldRole, self.upload_label_combo
         )
         self.verticalLayout_4.addLayout(self.formLayout_16)
-        spacerItem31 = QtWidgets.QSpacerItem(
+        spacerItem32 = QtWidgets.QSpacerItem(
             435,
             20,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_4.addItem(spacerItem31)
+        self.verticalLayout_4.addItem(spacerItem32)
         self.tabWidget_2 = QtWidgets.QTabWidget(self.upload_tab)
         sizePolicy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred
@@ -2125,13 +2159,13 @@ class Ui_tab_widget:
             self.overwrite_selected_metadata, 1, 1, 1, 1
         )
         self.verticalLayout_11.addLayout(self.gridLayout_25)
-        spacerItem32 = QtWidgets.QSpacerItem(
+        spacerItem33 = QtWidgets.QSpacerItem(
             435,
             20,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_11.addItem(spacerItem32)
+        self.verticalLayout_11.addItem(spacerItem33)
         self.database_upload_buttons_2 = QtWidgets.QGridLayout()
         self.database_upload_buttons_2.setObjectName(
             "database_upload_buttons_2"
@@ -2160,13 +2194,13 @@ class Ui_tab_widget:
         self.upload_progressbar.setObjectName("upload_progressbar")
         self.gridLayout_18.addWidget(self.upload_progressbar, 0, 1, 1, 1)
         self.verticalLayout_4.addLayout(self.gridLayout_18)
-        spacerItem33 = QtWidgets.QSpacerItem(
+        spacerItem34 = QtWidgets.QSpacerItem(
             20,
             20,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding,
         )
-        self.verticalLayout_4.addItem(spacerItem33)
+        self.verticalLayout_4.addItem(spacerItem34)
         tab_widget.addTab(self.upload_tab, "")
         self.export_tab = QtWidgets.QWidget()
         self.export_tab.setEnabled(True)
@@ -2257,13 +2291,13 @@ class Ui_tab_widget:
         self.export_image_setting.setObjectName("export_image_setting")
         self.gridLayout_14.addWidget(self.export_image_setting, 1, 0, 1, 1)
         self.verticalLayout_15.addLayout(self.gridLayout_14)
-        spacerItem34 = QtWidgets.QSpacerItem(
+        spacerItem35 = QtWidgets.QSpacerItem(
             20,
             10,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_15.addItem(spacerItem34)
+        self.verticalLayout_15.addItem(spacerItem35)
         self.label_12 = QtWidgets.QLabel(self.tab_8)
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -2293,13 +2327,13 @@ class Ui_tab_widget:
         self.export_crop_zoom.setObjectName("export_crop_zoom")
         self.gridLayout_19.addWidget(self.export_crop_zoom, 2, 2, 1, 1)
         self.verticalLayout_15.addLayout(self.gridLayout_19)
-        spacerItem35 = QtWidgets.QSpacerItem(
+        spacerItem36 = QtWidgets.QSpacerItem(
             20,
             10,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding,
         )
-        self.verticalLayout_15.addItem(spacerItem35)
+        self.verticalLayout_15.addItem(spacerItem36)
         self.export_active = QtWidgets.QPushButton(self.tab_8)
         self.export_active.setObjectName("export_active")
         self.verticalLayout_15.addWidget(self.export_active)
@@ -2349,13 +2383,13 @@ class Ui_tab_widget:
         self.label_52.setObjectName("label_52")
         self.gridLayout_11.addWidget(self.label_52, 0, 0, 1, 1)
         self.verticalLayout_17.addLayout(self.gridLayout_11)
-        spacerItem36 = QtWidgets.QSpacerItem(
+        spacerItem37 = QtWidgets.QSpacerItem(
             20,
             40,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding,
         )
-        self.verticalLayout_17.addItem(spacerItem36)
+        self.verticalLayout_17.addItem(spacerItem37)
         self.export_statistics_multithreaded = QtWidgets.QCheckBox(self.tab_9)
         self.export_statistics_multithreaded.setChecked(True)
         self.export_statistics_multithreaded.setObjectName(
@@ -2408,13 +2442,13 @@ class Ui_tab_widget:
         self.export_broken.setObjectName("export_broken")
         self.gridLayout.addWidget(self.export_broken, 1, 1, 1, 1)
         self.verticalLayout_16.addLayout(self.gridLayout)
-        spacerItem37 = QtWidgets.QSpacerItem(
+        spacerItem38 = QtWidgets.QSpacerItem(
             20,
             40,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding,
         )
-        self.verticalLayout_16.addItem(spacerItem37)
+        self.verticalLayout_16.addItem(spacerItem38)
         self.label_49 = QtWidgets.QLabel(self.tab_13)
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -2503,13 +2537,13 @@ class Ui_tab_widget:
             1, QtWidgets.QFormLayout.FieldRole, self.export_scalebar_thickness
         )
         self.verticalLayout_16.addLayout(self.formLayout_19)
-        spacerItem38 = QtWidgets.QSpacerItem(
+        spacerItem39 = QtWidgets.QSpacerItem(
             20,
             40,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding,
         )
-        self.verticalLayout_16.addItem(spacerItem38)
+        self.verticalLayout_16.addItem(spacerItem39)
         self.tabWidget_4.addTab(self.tab_13, "")
         self.verticalLayout_6.addWidget(self.tabWidget_4)
         self.formLayout_11 = QtWidgets.QFormLayout()
@@ -2526,13 +2560,13 @@ class Ui_tab_widget:
             0, QtWidgets.QFormLayout.FieldRole, self.export_progressbar
         )
         self.verticalLayout_6.addLayout(self.formLayout_11)
-        spacerItem39 = QtWidgets.QSpacerItem(
+        spacerItem40 = QtWidgets.QSpacerItem(
             20,
             40,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding,
         )
-        self.verticalLayout_6.addItem(spacerItem39)
+        self.verticalLayout_6.addItem(spacerItem40)
         tab_widget.addTab(self.export_tab, "")
         self.tab_14 = QtWidgets.QWidget()
         self.tab_14.setObjectName("tab_14")
@@ -2558,13 +2592,13 @@ class Ui_tab_widget:
         self.modify_deleteallmasks = QtWidgets.QPushButton(self.tab_14)
         self.modify_deleteallmasks.setObjectName("modify_deleteallmasks")
         self.verticalLayout_18.addWidget(self.modify_deleteallmasks)
-        spacerItem40 = QtWidgets.QSpacerItem(
+        spacerItem41 = QtWidgets.QSpacerItem(
             20,
             20,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_18.addItem(spacerItem40)
+        self.verticalLayout_18.addItem(spacerItem41)
         self.line_22 = QtWidgets.QFrame(self.tab_14)
         self.line_22.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_22.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -2606,13 +2640,13 @@ class Ui_tab_widget:
             0, QtWidgets.QFormLayout.FieldRole, self.modify_progressbar
         )
         self.verticalLayout_18.addLayout(self.formLayout)
-        spacerItem41 = QtWidgets.QSpacerItem(
+        spacerItem42 = QtWidgets.QSpacerItem(
             20,
             20,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_18.addItem(spacerItem41)
+        self.verticalLayout_18.addItem(spacerItem42)
         self.line_23 = QtWidgets.QFrame(self.tab_14)
         self.line_23.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_23.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -2646,13 +2680,13 @@ class Ui_tab_widget:
         self.find_criterion.addItem("")
         self.gridLayout_7.addWidget(self.find_criterion, 0, 0, 1, 1)
         self.verticalLayout_18.addLayout(self.gridLayout_7)
-        spacerItem42 = QtWidgets.QSpacerItem(
+        spacerItem43 = QtWidgets.QSpacerItem(
             20,
             20,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Minimum,
         )
-        self.verticalLayout_18.addItem(spacerItem42)
+        self.verticalLayout_18.addItem(spacerItem43)
         self.label_70 = QtWidgets.QLabel(self.tab_14)
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -2683,13 +2717,13 @@ class Ui_tab_widget:
         self.align_all_images.setObjectName("align_all_images")
         self.gridLayout_26.addWidget(self.align_all_images, 0, 1, 1, 1)
         self.verticalLayout_18.addLayout(self.gridLayout_26)
-        spacerItem43 = QtWidgets.QSpacerItem(
+        spacerItem44 = QtWidgets.QSpacerItem(
             20,
             40,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding,
         )
-        self.verticalLayout_18.addItem(spacerItem43)
+        self.verticalLayout_18.addItem(spacerItem44)
         tab_widget.addTab(self.tab_14, "")
 
         self.retranslateUi(tab_widget)
@@ -2710,7 +2744,7 @@ class Ui_tab_widget:
         self.tabWidget_2.setCurrentIndex(0)
         self.download_sort_order_2.setCurrentIndex(0)
         self.download_sort_order_1.setCurrentIndex(0)
-        self.tabWidget_4.setCurrentIndex(2)
+        self.tabWidget_4.setCurrentIndex(0)
         self.export_location.setCurrentIndex(1)
         self.export_scalebar_size_units.setCurrentIndex(1)
         self.export_scalebar_thickness.setCurrentIndex(3)
@@ -2925,6 +2959,7 @@ class Ui_tab_widget:
         self.cellpose_select_custom_model.setText(
             _translate("tab_widget", "Select Custom Cellpose Model")
         )
+        self.label_97.setText(_translate("tab_widget", "Segmentation Mode"))
         self.label_2.setText(_translate("tab_widget", "Segmentation Channel"))
         self.label.setText(_translate("tab_widget", "Cellpose Model"))
         self.cellpose_segmodel.setItemText(0, _translate("tab_widget", "cyto"))
@@ -2945,6 +2980,12 @@ class Ui_tab_widget:
         )
         self.cellpose_segmodel.setItemText(
             6, _translate("tab_widget", "custom")
+        )
+        self.cellpose_seg_mode.setItemText(
+            0, _translate("tab_widget", "Cell Wall")
+        )
+        self.cellpose_seg_mode.setItemText(
+            1, _translate("tab_widget", "Nucleiod")
         )
         self.cellpose_segment_active.setText(
             _translate("tab_widget", "Segment Active Image")
@@ -3058,6 +3099,13 @@ class Ui_tab_widget:
         self.modify_panzoom.setText(_translate("tab_widget", "Pan/Zoom [F1]"))
         self.modify_classify.setText(_translate("tab_widget", "Classify [F3]"))
         self.modify_segment.setText(_translate("tab_widget", "Segment [F2]"))
+        self.label_98.setText(_translate("tab_widget", "Curate Channel"))
+        self.modify_channel.setItemText(
+            0, _translate("tab_widget", "Segmentations (Cell Wall)")
+        )
+        self.modify_channel.setItemText(
+            1, _translate("tab_widget", "Nucleoid")
+        )
         self.modify_auto_panzoom.setText(
             _translate(
                 "tab_widget", "Auto select Pan/Zoom after interface event"

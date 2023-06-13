@@ -146,19 +146,27 @@ def _process_cellpose(self, segmentation_data):
     if len(segmentation_data) > 0:
         masks = segmentation_data
 
-        if self.segLayer.data.shape != masks.shape:
+        if self.cellpose_seg_mode.currentIndex() == 0:
+            output_layer = self.segLayer
+        else:
+            output_layer = self.nucLayer
+
+        if output_layer.data.shape != masks.shape:
             current_fov = self.viewer.dims.current_step[0]
-            self.segLayer.data[current_fov, :, :] = masks
+            output_layer.data[current_fov, :, :] = masks
 
         else:
-            self.segLayer.data = masks
+            output_layer.data = masks
 
-        self.segLayer.contour = 1
-        self.segLayer.opacity = 1
+        output_layer.contour = 1
+        output_layer.opacity = 1
 
         self.cellpose_segmentation = True
         self.cellpose_progressbar.setValue(0)
-        self._autoClassify(reset=True)
+
+        if self.cellpose_seg_mode.currentIndex() == 0:
+            self._autoClassify(reset=True)
+
         self._autoContrast()
 
         if self.cellpose_resetimage.isChecked() == True:
@@ -166,16 +174,7 @@ def _process_cellpose(self, segmentation_data):
 
         self._reorderLayers()
 
-        # layer_names = [
-        #     layer.name
-        #     for layer in self.viewer.layers
-        #     if layer.name not in ["Segmentations", "Classes", "center_lines"]
-        # ]
-        #
-        # # ensures segmentation and classes is in correct order in the viewer
-        # for layer in layer_names:
-        #     layer_index = self.viewer.layers.index(layer)
-        #     self.viewer.layers.move(layer_index, 0)
+        # layer_names = [  #     layer.name  #     for layer in self.viewer.layers  #     if layer.name not in ["Segmentations", "Classes", "center_lines"]  # ]  #  # # ensures segmentation and classes is in correct order in the viewer  # for layer in layer_names:  #     layer_index = self.viewer.layers.index(layer)  #     self.viewer.layers.move(layer_index, 0)
 
 
 def load_cellpose_dependencies(self, omni=False):
@@ -314,10 +313,14 @@ def train_cellpose_model(self, progress_callback=0):
         channel = self.cellpose_trainchannel.currentText()
 
         images = self.viewer.layers[channel].data
-        masks = self.segLayer.data
-
         images = unstack_images(images, axis=0)
-        masks = unstack_images(masks, axis=0)
+
+        if self.cellpose_seg_mode.currentIndex() == 0:
+            masks = self.segLayer.data
+            masks = unstack_images(masks, axis=0)
+        else:
+            masks = self.nucleiLayer.data
+            masks = unstack_images(masks, axis=0)
 
         nepochs = int(self.cellpose_nepochs.currentText())
         batchsize = int(self.cellpose_batchsize.currentText())
