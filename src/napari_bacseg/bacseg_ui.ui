@@ -192,11 +192,6 @@
        <widget class="QComboBox" name="import_multiframe_mode">
         <item>
          <property name="text">
-          <string>Keep First Frame</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
           <string>Keep Brightest Frame</string>
          </property>
         </item>
@@ -208,6 +203,16 @@
         <item>
          <property name="text">
           <string>Sum Frames</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Keep First Frame</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Keep All Frames</string>
          </property>
         </item>
        </widget>

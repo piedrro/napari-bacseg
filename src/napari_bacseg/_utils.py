@@ -62,15 +62,9 @@ def read_xml(paths):
                 for i in range(len(image_list)):
                     img = image_list[i]
 
-                    objective_id = int(
-                        img["ObjectiveSettings"]["@ID"].split(":")[-1]
-                    )
-                    objective_dat = dat["Instrument"]["Objective"][
-                        objective_id
-                    ]
-                    objective_mag = float(
-                        objective_dat["@NominalMagnification"]
-                    )
+                    objective_id = int(img["ObjectiveSettings"]["@ID"].split(":")[-1])
+                    objective_dat = dat["Instrument"]["Objective"][objective_id]
+                    objective_mag = float(objective_dat["@NominalMagnification"])
                     objective_na = float(objective_dat["@LensNA"])
 
                     pixel_size = float(img["Pixels"]["@PhysicalSizeX"])
@@ -84,14 +78,8 @@ def read_xml(paths):
                     for j in range(len(img["Pixels"]["Channel"])):
                         channel_data = img["Pixels"]["Channel"][j]
 
-                        channel_dict[j] = dict(
-                            modality=channel_data["@IlluminationType"],
-                            channel=channel_data["@Name"],
-                            mode=channel_data["@AcquisitionMode"],
-                            well=channel_data["@ID"]
-                            .split("W")[1]
-                            .split("P")[0],
-                        )
+                        channel_dict[j] = dict(modality=channel_data["@IlluminationType"], channel=channel_data["@Name"], mode=channel_data["@AcquisitionMode"], well=
+                        channel_data["@ID"].split("W")[1].split("P")[0], )
 
                     primary_channel = ""
 
@@ -102,9 +90,7 @@ def read_xml(paths):
                         tiff_data = img["Pixels"]["TiffData"][j]
 
                         file_name = tiff_data["UUID"]["@FileName"]
-                        file_path = os.path.abspath(
-                            path.replace(os.path.basename(path), file_name)
-                        )
+                        file_path = os.path.abspath(path.replace(os.path.basename(path), file_name))
 
                         try:
                             plane_data = img["Pixels"]["Plane"][j]
@@ -135,25 +121,8 @@ def read_xml(paths):
                             channel = None
                             well_index = None
 
-                        files[file_path] = dict(
-                            file_name=file_name,
-                            well_index=well_index,
-                            position_index=position_index,
-                            channel_index=channel_index,
-                            time_index=time_index,
-                            z_index=z_index,
-                            microscope=microscope,
-                            light_source=light_source,
-                            channel=channel,
-                            modality=modality,
-                            pixel_size=pixel_size,
-                            objective_magnification=objective_mag,
-                            objective_na=objective_na,
-                            exposure_time=exposure_time,
-                            posX=posX,
-                            posY=posY,
-                            posZ=posZ,
-                        )
+                        files[
+                            file_path] = dict(file_name=file_name, well_index=well_index, position_index=position_index, channel_index=channel_index, time_index=time_index, z_index=z_index, microscope=microscope, light_source=light_source, channel=channel, modality=modality, pixel_size=pixel_size, objective_magnification=objective_mag, objective_na=objective_na, exposure_time=exposure_time, posX=posX, posY=posY, posZ=posZ, )
     except:
         print(traceback.format_exc())
 
@@ -173,9 +142,7 @@ def read_scanr_directory(self, path):
             if os.path.isfile(path) == True:
                 selected_paths = [path]
                 image_path = os.path.abspath(path)
-                file_directory = os.path.abspath(
-                    image_path.split(image_path.split("\\")[-1])[0]
-                )
+                file_directory = os.path.abspath(image_path.split(image_path.split("\\")[-1])[0])
                 file_paths = glob(file_directory + r"*\*.tif")
 
             else:
@@ -184,20 +151,12 @@ def read_scanr_directory(self, path):
         else:
             selected_paths = [os.path.abspath(path) for path in path]
             image_path = os.path.abspath(path[0])
-            file_directory = os.path.abspath(
-                image_path.split(image_path.split("\\")[-1])[0]
-            )
+            file_directory = os.path.abspath(image_path.split(image_path.split("\\")[-1])[0])
             file_paths = glob(file_directory + r"*\*.tif")
 
-        scanR_meta_files = [
-            path.replace(os.path.basename(path), "") for path in file_paths
-        ]
+        scanR_meta_files = [path.replace(os.path.basename(path), "") for path in file_paths]
         scanR_meta_files = np.unique(scanR_meta_files).tolist()
-        scanR_meta_files = [
-            glob(path + "*.ome.xml")[0]
-            for path in scanR_meta_files
-            if len(glob(path + "*.ome.xml")) > 0
-        ]
+        scanR_meta_files = [glob(path + "*.ome.xml")[0] for path in scanR_meta_files if len(glob(path + "*.ome.xml")) > 0]
 
         file_info = read_xml(scanR_meta_files)
 
@@ -244,47 +203,31 @@ def read_scanr_directory(self, path):
 
         files = files[files["position_index"] <= acquisitions[-1]]
 
-        measurements = files.groupby(
-            by=["parent_folder", "position_index", "time_index", "z_index"]
-        )
+        measurements = files.groupby(by=["parent_folder", "position_index", "time_index", "z_index"])
 
         if selected_paths != []:
             filtered_measurements = []
 
             for i in range(len(measurements)):
-                measurement = measurements.get_group(
-                    list(measurements.groups)[i]
-                )
+                measurement = measurements.get_group(list(measurements.groups)[i])
                 measurement_paths = measurement["path"].tolist()
 
-                selected_paths = [
-                    os.path.abspath(path) for path in selected_paths
-                ]
-                measurement_paths = [
-                    os.path.abspath(path) for path in measurement_paths
-                ]
+                selected_paths = [os.path.abspath(path) for path in selected_paths]
+                measurement_paths = [os.path.abspath(path) for path in measurement_paths]
 
                 if not set(selected_paths).isdisjoint(measurement_paths):
                     filtered_measurements.append(measurement)
 
             filtered_measurements = pd.concat(filtered_measurements)
 
-            measurements = filtered_measurements.groupby(
-                by=["folder", "position_index", "time_index", "z_index"]
-            )
+            measurements = filtered_measurements.groupby(by=["folder", "position_index", "time_index", "z_index"])
 
         channels = files["channel"].drop_duplicates().to_list()
 
         channel_num = str(len(files["channel"].unique()))
 
         if self.widget_notifications:
-            show_info(
-                "Found "
-                + str(len(measurements))
-                + " measurments in ScanR Folder(s) with "
-                + channel_num
-                + " channels."
-            )
+            show_info("Found " + str(len(measurements)) + " measurments in ScanR Folder(s) with " + channel_num + " channels.")
 
     except:
         measurements, file_paths, channels = None, None, None
@@ -324,14 +267,7 @@ def read_scanr_images(self, progress_callback, measurements, channels):
                 pass
 
             if self.widget_notifications:
-                show_info(
-                    "loading image["
-                    + channel
-                    + "] "
-                    + str(i + 1)
-                    + " of "
-                    + str(len(measurements))
-                )
+                show_info("loading image[" + channel + "] " + str(i + 1) + " of " + str(len(measurements)))
 
             if channel in measurement_channels:
                 dat = measurement[measurement["channel"] == channel]
@@ -346,9 +282,7 @@ def read_scanr_images(self, progress_callback, measurements, channels):
                 multiframe_mode = self.import_multiframe_mode.currentIndex()
                 crop_mode = self.import_crop_mode.currentIndex()
 
-                img, meta = read_image_file(
-                    path, import_precision, multiframe_mode, crop_mode
-                )
+                img, meta = read_image_file(path, import_precision, multiframe_mode, crop_mode)
 
                 contrast_limit, alpha, beta, gamma = autocontrast_values(img)
 
@@ -403,13 +337,7 @@ def read_scanr_images(self, progress_callback, measurements, channels):
                 meta["light_source"] = channel
 
             if channel not in scanr_images:
-                scanr_images[channel] = dict(
-                    images=[img],
-                    masks=[],
-                    nmasks=[],
-                    classes=[],
-                    metadata={i: meta},
-                )
+                scanr_images[channel] = dict(images=[img], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
             else:
                 scanr_images[channel]["images"].append(img)
                 scanr_images[channel]["metadata"][i] = meta
@@ -420,6 +348,7 @@ def read_scanr_images(self, progress_callback, measurements, channels):
 
 
 def import_imagej(self, progress_callback, paths):
+
     if isinstance(paths, list) == False:
         paths = [paths]
 
@@ -450,9 +379,7 @@ def import_imagej(self, progress_callback, paths):
             pass
 
         if self.widget_notifications:
-            show_info(
-                "loading image " + str(i + 1) + " of " + str(len(file_paths))
-            )
+            show_info("loading image " + str(i + 1) + " of " + str(len(file_paths)))
 
         paths = file_paths[i]
         paths = os.path.abspath(paths)
@@ -490,13 +417,7 @@ def import_imagej(self, progress_callback, paths):
         metadata[i] = meta
 
         if imported_images == {}:
-            imported_images["Image"] = dict(
-                images=[image],
-                masks=[mask],
-                nmasks=[],
-                classes=[],
-                metadata={i: meta},
-            )
+            imported_images["Image"] = dict(images=[image], masks=[mask], nmasks=[], classes=[], metadata={i: meta}, )
         else:
             imported_images["Image"]["images"].append(image)
             imported_images["Image"]["masks"].append(mask)
@@ -526,19 +447,7 @@ def read_nim_directory(self, path):
 
     file_names = [path.split("\\")[-1] for path in file_paths]
 
-    files = pd.DataFrame(
-        columns=[
-            "path",
-            "file_name",
-            "folder",
-            "parent_folder",
-            "posX",
-            "posY",
-            "posZ",
-            "laser",
-            "timestamp",
-        ]
-    )
+    files = pd.DataFrame(columns=["path", "file_name", "folder", "parent_folder", "posX", "posY", "posZ", "laser", "timestamp", ])
 
     for i in range(len(file_paths)):
         try:
@@ -569,9 +478,7 @@ def read_nim_directory(self, path):
                 if True in laseractive:
                     laseractive = np.array(laseractive, dtype=bool)
                     laserpowers = np.array(laserpowers, dtype=float)
-                    laserwavelength_nm = np.array(
-                        laserwavelength_nm, dtype=str
-                    )
+                    laserwavelength_nm = np.array(laserwavelength_nm, dtype=str)
 
                     # finds maximum active power
                     power = laserpowers[laseractive == True].max()
@@ -586,28 +493,14 @@ def read_nim_directory(self, path):
 
                 data = [path, file_name, posX, posY, posZ, laser, timestamp]
 
-                files.loc[len(files)] = [
-                    path,
-                    file_name,
-                    folder,
-                    parent_folder,
-                    posX,
-                    posY,
-                    posZ,
-                    laser,
-                    timestamp,
-                ]
+                files.loc[len(files)] = [path, file_name, folder, parent_folder, posX, posY, posZ, laser, timestamp, ]
 
         except:
             pass
 
-    files[["posX", "posY", "posZ"]] = files[["posX", "posY", "posZ"]].round(
-        decimals=0
-    )
+    files[["posX", "posY", "posZ"]] = files[["posX", "posY", "posZ"]].round(decimals=0)
 
-    files = files.sort_values(
-        by=["timestamp", "posX", "posY", "laser"], ascending=True
-    )
+    files = files.sort_values(by=["timestamp", "posX", "posY", "laser"], ascending=True)
     files = files.reset_index(drop=True)
     files["aquisition"] = 0
 
@@ -662,13 +555,7 @@ def read_nim_directory(self, path):
     channel_num = str(len(files["laser"].unique()))
 
     if self.widget_notifications:
-        show_info(
-            "Found "
-            + str(len(measurements))
-            + " measurments in NIM Folder with "
-            + channel_num
-            + " channels."
-        )
+        show_info("Found " + str(len(measurements)) + " measurments in NIM Folder with " + channel_num + " channels.")
 
     return measurements, file_paths, channels
 
@@ -697,6 +584,7 @@ def get_folder(files):
 
 
 def read_image_file(path, precision="native", multiframe_mode=0, crop_mode=0):
+
     image_name = os.path.basename(path)
 
     if os.path.splitext(image_name)[1] == ".fits":
@@ -705,11 +593,7 @@ def read_image_file(path, precision="native", multiframe_mode=0, crop_mode=0):
             try:
                 metadata = dict(hdul[0].header)
 
-                unserializable_keys = [
-                    key
-                    for key, value in metadata.items()
-                    if type(value) not in [bool, int, float, str]
-                ]
+                unserializable_keys = [key for key, value in metadata.items() if type(value) not in [bool, int, float, str]]
 
                 for key in unserializable_keys:
                     metadata.pop(key)
@@ -752,13 +636,14 @@ def read_image_file(path, precision="native", multiframe_mode=0, crop_mode=0):
         metadata["multiframe_mode"] = multiframe_mode
         metadata["folder"] = folder
         metadata["parent_folder"] = parent_folder
-        metadata["dims"] = [image.shape[-1], image.shape[-2]]
-        metadata["crop"] = [0, image.shape[-2], 0, image.shape[-1]]
+        metadata["dims"] = [image[0].shape[-1], image[0].shape[-2]]
+        metadata["crop"] = [0, image[0].shape[-2], 0, image[0].shape[-1]]
 
     return image, metadata
 
 
 def get_frame(img, multiframe_mode):
+
     if len(img.shape) > 2:
         if multiframe_mode == 0:
             img = img[0, :, :]
@@ -772,17 +657,24 @@ def get_frame(img, multiframe_mode):
         elif multiframe_mode == 3:
             img = np.sum(img, axis=0)
 
+        elif multiframe_mode == 4:
+            img = [im for im in img]
+
+    if type(img) != list:
+        img = [img]
+
     return img
 
 
 def crop_image(img, crop_mode=0):
+
     if crop_mode != 0:
         if len(img.shape) > 2:
             imgL = img[:, :, : img.shape[-1] // 2]
-            imgR = img[:, :, img.shape[-1] // 2 :]
+            imgR = img[:, :, img.shape[-1] // 2:]
         else:
             imgL = img[:, : img.shape[-1] // 2]
-            imgR = img[:, img.shape[-1] // 2 :]
+            imgR = img[:, img.shape[-1] // 2:]
 
         if crop_mode == 1:
             img = imgL
@@ -799,12 +691,8 @@ def crop_image(img, crop_mode=0):
 
 
 def rescale_image(image, precision="int16"):
-    precision_dict = {
-        "int8": np.uint8,
-        "int16": np.uint16,
-        "int32": np.uint32,
-        "native": image.dtype,
-    }
+
+    precision_dict = {"int8": np.uint8, "int16": np.uint16, "int32": np.uint32, "native": image[0].dtype, }
 
     dtype = precision_dict[precision]
 
@@ -814,15 +702,20 @@ def rescale_image(image, precision="int16"):
         max_value = np.finfo(dtype).max - 1
 
     if precision != "native":
-        image = ((image - np.min(image)) / np.max(image)) * max_value
-        image = image.astype(dtype)
+
+        for i, img in enumerate(image):
+            img = ((img - np.min(img)) / np.max(img)) * max_value
+            img = img.astype(dtype)
+            image[i] = img
 
     return image
 
 
 def read_nim_images(self, progress_callback, measurements, channels):
+
     nim_images = {}
     img_shape = (100, 100)
+    num_frames = 1
     img_type = np.uint16
     iter = 0
 
@@ -842,16 +735,10 @@ def read_nim_images(self, progress_callback, measurements, channels):
                 pass
 
             if self.widget_notifications:
-                show_info(
-                    "loading image["
-                    + channel
-                    + "] "
-                    + str(i + 1)
-                    + " of "
-                    + str(len(measurements))
-                )
+                show_info("loading image[" + channel + "] " + str(i + 1) + " of " + str(len(measurements)))
 
             if channel in measurement_channels:
+
                 dat = measurement[measurement["laser"] == channel]
 
                 path = dat["path"].item()
@@ -862,87 +749,103 @@ def read_nim_images(self, progress_callback, measurements, channels):
                 import_precision = self.import_precision.currentText()
                 multiframe_mode = self.import_multiframe_mode.currentIndex()
                 crop_mode = self.import_crop_mode.currentIndex()
-                img, meta = read_image_file(
-                    path, import_precision, multiframe_mode, crop_mode
-                )
 
-                contrast_limit, alpha, beta, gamma = autocontrast_values(img)
+                image_list, meta = read_image_file(path, import_precision, multiframe_mode, crop_mode)
 
-                self.active_import_mode = "NIM"
+                num_frames = len(image_list)
 
-                meta["image_name"] = os.path.basename(path)
-                meta["image_path"] = path
-                meta["folder"] = folder
-                meta["parent_folder"] = parent_folder
-                meta["akseg_hash"] = get_hash(img_path=path)
-                meta["import_mode"] = "NIM"
-                meta["contrast_limit"] = contrast_limit
-                meta["contrast_alpha"] = alpha
-                meta["contrast_beta"] = beta
-                meta["contrast_gamma"] = gamma
-                meta["dims"] = [img.shape[-1], img.shape[-2]]
-                meta["crop"] = [0, img.shape[-2], 0, img.shape[-1]]
+                akseg_hash = get_hash(img_path=path)
 
-                if meta["InstrumentSerial"] == "6D699GN6":
-                    meta["microscope"] = "BIO-NIM"
-                elif meta["InstrumentSerial"] == "2EC5XTUC":
-                    meta["microscope"] = "JR-NIM"
-                else:
-                    meta["microscope"] = None
+                for index, frame in enumerate(image_list):
 
-                if meta["IlluminationAngle_deg"] < 1:
-                    meta["modality"] = "Epifluorescence"
-                elif 1 < meta["IlluminationAngle_deg"] < 53:
-                    meta["modality"] = "HILO"
-                elif 53 < meta["IlluminationAngle_deg"]:
-                    meta["modality"] = "TIRF"
+                    contrast_limit = np.percentile(frame, (1, 99))
+                    contrast_limit = [int(contrast_limit[0] * 0.5), int(contrast_limit[1] * 2), ]
 
-                meta["light_source"] = channel
+                    self.active_import_mode = "nim"
 
-                if meta["light_source"] == "White Light":
-                    meta["modality"] = "Bright Field"
+                    file_name = os.path.basename(path)
 
-                img_shape = img.shape
-                img_type = np.array(img).dtype
+                    if index != 0:
+                        file_name = file_name.replace(".", "_") + "_" + str(index) + ".tif"
 
-                image_path = meta["image_path"]
+                    self.active_import_mode = "NIM"
 
-                if "pos_" in image_path:
-                    meta["folder"] = image_path.split("\\")[-4]
-                    meta["parent_folder"] = image_path.split("\\")[-5]
+                    meta["image_name"] = file_name
+                    meta["image_path"] = path
+                    meta["folder"] = folder
+                    meta["parent_folder"] = parent_folder
+                    meta["akseg_hash"] = akseg_hash
+                    meta["import_mode"] = "NIM"
+                    meta["contrast_limit"] = contrast_limit
+                    meta["contrast_alpha"] = 0
+                    meta["contrast_beta"] = 0
+                    meta["contrast_gamma"] = 0
+                    meta["dims"] = [frame.shape[-1], frame.shape[-2]]
+                    meta["crop"] = [0, frame.shape[-2], 0, frame.shape[-1]]
+
+                    if meta["InstrumentSerial"] == "6D699GN6":
+                        meta["microscope"] = "BIO-NIM"
+                    elif meta["InstrumentSerial"] == "2EC5XTUC":
+                        meta["microscope"] = "JR-NIM"
+                    else:
+                        meta["microscope"] = None
+
+                    if meta["IlluminationAngle_deg"] < 1:
+                        meta["modality"] = "Epifluorescence"
+                    elif 1 < meta["IlluminationAngle_deg"] < 53:
+                        meta["modality"] = "HILO"
+                    elif 53 < meta["IlluminationAngle_deg"]:
+                        meta["modality"] = "TIRF"
+
+                    meta["light_source"] = channel
+
+                    if meta["light_source"] == "White Light":
+                        meta["modality"] = "Bright Field"
+
+                    img_shape = frame.shape
+                    img_type = np.array(frame).dtype
+
+                    image_path = meta["image_path"]
+
+                    if "pos_" in image_path:
+                        meta["folder"] = image_path.split("\\")[-4]
+                        meta["parent_folder"] = image_path.split("\\")[-5]
+
+                    if channel not in nim_images:
+                        nim_images[channel] = dict(images=[frame], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
+                    else:
+                        nim_images[channel]["images"].append(frame)
+                        nim_images[channel]["metadata"][i] = meta
 
             else:
-                img = np.zeros(img_shape, dtype=img_type)
-                meta = {}
 
-                self.active_import_mode = "NIM"
+                for index in range(num_frames):
 
-                meta["image_name"] = "missing image channel"
-                meta["image_path"] = "missing image channel"
-                meta["folder"] = (None,)
-                meta["parent_folder"] = (None,)
-                meta["akseg_hash"] = None
-                meta["fov_mode"] = None
-                meta["import_mode"] = "NIM"
-                meta["contrast_limit"] = None
-                meta["contrast_alpha"] = None
-                meta["contrast_beta"] = None
-                meta["contrast_gamma"] = None
-                meta["dims"] = [img.shape[-1], img.shape[-2]]
-                meta["crop"] = [0, img.shape[-2], 0, img.shape[-1]]
-                meta["light_source"] = channel
+                    frame = np.zeros(img_shape, dtype=img_type)
+                    meta = {}
 
-            if channel not in nim_images:
-                nim_images[channel] = dict(
-                    images=[img],
-                    masks=[],
-                    nmasks=[],
-                    classes=[],
-                    metadata={i: meta},
-                )
-            else:
-                nim_images[channel]["images"].append(img)
-                nim_images[channel]["metadata"][i] = meta
+                    self.active_import_mode = "NIM"
+
+                    meta["image_name"] = "missing image channel"
+                    meta["image_path"] = "missing image channel"
+                    meta["folder"] = (None,)
+                    meta["parent_folder"] = (None,)
+                    meta["akseg_hash"] = None
+                    meta["fov_mode"] = None
+                    meta["import_mode"] = "NIM"
+                    meta["contrast_limit"] = None
+                    meta["contrast_alpha"] = None
+                    meta["contrast_beta"] = None
+                    meta["contrast_gamma"] = None
+                    meta["dims"] = [frame.shape[-1], frame.shape[-2]]
+                    meta["crop"] = [0, frame.shape[-2], 0, frame.shape[-1]]
+                    meta["light_source"] = channel
+
+                    if channel not in nim_images:
+                        nim_images[channel] = dict(images=[frame], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
+                    else:
+                        nim_images[channel]["images"].append(frame)
+                        nim_images[channel]["metadata"][i] = meta
 
     imported_data = dict(imported_images=nim_images)
 
@@ -951,7 +854,7 @@ def read_nim_images(self, progress_callback, measurements, channels):
 
 def get_brightest_fov(image):
     imageL = image[0, :, : image.shape[2] // 2]
-    imageR = image[0, :, image.shape[2] // 2 :]
+    imageR = image[0, :, image.shape[2] // 2:]
 
     if np.mean(imageL) > np.mean(imageR):
         image = image[:, :, : image.shape[2] // 2]
@@ -984,7 +887,7 @@ def get_channel(img, multiframe_mode):
 
 def get_fov(img, channel_mode):
     imgL = img[:, : img.shape[1] // 2]
-    imgR = img[:, img.shape[1] // 2 :]
+    imgR = img[:, img.shape[1] // 2:]
 
     if channel_mode == 0:
         if np.mean(imgL) > np.mean(imgR):
@@ -1096,12 +999,7 @@ def import_dataset(self, progress_callback, paths):
             progress_callback.emit(progress)
 
             if self.widget_notifications:
-                show_info(
-                    "loading image "
-                    + str(i + 1)
-                    + " of "
-                    + str(len(image_paths))
-                )
+                show_info("loading image " + str(i + 1) + " of " + str(len(image_paths)))
 
             image_path = os.path.abspath(image_paths[i])
             mask_path = image_path.replace("\\images\\", "\\masks\\")
@@ -1112,9 +1010,7 @@ def import_dataset(self, progress_callback, paths):
             import_precision = self.import_precision.currentText()
             multiframe_mode = self.import_multiframe_mode.currentIndex()
             crop_mode = self.import_crop_mode.currentIndex()
-            image, meta = read_image_file(
-                path, import_precision, multiframe_mode
-            )
+            image, meta = read_image_file(path, import_precision, multiframe_mode)
 
             crop_mode = self.import_crop_mode.currentIndex()
             image = crop_image(image, crop_mode)
@@ -1122,9 +1018,7 @@ def import_dataset(self, progress_callback, paths):
             if os.path.exists(mask_path):
                 mask = tifffile.imread(mask_path)
                 mask = crop_image(mask, crop_mode)
-                assert (
-                    len(mask.shape) < 3
-                ), "Can only import single channel masks"
+                assert (len(mask.shape) < 3), "Can only import single channel masks"
 
             else:
                 mask_name = None
@@ -1154,13 +1048,7 @@ def import_dataset(self, progress_callback, paths):
             metadata[i] = meta
 
             if imported_images == {}:
-                imported_images["Image"] = dict(
-                    images=[image],
-                    masks=[mask],
-                    nmasks=[],
-                    classes=[],
-                    metadata={i: meta},
-                )
+                imported_images["Image"] = dict(images=[image], masks=[mask], nmasks=[], classes=[], metadata={i: meta}, )
             else:
                 imported_images["Image"]["images"].append(image)
                 imported_images["Image"]["masks"].append(mask)
@@ -1200,22 +1088,13 @@ def import_bacseg(self, progress_callback, file_paths):
             progress_callback.emit(progress)
 
             if self.widget_notifications:
-                show_info(
-                    "loading image "
-                    + str(i + 1)
-                    + " of "
-                    + str(len(image_paths))
-                )
+                show_info("loading image " + str(i + 1) + " of " + str(len(image_paths)))
 
             image_path = os.path.abspath(image_paths[i])
-            json_path = image_path.replace("\\images\\", "\\json\\").replace(
-                ".tif", ".txt"
-            )
+            json_path = image_path.replace("\\images\\", "\\json\\").replace(".tif", ".txt")
 
             import_precision = self.import_precision.currentText()
-            image, meta_stack = read_image_file(
-                path, import_precision, multiframe_mode=0
-            )
+            image, meta_stack = read_image_file(path, import_precision, multiframe_mode=0)
 
             crop_mode = self.import_crop_mode.currentIndex()
             image = crop_image(image, crop_mode)
@@ -1228,15 +1107,9 @@ def import_bacseg(self, progress_callback, file_paths):
                 label = crop_image(label, crop_mode)
 
             else:
-                label = np.zeros(
-                    (image.shape[0], image.shape[1]), dtype=np.uint16
-                )
-                mask = np.zeros(
-                    (image.shape[0], image.shape[1]), dtype=np.uint16
-                )
-                nmask = np.zeros(
-                    (image.shape[0], image.shape[1]), dtype=np.uint16
-                )
+                label = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
+                mask = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
+                nmask = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
 
             for j, channel in enumerate(meta_stack["channels"]):
                 img = image[j, :, :]
@@ -1255,13 +1128,7 @@ def import_bacseg(self, progress_callback, file_paths):
                 meta["crop"] = [0, img.shape[1], 0, img.shape[0]]
 
                 if channel not in imported_images.keys():
-                    imported_images[channel] = dict(
-                        images=[img],
-                        masks=[mask],
-                        nmasks=[],
-                        classes=[label],
-                        metadata={i: meta},
-                    )
+                    imported_images[channel] = dict(images=[img], masks=[mask], nmasks=[], classes=[label], metadata={i: meta}, )
                 else:
                     imported_images[channel]["images"].append(img)
                     imported_images[channel]["masks"].append(mask)
@@ -1278,14 +1145,13 @@ def import_bacseg(self, progress_callback, file_paths):
 
 
 def import_images(self, progress_callback, file_paths):
+
     if os.path.isdir(file_paths[0]):
         file_paths = glob(file_paths[0] + r"**\*", recursive=True)
 
     image_formats = ["tif", "png", "jpeg", "fits"]
 
-    file_paths = [
-        path for path in file_paths if path.split(".")[-1] in image_formats
-    ]
+    file_paths = [path for path in file_paths if path.split(".")[-1] in image_formats]
 
     import_limit = self.import_limit.currentText()
 
@@ -1296,17 +1162,20 @@ def import_images(self, progress_callback, file_paths):
     metadata = {}
     imported_images = {}
 
+    iter = 0
+
     for i in range(len(file_paths)):
+
         progress = int(((i + 1) / len(file_paths)) * 100)
 
         try:
             progress_callback.emit(progress)
         except:
             pass
+
+
         if self.widget_notifications:
-            show_info(
-                "loading image " + str(i + 1) + " of " + str(len(file_paths))
-            )
+            show_info("loading image " + str(i + 1) + " of " + str(len(file_paths)))
 
         file_path = os.path.abspath(file_paths[i])
         file_name = os.path.basename(file_path)
@@ -1315,43 +1184,43 @@ def import_images(self, progress_callback, file_paths):
         multiframe_mode = self.import_multiframe_mode.currentIndex()
         crop_mode = self.import_crop_mode.currentIndex()
 
-        image, meta = read_image_file(
-            file_path, import_precision, multiframe_mode, crop_mode
-        )
+        image_list, meta = read_image_file(file_path, import_precision, multiframe_mode, crop_mode)
 
-        contrast_limit, alpha, beta, gamma = autocontrast_values(image)
+        akseg_hash = get_hash(img_path=file_path)
 
-        self.active_import_mode = "image"
+        for index, frame in enumerate(image_list):
 
-        meta["akseg_hash"] = get_hash(img_path=file_path)
-        meta["image_name"] = file_name
-        meta["image_path"] = file_path
-        meta["mask_name"] = None
-        meta["mask_path"] = None
-        meta["label_name"] = None
-        meta["label_path"] = None
-        meta["import_mode"] = "image"
-        meta["contrast_limit"] = contrast_limit
-        meta["contrast_alpha"] = alpha
-        meta["contrast_beta"] = beta
-        meta["contrast_gamma"] = gamma
-        meta["dims"] = [image.shape[-1], image.shape[-2]]
-        meta["crop"] = [0, image.shape[-2], 0, image.shape[-1]]
+            contrast_limit = np.percentile(frame, (1, 99))
+            contrast_limit = [int(contrast_limit[0] * 0.5), int(contrast_limit[1] * 2), ]
 
-        images.append(image)
-        metadata[i] = meta
+            self.active_import_mode = "image"
 
-        if imported_images == {}:
-            imported_images["Image"] = dict(
-                images=[image],
-                masks=[],
-                nmasks=[],
-                classes=[],
-                metadata={i: meta},
-            )
-        else:
-            imported_images["Image"]["images"].append(image)
-            imported_images["Image"]["metadata"][i] = meta
+            if index != 0:
+                file_name = file_name.replace(".", "_") + "_" + str(index) + ".tif"
+
+            meta["akseg_hash"] = akseg_hash
+            meta["image_name"] = file_name
+            meta["image_path"] = file_path
+            meta["mask_name"] = None
+            meta["mask_path"] = None
+            meta["label_name"] = None
+            meta["label_path"] = None
+            meta["import_mode"] = "image"
+            meta["contrast_limit"] = contrast_limit
+            meta["contrast_alpha"] = 0
+            meta["contrast_beta"] = 0
+            meta["contrast_gamma"] = 0
+            meta["dims"] = [frame.shape[-1], frame.shape[-2]]
+            meta["crop"] = [0, frame.shape[-2], 0, frame.shape[-1]]
+
+            images.append(frame)
+            metadata[i] = meta
+
+            if imported_images == {}:
+                imported_images["Image"] = dict(images=[frame], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
+            else:
+                imported_images["Image"]["images"].append(frame)
+                imported_images["Image"]["metadata"][i] = meta
 
     imported_data = dict(imported_images=imported_images)
 
@@ -1364,9 +1233,7 @@ def import_cellpose(self, progress_callback, file_paths):
 
     image_formats = ["npy"]
 
-    file_paths = [
-        path for path in file_paths if path.split(".")[-1] in image_formats
-    ]
+    file_paths = [path for path in file_paths if path.split(".")[-1] in image_formats]
 
     import_limit = self.import_limit.currentText()
 
@@ -1380,9 +1247,7 @@ def import_cellpose(self, progress_callback, file_paths):
         progress_callback.emit(progress)
 
         if self.widget_notifications:
-            show_info(
-                "loading image " + str(i + 1) + " of " + str(len(file_paths))
-            )
+            show_info("loading image " + str(i + 1) + " of " + str(len(file_paths)))
 
         file_path = os.path.abspath(file_paths[i])
         file_name = file_path.split("\\")[-1]
@@ -1399,9 +1264,7 @@ def import_cellpose(self, progress_callback, file_paths):
 
             import_precision = self.import_precision.currentText()
             multiframe_mode = self.import_multiframe_mode.currentIndex()
-            img, meta = read_image_file(
-                image_path, import_precision, multiframe_mode
-            )
+            img, meta = read_image_file(image_path, import_precision, multiframe_mode)
 
             crop_mode = self.import_crop_mode.currentIndex()
             img = crop_image(img, crop_mode)
@@ -1436,33 +1299,11 @@ def import_cellpose(self, progress_callback, file_paths):
             folder = os.path.abspath(file_path).split("\\")[-2]
             parent_folder = os.path.abspath(file_path).split("\\")[-3]
 
-            meta = dict(
-                image_name=file_name,
-                image_path=file_path,
-                mask_name=file_name,
-                mask_path=file_path,
-                label_name=None,
-                label_path=None,
-                folder=folder,
-                parent_folder=parent_folder,
-                contrast_limit=contrast_limit,
-                contrast_alpha=alpha,
-                contrast_beta=beta,
-                contrast_gamma=gamma,
-                akseg_hash=get_hash(img_path=file_path),
-                import_mode="cellpose",
-                dims=[image.shape[0], image.shape[1]],
-                crop=[0, image.shape[1], 0, image.shape[0]],
-            )
+            meta = dict(image_name=file_name, image_path=file_path, mask_name=file_name, mask_path=file_path, label_name=None, label_path=None, folder=folder, parent_folder=parent_folder, contrast_limit=contrast_limit, contrast_alpha=alpha, contrast_beta=beta, contrast_gamma=gamma, akseg_hash=get_hash(img_path=file_path), import_mode="cellpose", dims=[
+                image.shape[0], image.shape[1]], crop=[0, image.shape[1], 0, image.shape[0]], )
 
         if imported_images == {}:
-            imported_images["Image"] = dict(
-                images=[img],
-                masks=[mask],
-                nmasks=[],
-                classes=[],
-                metadata={i: meta},
-            )
+            imported_images["Image"] = dict(images=[img], masks=[mask], nmasks=[], classes=[], metadata={i: meta}, )
         else:
             imported_images["Image"]["images"].append(img)
             imported_images["Image"]["masks"].append(mask)
@@ -1479,9 +1320,7 @@ def import_oufti(self, progress_callback, file_paths):
 
     image_formats = ["mat"]
 
-    file_paths = [
-        path for path in file_paths if path.split(".")[-1] in image_formats
-    ]
+    file_paths = [path for path in file_paths if path.split(".")[-1] in image_formats]
 
     file_path = os.path.abspath(file_paths[0])
     parent_dir = file_path.replace(file_path.split("\\")[-1], "")
@@ -1490,9 +1329,7 @@ def import_oufti(self, progress_callback, file_paths):
     image_paths = glob(parent_dir + r"**\*", recursive=True)
 
     image_formats = ["tif"]
-    image_paths = [
-        path for path in image_paths if path.split(".")[-1] in image_formats
-    ]
+    image_paths = [path for path in image_paths if path.split(".")[-1] in image_formats]
 
     mat_files = [path.split("\\")[-1] for path in mat_paths]
     image_files = [path.split("\\")[-1] for path in image_paths]
@@ -1527,9 +1364,7 @@ def import_oufti(self, progress_callback, file_paths):
             if self.widget_notifications:
                 show_info("Matching image/mesh files could not be found")
             self.viewer.text_overlay.visible = True
-            self.viewer.text_overlay.text = (
-                "Matching image/mesh files could not be found"
-            )
+            self.viewer.text_overlay.text = ("Matching image/mesh files could not be found")
 
     else:
         image_files = matching_image_paths
@@ -1548,12 +1383,7 @@ def import_oufti(self, progress_callback, file_paths):
             progress_callback.emit(progress)
 
             if self.widget_notifications:
-                show_info(
-                    "loading image "
-                    + str(i + 1)
-                    + " of "
-                    + str(len(mat_files))
-                )
+                show_info("loading image " + str(i + 1) + " of " + str(len(mat_files)))
 
             mat_path = mat_files[i]
             image_path = image_files[i]
@@ -1587,13 +1417,7 @@ def import_oufti(self, progress_callback, file_paths):
             meta["crop"] = [0, image.shape[-2], 0, image.shape[-1]]
 
             if imported_images == {}:
-                imported_images["Image"] = dict(
-                    images=[image],
-                    masks=[mask],
-                    nmasks=[],
-                    classes=[],
-                    metadata={i: meta},
-                )
+                imported_images["Image"] = dict(images=[image], masks=[mask], nmasks=[], classes=[], metadata={i: meta}, )
             else:
                 imported_images["Image"]["images"].append(image)
                 imported_images["Image"]["masks"].append(mask)
@@ -1611,9 +1435,7 @@ def import_mat_data(self, image_path, mat_path):
     import_precision = self.import_precision.currentText()
     multiframe_mode = self.import_multiframe_mode.currentIndex()
     crop_mode = self.import_crop_mode.currentIndex()
-    image, meta = read_image_file(
-        image_path, import_precision, multiframe_mode
-    )
+    image, meta = read_image_file(image_path, import_precision, multiframe_mode)
 
     mat_data = mat4py.loadmat(mat_path)
 
@@ -1638,17 +1460,12 @@ def import_mat_data(self, image_path, mat_path):
 
 
 def unstack_images(stack, axis=0):
-    images = [
-        np.squeeze(e, axis)
-        for e in np.split(stack, stack.shape[axis], axis=axis)
-    ]
+    images = [np.squeeze(e, axis) for e in np.split(stack, stack.shape[axis], axis=axis)]
 
     return images
 
 
-def append_image_stacks(
-    current_metadata, new_metadata, current_image_stack, new_image_stack
-):
+def append_image_stacks(current_metadata, new_metadata, current_image_stack, new_image_stack):
     current_image_stack = unstack_images(current_image_stack)
 
     new_image_stack = unstack_images(new_image_stack)
@@ -1662,9 +1479,7 @@ def append_image_stacks(
 
         appended_metadata[new_key] = value
 
-    appended_image_stack, appended_metadata = stack_images(
-        appended_image_stack, appended_metadata
-    )
+    appended_image_stack, appended_metadata = stack_images(appended_image_stack, appended_metadata)
 
     return appended_image_stack, appended_metadata
 
@@ -1681,9 +1496,7 @@ def append_metadata(current_metadata, new_metadata):
 
 
 def read_ak_metadata(self):
-    meta_path = os.path.join(
-        self.database_path, "Metadata", "AKSEG Metadata.xlsx"
-    )
+    meta_path = os.path.join(self.database_path, "Metadata", "AKSEG Metadata.xlsx")
 
     ak_meta = pd.read_excel(meta_path)
 
@@ -1691,9 +1504,7 @@ def read_ak_metadata(self):
     microscope = list(ak_meta["Microscope"].dropna())
     modality = list(ak_meta["Image Modality"].dropna())
 
-    ak_meta = dict(
-        user_initials=user_initials, microscope=microscope, modality=modality
-    )
+    ak_meta = dict(user_initials=user_initials, microscope=microscope, modality=modality)
 
     return ak_meta
 
@@ -1712,12 +1523,7 @@ def get_hash(img_path=None, img=None):
 
 
 def align_image_channels(self):
-    layer_names = [
-        layer.name
-        for layer in self.viewer.layers
-        if layer.name
-        not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
-    ]
+    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
 
     if self.import_align.isChecked() and len(layer_names) > 1:
         primary_image = layer_names[-1]
@@ -1733,9 +1539,7 @@ def align_image_channels(self):
                 shifted_img = self.viewer.layers[layer].data[i, :, :]
 
                 try:
-                    shift, error, diffphase = phase_cross_correlation(
-                        img, shifted_img, upsample_factor=100
-                    )
+                    shift, error, diffphase = phase_cross_correlation(img, shifted_img, upsample_factor=100)
                     shifted_img = scipy.ndimage.shift(shifted_img, shift)
 
                 except:
@@ -1789,11 +1593,7 @@ def get_export_data(self, mask_stack, label_stack, meta_stack):
                     export_mask[cnt_mask == 255] = new_mask_id
                     export_label[cnt_mask == 255] = label_id
 
-                    cnt, _ = cv2.findContours(
-                        cnt_mask.astype(np.uint8),
-                        cv2.RETR_EXTERNAL,
-                        cv2.CHAIN_APPROX_NONE,
-                    )
+                    cnt, _ = cv2.findContours(cnt_mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE, )
 
                     contours.append(cnt[0])
 
@@ -1810,9 +1610,7 @@ def import_JSON(self, progress_callback, file_paths):
 
     image_formats = ["txt"]
 
-    json_paths = [
-        path for path in file_paths if path.split(".")[-1] in image_formats
-    ]
+    json_paths = [path for path in file_paths if path.split(".")[-1] in image_formats]
 
     file_path = os.path.abspath(file_paths[0])
     parent_dir = file_path.replace(file_path.split("\\")[-1], "")
@@ -1859,9 +1657,7 @@ def import_JSON(self, progress_callback, file_paths):
                 show_info("Matching image/mesh files could not be found")
 
             self.viewer.text_overlay.visible = True
-            self.viewer.text_overlay.text = (
-                "Matching image/mesh files could not be found"
-            )
+            self.viewer.text_overlay.text = ("Matching image/mesh files could not be found")
 
     else:
         image_files = matching_image_paths
@@ -1878,12 +1674,7 @@ def import_JSON(self, progress_callback, file_paths):
             progress_callback.emit(progress)
 
             if self.widget_notifications:
-                show_info(
-                    "loading image "
-                    + str(i + 1)
-                    + " of "
-                    + str(len(json_files))
-                )
+                show_info("loading image " + str(i + 1) + " of " + str(len(json_files)))
 
             json_path = json_files[i]
             image_path = image_files[i]
@@ -1894,9 +1685,7 @@ def import_JSON(self, progress_callback, file_paths):
             import_precision = self.import_precision.currentText()
             multiframe_mode = self.import_multiframe_mode.currentIndex()
             crop_mode = self.import_crop_mode.currentIndex()
-            image, meta = read_image_file(
-                image_path, import_precision, multiframe_mode
-            )
+            image, meta = read_image_file(image_path, import_precision, multiframe_mode)
 
             from napari_bacseg._utils_json import import_coco_json
 
@@ -1928,13 +1717,7 @@ def import_JSON(self, progress_callback, file_paths):
             meta["crop"] = [0, image.shape[-2], 0, image.shape[-1]]
 
             if imported_images == {}:
-                imported_images["Image"] = dict(
-                    images=[image],
-                    masks=[mask],
-                    nmasks=[nmask],
-                    classes=[labels],
-                    metadata={i: meta},
-                )
+                imported_images["Image"] = dict(images=[image], masks=[mask], nmasks=[nmask], classes=[labels], metadata={i: meta}, )
             else:
                 imported_images["Image"]["images"].append(image)
                 imported_images["Image"]["masks"].append(mask)
@@ -1979,7 +1762,7 @@ def cumsum(a):
 
 def autocontrast_values(image, clip_hist_percent=0.001):
     # calculate histogram
-    hist, bin_edges = np.histogram(image, bins=(2**16) - 1)
+    hist, bin_edges = np.histogram(image, bins=(2 ** 16) - 1)
     hist_size = len(hist)
 
     # calculate cumulative distribution from the histogram
@@ -2043,21 +1826,12 @@ def import_masks(self, file_paths, file_extension=""):
         import_folder = file_paths.replace(file_paths.split("\\")[-1], "")
 
     import_folder = os.path.abspath(import_folder)
-    mask_paths = glob(
-        import_folder + r"**\**\*" + file_extension, recursive=True
-    )
+    mask_paths = glob(import_folder + r"**\**\*" + file_extension, recursive=True)
 
     mask_files = [path.split("\\")[-1] for path in mask_paths]
-    mask_search = [
-        file.split(file.split(".")[-1])[0][:-1] for file in mask_files
-    ]
+    mask_search = [file.split(file.split(".")[-1])[0][:-1] for file in mask_files]
 
-    layer_names = [
-        layer.name
-        for layer in self.viewer.layers
-        if layer.name
-        not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
-    ]
+    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
 
     matching_masks = []
 
@@ -2158,11 +1932,7 @@ def get_contours_from_mask(mask, label, export_labels):
                     export_mask[cnt_mask == 255] = new_mask_id
                     export_label[cnt_mask == 255] = label_id
 
-                    cnt, _ = cv2.findContours(
-                        cnt_mask.astype(np.uint8),
-                        cv2.RETR_EXTERNAL,
-                        cv2.CHAIN_APPROX_NONE,
-                    )
+                    cnt, _ = cv2.findContours(cnt_mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE, )
 
                     contours.append(cnt[0])
 
@@ -2175,7 +1945,7 @@ def get_contours_from_mask(mask, label, export_labels):
 def automatic_brightness_and_contrast(image, clip_hist_percent=0.1):
     if np.max(image) > 0:
         # Calculate grayscale histogram
-        hist = cv2.calcHist([image], [0], None, [2**16], [0, 2**16])
+        hist = cv2.calcHist([image], [0], None, [2 ** 16], [0, 2 ** 16])
         hist_size = len(hist)
 
         # Calculate cumulative distribution from the histogram
@@ -2208,16 +1978,7 @@ def automatic_brightness_and_contrast(image, clip_hist_percent=0.1):
     return image
 
 
-def add_scale_bar(
-    image,
-    pixel_resolution=100,
-    pixel_resolution_units="nm",
-    scalebar_size=20,
-    scalebar_size_units="um",
-    scalebar_colour="white",
-    scalebar_thickness=10,
-    scalebar_margin=10,
-):
+def add_scale_bar(image, pixel_resolution=100, pixel_resolution_units="nm", scalebar_size=20, scalebar_size_units="um", scalebar_colour="white", scalebar_thickness=10, scalebar_margin=10, ):
     try:
         if float(pixel_resolution) > 0 and float(scalebar_size) > 0:
             h, w = image.shape
@@ -2237,38 +1998,22 @@ def add_scale_bar(
             else:
                 rescaled_scalebar_size = scalebar_size
 
-            scalebar_len = int(
-                rescaled_scalebar_size / rescaled_pixel_resolution
-            )
+            scalebar_len = int(rescaled_scalebar_size / rescaled_pixel_resolution)
 
             if scalebar_len > 0 and scalebar_len < w:
                 if scalebar_colour == "White":
                     bit_depth = str(image.dtype)
                     bit_depth = int(bit_depth.replace("uint", ""))
-                    colour = (2**bit_depth) - 1
+                    colour = (2 ** bit_depth) - 1
                 else:
                     colour = 0
 
-                scalebar_pos = (
-                    w - scalebar_margin - scalebar_len,
-                    h - scalebar_margin - int(scalebar_thickness),
-                )  # Position of the scale bar in the image (in pixels)
+                scalebar_pos = (w - scalebar_margin - scalebar_len, h - scalebar_margin - int(scalebar_thickness),)  # Position of the scale bar in the image (in pixels)
 
-                image = cv2.rectangle(
-                    image,
-                    scalebar_pos,
-                    (
-                        scalebar_pos[0] + scalebar_len,
-                        scalebar_pos[1] + int(scalebar_thickness),
-                    ),
-                    colour,
-                    -1,
-                )
+                image = cv2.rectangle(image, scalebar_pos, (scalebar_pos[0] + scalebar_len, scalebar_pos[1] + int(scalebar_thickness),), colour, -1, )
 
             else:
-                show_info(
-                    f"{int(scalebar_size)} ({scalebar_size_units}) Scale bar is too large for the {(rescaled_pixel_resolution / 1000) * w}x{(rescaled_pixel_resolution / 1000) * h} (um) image"
-                )
+                show_info(f"{int(scalebar_size)} ({scalebar_size_units}) Scale bar is too large for the {(rescaled_pixel_resolution / 1000) * w}x{(rescaled_pixel_resolution / 1000) * h} (um) image")
 
     except:
         print(traceback.format_exc())
@@ -2276,23 +2021,8 @@ def add_scale_bar(
     return image
 
 
-def generate_export_image(
-    self,
-    export_channel,
-    dim,
-    normalize=False,
-    invert=False,
-    autocontrast=False,
-    scalebar=False,
-    cropzoom=False,
-    mask_background=False,
-):
-    layer_names = [
-        layer.name
-        for layer in self.viewer.layers
-        if layer.name
-        not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
-    ]
+def generate_export_image(self, export_channel, dim, normalize=False, invert=False, autocontrast=False, scalebar=False, cropzoom=False, mask_background=False, ):
+    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
 
     layer_names.reverse()
 
@@ -2322,9 +2052,9 @@ def generate_export_image(
         crop = layer.corner_pixels.T
         y_range = crop[-2]
         x_range = crop[-1]
-        mask = mask[y_range[0] : y_range[1], x_range[0] : x_range[1]]
-        nmask = nmask[y_range[0] : y_range[1], x_range[0] : x_range[1]]
-        label = label[y_range[0] : y_range[1], x_range[0] : x_range[1]]
+        mask = mask[y_range[0]: y_range[1], x_range[0]: x_range[1]]
+        nmask = nmask[y_range[0]: y_range[1], x_range[0]: x_range[1]]
+        label = label[y_range[0]: y_range[1], x_range[0]: x_range[1]]
 
     image = []
 
@@ -2334,7 +2064,7 @@ def generate_export_image(
         img = img[dim]
 
         if cropzoom:
-            img = img[y_range[0] : y_range[1], x_range[0] : x_range[1]]
+            img = img[y_range[0]: y_range[1], x_range[0]: x_range[1]]
 
         if mask_background:
             img[mask == 0] = 0
@@ -2350,23 +2080,13 @@ def generate_export_image(
 
         if scalebar:
             pixel_resolution = self.export_scalebar_resolution.text()
-            pixel_resolution_units = (
-                self.export_scalebar_resolution_units.currentText()
-            )
+            pixel_resolution_units = (self.export_scalebar_resolution_units.currentText())
             scalebar_size = self.export_scalebar_size.text()
             scalebar_size_units = self.export_scalebar_size_units.currentText()
             scalebar_colour = self.export_scalebar_colour.currentText()
             scalebar_thickness = self.export_scalebar_thickness.currentText()
 
-            img = add_scale_bar(
-                img,
-                pixel_resolution=pixel_resolution,
-                pixel_resolution_units=pixel_resolution_units,
-                scalebar_size=scalebar_size,
-                scalebar_size_units=scalebar_size_units,
-                scalebar_colour=scalebar_colour,
-                scalebar_thickness=scalebar_thickness,
-            )
+            img = add_scale_bar(img, pixel_resolution=pixel_resolution, pixel_resolution_units=pixel_resolution_units, scalebar_size=scalebar_size, scalebar_size_units=scalebar_size_units, scalebar_colour=scalebar_colour, scalebar_thickness=scalebar_thickness, )
 
         image.append(img)
 
@@ -2375,15 +2095,7 @@ def generate_export_image(
             blank = np.zeros(img.shape, dtype=img.dtype)
 
             if scalebar:
-                blank = add_scale_bar(
-                    blank,
-                    pixel_resolution=pixel_resolution,
-                    pixel_resolution_units=pixel_resolution_units,
-                    scalebar_size=scalebar_size,
-                    scalebar_size_units=scalebar_size_units,
-                    scalebar_colour=scalebar_colour,
-                    scalebar_thickness=scalebar_thickness,
-                )
+                blank = add_scale_bar(blank, pixel_resolution=pixel_resolution, pixel_resolution_units=pixel_resolution_units, scalebar_size=scalebar_size, scalebar_size_units=scalebar_size_units, scalebar_colour=scalebar_colour, scalebar_thickness=scalebar_thickness, )
 
             image.append(blank)
 
@@ -2391,7 +2103,7 @@ def generate_export_image(
         image = np.stack(image, axis=-1)
 
         image = rescale01(image)
-        image = image * (2**16 - 1)
+        image = image * (2 ** 16 - 1)
         image = image.astype(np.uint16)
 
     elif mode == "stack":
@@ -2439,17 +2151,7 @@ def export_files(self, progress_callback, mode):
                 dim_list.append((image_index,))
 
     for i, dim in enumerate(dim_list):
-        image, mask, nmask, label, meta, mode = generate_export_image(
-            self,
-            export_channel,
-            dim,
-            normalise,
-            invert,
-            autocontrast,
-            scalebar,
-            cropzoom,
-            mask_background,
-        )
+        image, mask, nmask, label, meta, mode = generate_export_image(self, export_channel, dim, normalise, invert, autocontrast, scalebar, cropzoom, mask_background, )
         contours = get_contours_from_mask(mask, label, export_labels)
 
         if "midlines" in meta.keys():
@@ -2475,11 +2177,7 @@ def export_files(self, progress_callback, mode):
         file_name = file_name + export_modifier + ".tif"
         image_path = image_path.replace(image_path.split("\\")[-1], file_name)
 
-        if (
-            self.export_location.currentText() == "Import Directory"
-            and file_name != None
-            and image_path != None
-        ):
+        if (self.export_location.currentText() == "Import Directory" and file_name != None and image_path != None):
             export_path = os.path.abspath(image_path.replace(file_name, ""))
 
         elif self.export_location.currentText() == "Select Directory":
@@ -2490,9 +2188,7 @@ def export_files(self, progress_callback, mode):
 
         if os.path.isdir(export_path) != True:
             if self.widget_notifications:
-                show_info(
-                    "Directory does not exist, try selecting a directory instead!"
-                )
+                show_info("Directory does not exist, try selecting a directory instead!")
 
         else:
             y1, y2, x1, x2 = meta["crop"]
@@ -2512,10 +2208,7 @@ def export_files(self, progress_callback, mode):
 
             if os.path.isfile(file_path) == True and overwrite == False:
                 if self.widget_notifications:
-                    show_info(
-                        file_name
-                        + " already exists, BacSeg will not overwrite files!"
-                    )
+                    show_info(file_name + " already exists, BacSeg will not overwrite files!")
 
             else:
                 if self.export_mode.currentText() == "Export .tif Images":
@@ -2524,10 +2217,7 @@ def export_files(self, progress_callback, mode):
                 if self.export_mode.currentText() == "Export .tif Masks":
                     tifffile.imwrite(file_path, mask, metadata=meta)
 
-                if (
-                    self.export_mode.currentText()
-                    == "Export .tif Images and Masks"
-                ):
+                if (self.export_mode.currentText() == "Export .tif Images and Masks"):
                     image_path = os.path.abspath(export_path + "\\images")
                     mask_path = os.path.abspath(export_path + "\\masks")
 
@@ -2556,14 +2246,9 @@ def export_files(self, progress_callback, mode):
                         with warnings.catch_warnings():
                             warnings.filterwarnings("ignore")
 
-                            from napari_bacseg._utils_oufti import (
-                                export_oufti,
-                                get_oufti_data,
-                            )
+                            from napari_bacseg._utils_oufti import (export_oufti, get_oufti_data, )
 
-                            oufti_data = get_oufti_data(
-                                self, image, mask, midlines
-                            )
+                            oufti_data = get_oufti_data(self, image, mask, midlines)
 
                             if "midlines" in meta.keys():
                                 meta.pop("midlines")
@@ -2571,32 +2256,24 @@ def export_files(self, progress_callback, mode):
                             export_oufti(image, oufti_data, file_path)
 
                             if export_images:
-                                tifffile.imwrite(
-                                    file_path, image, metadata=meta
-                                )
+                                tifffile.imwrite(file_path, image, metadata=meta)
 
                     except:
-                        raise Exception(
-                            "BacSeg can't load Cellpose and OUFTI dependencies simultaneously. Restart BacSeg, reload images/masks, then export Oufti"
-                        )
+                        raise Exception("BacSeg can't load Cellpose and OUFTI dependencies simultaneously. Restart BacSeg, reload images/masks, then export Oufti")
 
                 if self.export_mode.currentText() == "Export ImageJ":
                     from napari_bacseg._utils_imagej import export_imagej
 
                     if mode == "rgb":
                         if self.widget_notifications:
-                            show_info(
-                                "ImageJ can't handle RGB images with annotations, export as image stack instead..."
-                            )
+                            show_info("ImageJ can't handle RGB images with annotations, export as image stack instead...")
 
                     export_imagej(image, contours, meta, file_path)
 
                 if self.export_mode.currentText() == "Export JSON":
                     from napari_bacseg._utils_json import export_coco_json
 
-                    export_coco_json(
-                        file_name, image, mask, nmask, label, file_path
-                    )
+                    export_coco_json(file_name, image, mask, nmask, label, file_path)
 
                     if export_images:
                         tifffile.imwrite(file_path, image, metadata=meta)
@@ -2633,12 +2310,7 @@ def export_csv(image, contours, meta, file_path):
                 cnt = np.vstack(cnt).squeeze().astype(str)
 
                 if len(cnt.shape) < max_length:
-                    cnt = np.pad(
-                        cnt,
-                        ((0, max_length - cnt.shape[0]), (0, 0)),
-                        "constant",
-                        constant_values="",
-                    )
+                    cnt = np.pad(cnt, ((0, max_length - cnt.shape[0]), (0, 0)), "constant", constant_values="", )
 
                 processed_contours.append(cnt)
 
@@ -2650,16 +2322,9 @@ def export_csv(image, contours, meta, file_path):
             file_path = file_path.replace(file_extension, "csv")
 
             processed_contours = np.hstack(processed_contours)
-            headers = np.array(
-                [
-                    [f"x[{str(x)}]", f"y[{str((x))}]"]
-                    for x in range(processed_contours.shape[-1] // 2)
-                ]
-            ).flatten()
+            headers = np.array([[f"x[{str(x)}]", f"y[{str((x))}]"] for x in range(processed_contours.shape[-1] // 2)]).flatten()
 
-            pd.DataFrame(processed_contours, columns=headers).to_csv(
-                file_path, index=False, header=True
-            )
+            pd.DataFrame(processed_contours, columns=headers).to_csv(file_path, index=False, header=True)
 
         except:
             print(traceback.format_exc())
@@ -2667,10 +2332,7 @@ def export_csv(image, contours, meta, file_path):
 
 def _manualImport(self):
     try:
-        if (
-            self.viewer.layers.index("Segmentations")
-            != len(self.viewer.layers) - 1
-        ):
+        if (self.viewer.layers.index("Segmentations") != len(self.viewer.layers) - 1):
             # reshapes masks to be same shape as active image
             self.active_layer = self.viewer.layers[-1]
 
@@ -2682,14 +2344,10 @@ def _manualImport(self):
                     self.active_layer.data = active_image
 
                 if self.classLayer.data.shape != self.active_layer.data.shape:
-                    self.classLayer.data = np.zeros(
-                        active_image.shape, np.uint16
-                    )
+                    self.classLayer.data = np.zeros(active_image.shape, np.uint16)
 
                 if self.segLayer.data.shape != self.active_layer.data.shape:
-                    self.segLayer.data = np.zeros(
-                        active_image.shape, np.uint16
-                    )
+                    self.segLayer.data = np.zeros(active_image.shape, np.uint16)
 
                 image_name = str(self.viewer.layers[-1]) + ".tif"
 
@@ -2697,30 +2355,10 @@ def _manualImport(self):
                 for i in range(active_image.shape[0]):
                     img = active_image[i, :, :]
 
-                    contrast_limit, alpha, beta, gamma = autocontrast_values(
-                        img, clip_hist_percent=1
-                    )
+                    contrast_limit, alpha, beta, gamma = autocontrast_values(img, clip_hist_percent=1)
 
-                    img_meta = dict(
-                        image_name=image_name,
-                        image_path="Unknown",
-                        mask_name=None,
-                        mask_path=None,
-                        label_name=None,
-                        label_path=None,
-                        folder=None,
-                        parent_folder=None,
-                        contrast_limit=contrast_limit,
-                        contrast_alpha=alpha,
-                        contrast_beta=beta,
-                        contrast_gamma=gamma,
-                        akseg_hash=None,
-                        import_mode="manual",
-                        dims=[img.shape[1], img.shape[0]],
-                        crop=[0, img.shape[0], 0, img.shape[1]],
-                        frame=i,
-                        frames=active_image.shape[0],
-                    )
+                    img_meta = dict(image_name=image_name, image_path="Unknown", mask_name=None, mask_path=None, label_name=None, label_path=None, folder=None, parent_folder=None, contrast_limit=contrast_limit, contrast_alpha=alpha, contrast_beta=beta, contrast_gamma=gamma, akseg_hash=None, import_mode="manual", dims=[
+                        img.shape[1], img.shape[0]], crop=[0, img.shape[0], 0, img.shape[1]], frame=i, frames=active_image.shape[0], )
 
                     meta[i] = img_meta
 
