@@ -1219,7 +1219,7 @@ def read_user_metadata(self, user_metadata_path=""):
 
             user_metadata[["treatment time (mins)"]] = user_metadata[
                 ["treatment time (mins)"]
-            ].apply(pd.to_numeric, downcast="float")
+            ].apply(pd.to_numeric, downcast="float", errors="coerce")
 
             user_metadata, expected_columns = check_metadata_format(
                 user_metadata, self.metadata_columns
@@ -1233,7 +1233,9 @@ def read_user_metadata(self, user_metadata_path=""):
             self.expected_columns = expected_columns
 
     except:
+        print(traceback.format_exc())
         user_metadata = None
+        expected_columns = None
 
     return user_metadata, expected_columns
 
