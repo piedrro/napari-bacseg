@@ -333,6 +333,48 @@
         </property>
        </widget>
       </item>
+      <item row="9" column="1">
+       <spacer name="verticalSpacer_47">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Minimum</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>5</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="10" column="0">
+       <widget class="QLabel" name="label_105">
+        <property name="text">
+         <string>Append Mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="1">
+       <widget class="QComboBox" name="import_append_mode">
+        <item>
+         <property name="text">
+          <string>None (Clear Previous Images)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Append Images</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Append Channels</string>
+         </property>
+        </item>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -346,50 +388,20 @@
       <property name="sizeHint" stdset="0">
        <size>
         <width>334</width>
-        <height>5</height>
+        <height>50</height>
        </size>
       </property>
      </spacer>
     </item>
     <item>
-     <layout class="QGridLayout" name="gridLayout_9">
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="import_clear_previous">
-        <property name="text">
-         <string>Clear previous images</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QCheckBox" name="import_align">
-        <property name="text">
-         <string>Align Image Channels (Slow)</string>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <spacer name="verticalSpacer_14">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
+     <widget class="QCheckBox" name="import_align">
+      <property name="text">
+       <string>Align Image Channels (Slow)</string>
       </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Minimum</enum>
+      <property name="checked">
+       <bool>false</bool>
       </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>334</width>
-        <height>5</height>
-       </size>
-      </property>
-     </spacer>
+     </widget>
     </item>
     <item>
      <widget class="QPushButton" name="import_import">
@@ -4628,14 +4640,14 @@ color: rgb(0, 255, 0);</string>
             <item>
              <widget class="QPushButton" name="export_active">
               <property name="text">
-               <string>Export Data From Active Frame</string>
+               <string>Export Image From Active Frame</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="export_all">
               <property name="text">
-               <string>Export Data From All Frames</string>
+               <string>Export Image From All Frames</string>
               </property>
              </widget>
             </item>
@@ -4760,14 +4772,14 @@ color: rgb(0, 255, 0);</string>
             <item>
              <widget class="QPushButton" name="export_stack_active">
               <property name="text">
-               <string>Export Data Stack From Active Channel</string>
+               <string>Export Image Stack From Selected Channel</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="export_stack_all">
               <property name="text">
-               <string>Export Data Stack From All Channels</string>
+               <string>Export Image Stack From All Channels</string>
               </property>
              </widget>
             </item>
