@@ -301,6 +301,11 @@
         </item>
         <item>
          <property name="text">
+          <string>Zeiss (.czi) Data</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
           <string>ImageJ files(s)</string>
          </property>
         </item>
