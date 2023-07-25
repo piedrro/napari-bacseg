@@ -653,6 +653,7 @@ def get_cell_statistics(
 
 
 def process_cell_statistics(self, cell_statistics, path):
+
     def _event(viewer, cell_statistics=None):
         if type(cell_statistics) == dict:
             ldist_data = cell_statistics["ldist_data"]
@@ -712,7 +713,7 @@ def process_cell_statistics(self, cell_statistics, path):
 
         return
 
-    return _event
+    return _event(self.viewer, cell_statistics)
 
 
 def _compute_simple_cell_stats(self):
