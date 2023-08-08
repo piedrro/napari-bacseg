@@ -174,20 +174,15 @@ def read_scanr_directory(self, path):
             if os.path.isfile(path) == True:
                 selected_paths = [path]
                 image_path = os.path.abspath(path)
-                file_directory = os.path.abspath(
-                    image_path.split(image_path.split("\\")[-1])[0]
-                )
+                file_directory = os.path.abspath(os.path.basename(image_path))
                 file_paths = glob(file_directory + r"*\*.tif")
-
             else:
                 file_paths = glob(path + r"*\**\*.tif", recursive=True)
                 selected_paths = []
         else:
             selected_paths = [os.path.abspath(path) for path in path]
             image_path = os.path.abspath(path[0])
-            file_directory = os.path.abspath(
-                image_path.split(image_path.split("\\")[-1])[0]
-            )
+            file_directory = os.path.abspath(os.path.basename(image_path))
             file_paths = glob(file_directory + r"*\*.tif")
 
         scanR_meta_files = [
@@ -209,15 +204,15 @@ def read_scanr_directory(self, path):
                 file = file_info[path]
                 file["path"] = path
 
-                split_path = path.split("\\")
+                split_path = path.split(os.sep)
 
                 if len(split_path) >= 4:
-                    folder = path.split("\\")[-4]
+                    folder = path.split(os.sep)[-4]
                 else:
                     folder = ""
 
                 if len(split_path) >= 5:
-                    parent_folder = path.split("\\")[-5]
+                    parent_folder = path.split(os.sep)[-5]
                 else:
                     parent_folder = ""
 
@@ -347,9 +342,10 @@ def read_scanr_images(self, progress_callback, measurements, channels):
                 multiframe_mode = self.import_multiframe_mode.currentIndex()
                 crop_mode = self.import_crop_mode.currentIndex()
 
-                img, meta = read_image_file(
+                image_list, meta = read_image_file(
                     path, import_precision, multiframe_mode, crop_mode
                 )
+                img = image_list[0]
 
                 contrast_limit, alpha, beta, gamma = autocontrast_values(img)
 
@@ -379,8 +375,8 @@ def read_scanr_images(self, progress_callback, measurements, channels):
                 image_path = meta["image_path"]
 
                 if "pos_" in image_path:
-                    meta["folder"] = image_path.split("\\")[-4]
-                    meta["parent_folder"] = image_path.split("\\")[-5]
+                    meta["folder"] = image_path.split(os.sep)[-4]
+                    meta["parent_folder"] = image_path.split(os.sep)[-5]
 
             else:
                 img = np.zeros(img_shape, dtype=img_type)
@@ -553,7 +549,7 @@ def read_nim_directory(self, path):
 
     file_paths = [file for file in file_paths if file.split(".")[-1] == "tif"]
 
-    file_names = [path.split("\\")[-1] for path in file_paths]
+    file_names = [path.split(os.sep)[-1] for path in file_paths]
 
     files = pd.DataFrame(
         columns=[
@@ -574,9 +570,9 @@ def read_nim_directory(self, path):
             path = file_paths[i]
             path = os.path.abspath(path)
 
-            file_name = path.split("\\")[-1]
-            folder = os.path.abspath(path).split("\\")[-2]
-            parent_folder = os.path.abspath(path).split("\\")[-3]
+            file_name = path.split(os.sep)[-1]
+            folder = os.path.abspath(path).split(os.sep)[-2]
+            parent_folder = os.path.abspath(path).split(os.sep)[-3]
 
             with tifffile.TiffFile(path) as tif:
                 tif_tags = {}
@@ -611,7 +607,7 @@ def read_nim_directory(self, path):
                 else:
                     laser = "White Light"
 
-                file_name = path.split("\\")[-1]
+                file_name = path.split(os.sep)[-1]
 
                 data = [path, file_name, posX, posY, posZ, laser, timestamp]
 
@@ -709,7 +705,7 @@ def get_folder(files):
     paths = files["path"].tolist()
 
     if len(paths) > 1:
-        paths = np.array([path.split("\\") for path in paths]).T
+        paths = np.array([path.split(os.sep) for path in paths]).T
 
         for i in range(len(paths)):
             if len(set(paths[i])) != 1:
@@ -719,8 +715,8 @@ def get_folder(files):
                 break
 
     else:
-        folder = paths[0].split("\\")[-2]
-        parent_folder = paths[0].split("\\")[-3]
+        folder = paths[0].split(os.sep)[-2]
+        parent_folder = paths[0].split(os.sep)[-3]
 
     return folder, parent_folder
 
@@ -758,10 +754,11 @@ def read_image_file(path, precision="native", multiframe_mode=0, crop_mode=0):
     image = crop_image(image, crop_mode)
 
     image = get_frame(image, multiframe_mode)
+
     image = rescale_image(image, precision=precision)
 
-    folder = os.path.abspath(path).split("\\")[-2]
-    parent_folder = os.path.abspath(path).split("\\")[-3]
+    folder = os.path.abspath(path).split(os.sep)[-2]
+    parent_folder = os.path.abspath(path).split(os.sep)[-3]
 
     if "image_name" not in metadata.keys():
         metadata["image_name"] = image_name
@@ -981,8 +978,8 @@ def read_nim_images(self, progress_callback, measurements, channels):
                     image_path = frame_meta["image_path"]
 
                     if "pos_" in image_path:
-                        frame_meta["folder"] = image_path.split("\\")[-4]
-                        frame_meta["parent_folder"] = image_path.split("\\")[
+                        frame_meta["folder"] = image_path.split(os.sep)[-4]
+                        frame_meta["parent_folder"] = image_path.split(os.sep)[
                             -5
                         ]
 
@@ -1175,7 +1172,7 @@ def import_dataset(self, progress_callback, paths):
     else:
         folders = glob(path + "*/*")
 
-    folders = [os.path.abspath(x).split("\\")[-1].lower() for x in folders]
+    folders = [os.path.abspath(x).split(os.sep)[-1].lower() for x in folders]
 
     if "images" in folders and "masks" in folders:
         image_paths = glob(path + "/images/*.tif")
@@ -1206,16 +1203,17 @@ def import_dataset(self, progress_callback, paths):
             image_path = os.path.abspath(image_paths[i])
             mask_path = image_path.replace("\\images\\", "\\masks\\")
 
-            image_name = image_path.split("\\")[-1]
-            mask_name = mask_path.split("\\")[-1]
+            image_name = image_path.split(os.sep)[-1]
+            mask_name = mask_path.split(os.sep)[-1]
 
             import_precision = self.import_precision.currentText()
             multiframe_mode = self.import_multiframe_mode.currentIndex()
             crop_mode = self.import_crop_mode.currentIndex()
 
-            image, meta = read_image_file(
+            image_list, meta = read_image_file(
                 path, import_precision, multiframe_mode
             )
+            image = image_list[0]
 
             crop_mode = self.import_crop_mode.currentIndex()
             image = crop_image(image, crop_mode)
@@ -1281,7 +1279,7 @@ def import_bacseg(self, progress_callback, file_paths):
     else:
         folders = glob(path + "*/*")
 
-    folders = [os.path.abspath(x).split("\\")[-1].lower() for x in folders]
+    folders = [os.path.abspath(x).split(os.sep)[-1].lower() for x in folders]
 
     if "images" in folders and "json" in folders:
         image_paths = glob(path + "/images/*.tif")
@@ -1314,9 +1312,10 @@ def import_bacseg(self, progress_callback, file_paths):
             )
 
             import_precision = self.import_precision.currentText()
-            image, meta_stack = read_image_file(
+            image_list, meta_stack = read_image_file(
                 path, import_precision, multiframe_mode=0
             )
+            image = image_list[0]
 
             crop_mode = self.import_crop_mode.currentIndex()
             image = crop_image(image, crop_mode)
@@ -1509,7 +1508,7 @@ def import_cellpose(self, progress_callback, file_paths):
             )
 
         file_path = os.path.abspath(file_paths[i])
-        file_name = file_path.split("\\")[-1]
+        file_name = file_path.split(os.sep)[-1]
 
         dat = np.load(file_path, allow_pickle=True).item()
 
@@ -1519,13 +1518,14 @@ def import_cellpose(self, progress_callback, file_paths):
         image_path = file_path.replace("_seg.npy", ".tif")
 
         if os.path.exists(image_path):
-            image_name = image_path.split("\\")[-1]
+            image_name = image_path.split(os.sep)[-1]
 
             import_precision = self.import_precision.currentText()
             multiframe_mode = self.import_multiframe_mode.currentIndex()
-            img, meta = read_image_file(
+            image_list, meta = read_image_file(
                 image_path, import_precision, multiframe_mode
             )
+            img = image_list[0]
 
             crop_mode = self.import_crop_mode.currentIndex()
             img = crop_image(img, crop_mode)
@@ -1557,8 +1557,8 @@ def import_cellpose(self, progress_callback, file_paths):
 
             self.active_import_mode = "cellpose"
 
-            folder = os.path.abspath(file_path).split("\\")[-2]
-            parent_folder = os.path.abspath(file_path).split("\\")[-3]
+            folder = os.path.abspath(file_path).split(os.sep)[-2]
+            parent_folder = os.path.abspath(file_path).split(os.sep)[-3]
 
             meta = dict(
                 image_name=file_name,
@@ -1608,7 +1608,7 @@ def import_oufti(self, progress_callback, file_paths):
     ]
 
     file_path = os.path.abspath(file_paths[0])
-    parent_dir = file_path.replace(file_path.split("\\")[-1], "")
+    parent_dir = file_path.replace(file_path.split(os.sep)[-1], "")
 
     mat_paths = file_paths
     image_paths = glob(parent_dir + r"**\*", recursive=True)
@@ -1618,8 +1618,8 @@ def import_oufti(self, progress_callback, file_paths):
         path for path in image_paths if path.split(".")[-1] in image_formats
     ]
 
-    mat_files = [path.split("\\")[-1] for path in mat_paths]
-    image_files = [path.split("\\")[-1] for path in image_paths]
+    mat_files = [path.split(os.sep)[-1] for path in mat_paths]
+    image_files = [path.split(os.sep)[-1] for path in image_paths]
 
     matching_image_paths = []
     matching_mat_paths = []
@@ -1682,8 +1682,8 @@ def import_oufti(self, progress_callback, file_paths):
             mat_path = mat_files[i]
             image_path = image_files[i]
 
-            image_name = image_path.split("\\")[-1]
-            mat_name = mat_path.split("\\")[-1]
+            image_name = image_path.split(os.sep)[-1]
+            mat_name = mat_path.split(os.sep)[-1]
 
             image, mask, meta = import_mat_data(self, image_path, mat_path)
 
@@ -1735,9 +1735,10 @@ def import_mat_data(self, image_path, mat_path):
     import_precision = self.import_precision.currentText()
     multiframe_mode = self.import_multiframe_mode.currentIndex()
     crop_mode = self.import_crop_mode.currentIndex()
-    image, meta = read_image_file(
+    image_list, meta = read_image_file(
         image_path, import_precision, multiframe_mode
     )
+    image = image_list[0]
 
     mat_data = mat4py.loadmat(mat_path)
 
@@ -1939,12 +1940,12 @@ def import_JSON(self, progress_callback, file_paths):
     ]
 
     file_path = os.path.abspath(file_paths[0])
-    parent_dir = file_path.replace(file_path.split("\\")[-1], "")
+    parent_dir = file_path.replace(file_path.split(os.sep)[-1], "")
 
     image_paths = glob(parent_dir + "*.tif", recursive=True)
 
-    json_files = [path.split("\\")[-1] for path in json_paths]
-    image_files = [path.split("\\")[-1] for path in image_paths]
+    json_files = [path.split(os.sep)[-1] for path in json_paths]
+    image_files = [path.split(os.sep)[-1] for path in image_paths]
 
     matching_image_paths = []
     matching_json_paths = []
@@ -2012,15 +2013,16 @@ def import_JSON(self, progress_callback, file_paths):
             json_path = json_files[i]
             image_path = image_files[i]
 
-            image_name = image_path.split("\\")[-1]
-            json_name = json_path.split("\\")[-1]
+            image_name = image_path.split(os.sep)[-1]
+            json_name = json_path.split(os.sep)[-1]
 
             import_precision = self.import_precision.currentText()
             multiframe_mode = self.import_multiframe_mode.currentIndex()
             crop_mode = self.import_crop_mode.currentIndex()
-            image, meta = read_image_file(
+            image_list, meta = read_image_file(
                 image_path, import_precision, multiframe_mode
             )
+            image = image_list[0]
 
             from napari_bacseg._utils_json import import_coco_json
 
@@ -2164,14 +2166,14 @@ def import_masks(self, file_paths, file_extension=""):
 
     if os.path.isfile(file_paths[0]):
         file_paths = os.path.abspath(file_paths[0])
-        import_folder = file_paths.replace(file_paths.split("\\")[-1], "")
+        import_folder = file_paths.replace(file_paths.split(os.sep)[-1], "")
 
     import_folder = os.path.abspath(import_folder)
     mask_paths = glob(
         import_folder + r"**\**\*" + file_extension, recursive=True
     )
 
-    mask_files = [path.split("\\")[-1] for path in mask_paths]
+    mask_files = [path.split(os.sep)[-1] for path in mask_paths]
     mask_search = [
         file.split(file.split(".")[-1])[0][:-1] for file in mask_files
     ]
@@ -2601,7 +2603,7 @@ def export_stacks(self, progress_callback, mode):
 
             file_name = file_name + export_stack_modifier + ".tif"
             image_path = image_path.replace(
-                image_path.split("\\")[-1], file_name
+                image_path.split(os.sep)[-1], file_name
             )
 
             if (
@@ -2640,7 +2642,7 @@ def export_stacks(self, progress_callback, mode):
                 if os.path.isdir(export_path) == False:
                     os.makedirs(file_path)
 
-                file_path = export_path + "\\" + file_name
+                file_path = export_path + os.sep + file_name
 
                 if os.path.isfile(file_path) == True and overwrite == False:
                     if self.widget_notifications:
@@ -2732,7 +2734,9 @@ def export_files(self, progress_callback, mode):
             file_name = file_name + f"_{dim}"
 
         file_name = file_name + export_modifier + ".tif"
-        image_path = image_path.replace(image_path.split("\\")[-1], file_name)
+        image_path = image_path.replace(
+            image_path.split(os.sep)[-1], file_name
+        )
 
         if (
             self.export_location.currentText() == "Import Directory"
@@ -2767,7 +2771,7 @@ def export_files(self, progress_callback, mode):
             if os.path.isdir(export_path) == False:
                 os.makedirs(file_path)
 
-            file_path = export_path + "\\" + file_name
+            file_path = export_path + os.sep + file_name
 
             if os.path.isfile(file_path) == True and overwrite == False:
                 if self.widget_notifications:
@@ -2796,8 +2800,10 @@ def export_files(self, progress_callback, mode):
                     if not os.path.exists(mask_path):
                         os.makedirs(mask_path)
 
-                    image_path = os.path.abspath(image_path + "\\" + file_name)
-                    mask_path = os.path.abspath(mask_path + "\\" + file_name)
+                    image_path = os.path.abspath(
+                        image_path + os.sep + file_name
+                    )
+                    mask_path = os.path.abspath(mask_path + os.sep + file_name)
 
                     tifffile.imwrite(image_path, image, metadata=meta)
                     tifffile.imwrite(mask_path, mask, metadata=meta)
