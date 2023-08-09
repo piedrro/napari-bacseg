@@ -14,6 +14,7 @@ import pickle
 from skimage import exposure
 from napari.utils.notifications import show_info
 
+
 def normalize99(X):
     """ normalize image so 0.0 is 0.01st percentile and 1.0 is 99.99th percentile """
 
@@ -33,8 +34,8 @@ def rescale01(x):
 
     return x
 
-def find_contours(img):
 
+def find_contours(img):
     # finds contours of shapes, only returns the external contours of the shapes
     contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     contours = sorted(contours, key=cv2.contourArea, reverse=True)
@@ -42,7 +43,6 @@ def find_contours(img):
 
 
 def rotate_contour(cnt, angle=90, units="DEGREES"):
-
     x = cnt[:, :, 1].copy()
     y = cnt[:, :, 0].copy()
 
@@ -69,7 +69,6 @@ def rotate_contour(cnt, angle=90, units="DEGREES"):
 
 
 def rotate_image(image, shift_xy, angle=90):
-
     x_shift, y_shift = shift_xy
 
     (h, w) = image.shape[:2]
@@ -82,7 +81,6 @@ def rotate_image(image, shift_xy, angle=90):
 
 
 def rotate_model(model, shift_xy, angle=-90, units="DEGREES"):
-
     x = model[:, 1].copy()
     y = model[:, 0].copy()
 
@@ -106,27 +104,24 @@ def rotate_model(model, shift_xy, angle=-90, units="DEGREES"):
     return model
 
 
-def get_cell_images(self, image, mask, mask_ids = None):
-
+def get_cell_images(self, image, mask, mask_ids=None):
     if mask_ids == None:
         mask_ids = np.unique(mask)
 
     cell_data = {}
 
     for i in range(len(mask_ids)):
-
         mask_id = mask_ids[i]
 
         if mask_id != 0:
-
             cell_image = image.copy()
 
             cell_mask = np.zeros(mask.shape, dtype=np.uint8)
             cell_mask[mask == mask_id] = 1
 
-            inverted_cell_mask = np.zeros(mask.shape,dtype=np.uint8)
-            inverted_cell_mask[mask!=0] = 1
-            inverted_cell_mask[mask==mask_id] = 0
+            inverted_cell_mask = np.zeros(mask.shape, dtype=np.uint8)
+            inverted_cell_mask[mask != 0] = 1
+            inverted_cell_mask[mask == mask_id] = 0
 
             cnt = find_contours(cell_mask)[0]
 
@@ -186,21 +181,12 @@ def get_cell_images(self, image, mask, mask_ids = None):
             offset = [y1, x1]
             box = [y1, y2, x1, x2]
 
-            cell_data[i] = dict(cell_image=cell_image,
-                                cell_mask=cell_mask,
-                                offset=offset,
-                                shift_xy=shift_xy,
-                                box=box,
-                                edge=edge,
-                                vertical=vertical,
-                                mask_id=mask_id,
-                                contour=cnt)
+            cell_data[i] = dict(cell_image=cell_image, cell_mask=cell_mask, offset=offset, shift_xy=shift_xy, box=box, edge=edge, vertical=vertical, mask_id=mask_id, contour=cnt)
 
     return cell_data
 
 
 def resize_line(mesh, mesh_length):
-
     distances = np.linspace(0, mesh.length, mesh_length)
     mesh = LineString([mesh.interpolate(distance) for distance in distances])
 
@@ -224,13 +210,11 @@ def polyarea(x, y):
 
 
 def compute_line_metrics(mesh):
-    steplength = euclidian_distance(mesh[1:, 0] + mesh[1:, 2], mesh[1:, 1] + mesh[1:, 3], mesh[:-1, 0] + mesh[:-1, 2],
-                                    mesh[:-1, 1] + mesh[:-1, 3]) / 2
+    steplength = euclidian_distance(mesh[1:, 0] + mesh[1:, 2], mesh[1:, 1] + mesh[1:, 3], mesh[:-1, 0] + mesh[:-1, 2], mesh[:-1, 1] + mesh[:-1, 3]) / 2
 
     steparea = []
     for i in range(len(mesh) - 1):
-        steparea.append(
-            polyarea([*mesh[i:i + 2, 0], *mesh[i:i + 2, 2][::-1]], [*mesh[i:i + 2, 1], *mesh[i:i + 2, 3][::-1]]))
+        steparea.append(polyarea([*mesh[i:i + 2, 0], *mesh[i:i + 2, 2][::-1]], [*mesh[i:i + 2, 1], *mesh[i:i + 2, 3][::-1]]))
 
     steparea = np.array(steparea)
 
@@ -240,8 +224,7 @@ def compute_line_metrics(mesh):
     return steplength, steparea, stepvolume
 
 
-def get_colicoords_mesh(cell, dat, statistics = False, pixel_size = 1):
-
+def get_colicoords_mesh(cell, dat, statistics=False, pixel_size=1):
     offset, vertical, shift_xy = dat["offset"], dat["vertical"], dat["shift_xy"]
 
     numpoints = 20
@@ -320,40 +303,30 @@ def get_colicoords_mesh(cell, dat, statistics = False, pixel_size = 1):
     boundingbox[2:4] = np.ceil(boundingbox[2:4])
     boundingbox[2:4] = boundingbox[2:4] - boundingbox[0:2]
 
-    dat["statistics"] = dict(colicoords=True,
-                             length = cell.length * pixel_size,
-                             radius = cell.radius * pixel_size,
-                             area = cell.area * pixel_size**2,
-                             circumference = cell.circumference * pixel_size,
-                             aspect_ratio = cell.length/(cell.radius*2))
+    dat[
+        "statistics"] = dict(colicoords=True, length=cell.length * pixel_size, radius=cell.radius * pixel_size, area=cell.area * pixel_size ** 2, circumference=cell.circumference * pixel_size, aspect_ratio=cell.length / (
+                cell.radius * 2))
 
     dat["mask_id"] = dat["mask_id"]
 
-    dat["oufti"] = dict(mesh=mesh,
-                        model=model,
-                        boundingbox=boundingbox,
-                        distances=distances,
-                        area=area,
-                        volume=volume)
+    dat["oufti"] = dict(mesh=mesh, model=model, boundingbox=boundingbox, distances=distances, area=area, volume=volume)
 
     dat["refined_cnt"] = model.reshape(-1, 1, 2).astype(int)
 
     return dat
 
-def colicoords_fit(dat,colicoords_channel='Mask', statistics=False, pixel_size = 1):
 
+def colicoords_fit(dat, colicoords_channel='Mask', statistics=False, pixel_size=1):
     config.cfg.IMG_PIXELSIZE = 1000 * pixel_size
 
     results = {}
 
     try:
-
         cell_dat = np.load(dat["cell_images_path"], allow_pickle=True).item()
 
         dat = {**dat, **cell_dat}
 
         if dat['edge'] == False:
-
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore")
 
@@ -381,7 +354,6 @@ def colicoords_fit(dat,colicoords_channel='Mask', statistics=False, pixel_size =
 
                 for channel in channel_list:
                     if channel != 'binary':
-
                         ldist = get_cell_ldist(cell, channel)
                         results["ldist"][channel] = ldist
 
@@ -401,7 +373,6 @@ def colicoords_fit(dat,colicoords_channel='Mask', statistics=False, pixel_size =
 
 
 def get_cell_ldist(cell, channel):
-
     nbins = config.cfg.L_DIST_NBINS
     sigma = config.cfg.L_DIST_SIGMA
     sigma_arr = sigma / cell.length
@@ -417,13 +388,12 @@ def get_cell_ldist(cell, channel):
         out_arr = out_arr / np.max(out_arr)
 
     else:
-
         out_arr = None
 
     return out_arr
 
-def process_cell_ldist(cell_statistics):
 
+def process_cell_ldist(cell_statistics):
     data = [dat["ldist"] for dat in cell_statistics if dat["cell"] != None]
 
     channels = np.unique([list(dat.keys()) for dat in data]).tolist()
@@ -431,7 +401,6 @@ def process_cell_ldist(cell_statistics):
     ldist_data = {}
 
     for channel in channels:
-
         ldist = [dat[channel] for dat in data if dat[channel] is not None]
 
         ldist = np.stack(ldist)
@@ -439,16 +408,14 @@ def process_cell_ldist(cell_statistics):
         ldist_mean = np.nanmean(ldist, axis=0)
         ldist_std = np.std(ldist, axis=0)
 
-        channel_dat = {channel + " mean": ldist_mean,
-                       channel + " std": ldist_std}
+        channel_dat = {channel + " mean": ldist_mean, channel + " std": ldist_std}
 
         ldist_data = {**ldist_data, **channel_dat}
 
     return ldist_data
 
 
-def run_colicoords(self, cell_data, colicoords_channel, statistics = False, pixel_size=1, progress_callback=None, multithreaded = True):
-
+def run_colicoords(self, cell_data, colicoords_channel, statistics=False, pixel_size=1, progress_callback=None, multithreaded=True):
     from sys import getsizeof
 
     processes = multiprocessing.cpu_count() - 1
@@ -456,28 +423,25 @@ def run_colicoords(self, cell_data, colicoords_channel, statistics = False, pixe
     free_memory = psutil.virtual_memory().available / 1e6
     cell_data_size = getsizeof(cell_data)
 
-    #assumes spawned python processes use 500mb of RAM
-    if processes > free_memory//500:
-        processes = int(free_memory//500)
+    # assumes spawned python processes use 500mb of RAM
+    if processes > free_memory // 500:
+        processes = int(free_memory // 500)
 
     if multithreaded:
-
         with Pool(processes=processes) as pool:
-
             iter = []
 
             def callback(*args):
                 iter.append(1)
-                progress = (len(iter)/len(cell_data)) * 100
+                progress = (len(iter) / len(cell_data)) * 100
 
                 if progress_callback != None:
                     progress_callback.emit(progress)
 
                 return
 
-            results = [pool.apply_async(colicoords_fit, args=(i,), kwds={'colicoords_channel': colicoords_channel,
-                                                                         'statistics': statistics,
-                                                                         'pixel_size': pixel_size}, callback=callback) for i in cell_data]
+            results = [pool.apply_async(colicoords_fit, args=(i,), kwds={'colicoords_channel': colicoords_channel, 'statistics': statistics, 'pixel_size': pixel_size}, callback=callback) for i in
+                       cell_data]
 
             try:
                 results[-1].get()
@@ -489,15 +453,13 @@ def run_colicoords(self, cell_data, colicoords_channel, statistics = False, pixe
                 pool.join()
 
     else:
-
         iter = []
         cell_statistics = []
 
         for i in range(len(cell_data)):
-
             dat = cell_data[i]
 
-            stats = colicoords_fit(dat, colicoords_channel= colicoords_channel, statistics=statistics, pixel_size=pixel_size)
+            stats = colicoords_fit(dat, colicoords_channel=colicoords_channel, statistics=statistics, pixel_size=pixel_size)
 
             cell_statistics.append(stats)
 
@@ -510,17 +472,14 @@ def run_colicoords(self, cell_data, colicoords_channel, statistics = False, pixe
     ldist_data = {}
 
     if statistics is True:
-
         ldist_data = process_cell_ldist(cell_statistics)
 
-    colicoords_data = dict(cell_statistics=cell_statistics,
-                           ldist_data=ldist_data)
+    colicoords_data = dict(cell_statistics=cell_statistics, ldist_data=ldist_data)
 
     return colicoords_data
 
 
-def get_l_dist(cell_list, channel, force_symmetry = True):
-
+def get_l_dist(cell_list, channel, force_symmetry=True):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore")
 
@@ -550,9 +509,7 @@ def get_l_dist(cell_list, channel, force_symmetry = True):
     return ldist_mean, ldist_std
 
 
-
 def process_colicoords(self, colicoords_data):
-
     colicoords_data = colicoords_data["cell_statistics"]
 
     current_fov = self.viewer.dims.current_step[0]
@@ -567,11 +524,9 @@ def process_colicoords(self, colicoords_data):
     label = label_stack[current_fov, :, :].copy()
 
     for i in range(len(colicoords_data)):
-
         dat = colicoords_data[i]
 
         if dat["cell"] != None:
-
             mask_id = dat["mask_id"]
             cnt = dat["refined_cnt"]
 
@@ -581,7 +536,7 @@ def process_colicoords(self, colicoords_data):
             current_label = np.unique(label[mask == mask_id])
 
             label[mask == mask_id] = 0
-            mask[mask==mask_id] = 0
+            mask[mask == mask_id] = 0
 
             mask[new_mask == 1] = mask_id
             label[new_mask == 1] = current_label
@@ -591,8 +546,3 @@ def process_colicoords(self, colicoords_data):
 
             self.segLayer.data = mask_stack
             self.classLayer.data = label_stack
-
-
-
-
-

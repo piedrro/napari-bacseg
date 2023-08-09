@@ -349,9 +349,10 @@ class BacSeg(QWidget):
         self.user_metadata_keys = 6
 
         self.metadata_columns = ["date_uploaded", "date_created", "date_modified", "file_name", "channel", "file_list", "channel_list", "segmentation_file", "segmentation_channel", "akseg_hash",
-            "user_initial", "content", "microscope", "modality", "source", "strain", "phenotype", "stain", "stain_target", "antibiotic", "treatment time (mins)", "antibiotic concentration",
-            "mounting method", "protocol", "folder", "parent_folder", "num_segmentations", "image_laplacian", "image_focus", "image_debris", "segmented", "labelled", "segmentation_curated",
-            "label_curated", "posX", "posY", "posZ", "image_load_path", "image_save_path", "mask_load_path", "mask_save_path", "label_load_path", "label_save_path", ]
+                                 "user_initial", "content", "microscope", "modality", "source", "strain", "phenotype", "stain", "stain_target", "antibiotic", "treatment time (mins)",
+                                 "antibiotic concentration", "mounting method", "protocol", "folder", "parent_folder", "num_segmentations", "image_laplacian", "image_focus", "image_debris",
+                                 "segmented", "labelled", "segmentation_curated", "label_curated", "posX", "posY", "posZ", "image_load_path", "image_save_path", "mask_load_path", "mask_save_path",
+                                 "label_load_path", "label_save_path", ]
 
         user_key_list = np.arange(1, self.user_metadata_keys + 1).tolist()
         user_key_list.reverse()
@@ -579,7 +580,7 @@ class BacSeg(QWidget):
 
         # self.segImage = self.viewer.add_image(np.zeros((1,100,100),dtype=np.uint16),name="Image")
         self.class_colours = {1: (255 / 255, 255 / 255, 255 / 255, 1), 2: (0 / 255, 255 / 255, 0 / 255, 1), 3: (0 / 255, 170 / 255, 255 / 255, 1), 4: (170 / 255, 0 / 255, 255 / 255, 1), 5: (
-        255 / 255, 170 / 255, 0 / 255, 1), 6: (255 / 255, 0 / 255, 0 / 255, 1), }
+            255 / 255, 170 / 255, 0 / 255, 1), 6: (255 / 255, 0 / 255, 0 / 255, 1), }
 
         self.classLayer = self.viewer.add_labels(np.zeros((1, 100, 100), dtype=np.uint16), opacity=0.25, name="Classes", color=self.class_colours, metadata={0: {"image_name": ""}}, visible=False, )
         self.nucLayer = self.viewer.add_labels(np.zeros((1, 100, 100), dtype=np.uint16), opacity=1, name="Nucleoid", metadata={0: {"image_name": ""}}, )
@@ -785,12 +786,10 @@ class BacSeg(QWidget):
         return func
 
     def overwrite_channel_info(self):
-
         all_layers = [layer.name for layer in self.viewer.layers]
         selected_layers = [layer.name for layer in self.viewer.layers.selection]
 
         if len(selected_layers) == 1:
-
             selected_layer = selected_layers[0]
             all_layers.pop(all_layers.index(selected_layer))
 
@@ -824,7 +823,6 @@ class BacSeg(QWidget):
                 self._updateFileName()
                 self._updateSegmentationCombo()
                 self._updateSegChannels()
-
 
     def _export_statistics(self, mode="active"):
         def _event(viewer):
@@ -1567,7 +1565,6 @@ class BacSeg(QWidget):
                 current_mask_stack = self.segLayer.data
                 current_nmask_stack = self.nucLayer.data
                 current_class_stack = self.classLayer.data
-
 
                 if len(current_image_stack) == 0:
                     setattr(self, layer_name, self.viewer.add_image(new_image_stack, name=layer_name, colormap=colormap, gamma=0.8, metadata=new_metadata, ), )

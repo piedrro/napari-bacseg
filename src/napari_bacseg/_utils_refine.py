@@ -1,7 +1,5 @@
-
 import numpy as np
 import cv2
-
 
 
 def find_contours(img):
@@ -11,8 +9,8 @@ def find_contours(img):
 
     return contours
 
-def refine_mask(self, image, mask, mask_id):
 
+def refine_mask(self, image, mask, mask_id):
     refine_length = self.refine_iterations_slider.value()
     refine_iterations = self.refine_iterations_slider.value()
     refine_mode = self.refine_mode.currentIndex()
@@ -25,12 +23,10 @@ def refine_mask(self, image, mask, mask_id):
     (ymax, xmax) = image.shape
 
     for i in range(refine_iterations):
-
         wall_contour = []
         img = image.copy()
 
         for j in range(len(wall_cnt)):
-
             x = wall_cnt[j, 0, 0]
             y = wall_cnt[j, 0, 1]
 

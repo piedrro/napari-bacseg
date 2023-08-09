@@ -158,7 +158,6 @@ def read_zeiss_image_files(self, progress_callback, zeiss_measurements, channel_
         key_dim_cols = dim_list.columns.drop(["C"]).tolist()
 
         if key_dim_cols == []:
-
             images, img_shape = czi.read_image()
 
             num_loaded += 1
@@ -291,7 +290,6 @@ def read_zeiss_image_files(self, progress_callback, zeiss_measurements, channel_
                 missing_channels = [channel for channel in channel_names if channel not in fov_channels]
 
                 for channel_name in missing_channels:
-
                     img_channel = np.zeros_like(img_channel)
 
                     meta = {}

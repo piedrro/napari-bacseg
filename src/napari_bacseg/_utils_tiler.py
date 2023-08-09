@@ -20,11 +20,7 @@ def unfold_images(self):
             image = self.viewer.layers[layer].data.copy()
             metadata_stack = self.viewer.layers[layer].metadata.copy()
 
-            self.tiler_object = Tiler(
-                data_shape=image[0].shape,
-                tile_shape=tile_shape,
-                overlap=overlap,
-            )
+            self.tiler_object = Tiler(data_shape=image[0].shape, tile_shape=tile_shape, overlap=overlap, )
 
             if self.unfold_mode.currentIndex() == 0:
                 tiled_image = []
@@ -57,16 +53,9 @@ def unfold_images(self):
                     num_image_tiles = 0
 
                     for tile_id, tile in self.tiler_object.iterate(image[i]):
-                        bbox = np.array(
-                            self.tiler_object.get_tile_bbox(tile_id=tile_id)
-                        )
+                        bbox = np.array(self.tiler_object.get_tile_bbox(tile_id=tile_id))
                         bbox = bbox[..., [-2, -1]]
-                        y1, x1, y2, x2 = (
-                            bbox[0][0],
-                            bbox[0][1],
-                            bbox[1][0],
-                            bbox[1][1],
-                        )
+                        y1, x1, y2, x2 = (bbox[0][0], bbox[0][1], bbox[1][0], bbox[1][1],)
 
                         if y2 > image.shape[-2]:
                             y2 = image.shape[-2]
@@ -87,28 +76,13 @@ def unfold_images(self):
                                 image_name = meta["image_name"]
 
                                 tile_meta = dict(meta)
-                                tile_name = (
-                                    str(image_name).split(".")[0]
-                                    + "_tile"
-                                    + str(num_image_tiles)
-                                    + ".tif"
-                                )
+                                tile_name = (str(image_name).split(".")[0] + "_tile" + str(num_image_tiles) + ".tif")
                                 tile_meta["akseg_hash"] = get_hash(img=tile)
                                 tile_meta["image_name"] = tile_name
-                                tile_meta["dims"] = [
-                                    tile.shape[-1],
-                                    tile.shape[-2],
-                                ]
-                                tile_meta["crop"] = [
-                                    int(y1),
-                                    int(y2),
-                                    int(x1),
-                                    int(x2),
-                                ]
+                                tile_meta["dims"] = [tile.shape[-1], tile.shape[-2], ]
+                                tile_meta["crop"] = [int(y1), int(y2), int(x1), int(x2), ]
 
-                                tiled_metadata[
-                                    len(tiled_images) - 1
-                                ] = tile_meta
+                                tiled_metadata[len(tiled_images) - 1] = tile_meta
 
                 image = np.stack(tiled_images)
                 self.viewer.layers[layer].data = image
@@ -187,20 +161,13 @@ def update_image_folds(self, mask_ids=None, image_index=None):
                 img = frame[j].copy()
 
                 if j == target_tile_id:
-                    overwrite_tile_box = np.array(
-                        self.tiler_object.get_tile_bbox(target_tile_id)
-                    )
+                    overwrite_tile_box = np.array(self.tiler_object.get_tile_bbox(target_tile_id))
                     overwrite_tile_box = overwrite_tile_box[..., [-2, -1]]
                     overwrite_tile_img = img
 
                 merger.add(j, img.data)
 
-            y1, x1, y2, x2 = (
-                overwrite_tile_box[0][0],
-                overwrite_tile_box[0][1],
-                overwrite_tile_box[1][0],
-                overwrite_tile_box[1][1],
-            )
+            y1, x1, y2, x2 = (overwrite_tile_box[0][0], overwrite_tile_box[0][1], overwrite_tile_box[1][0], overwrite_tile_box[1][1],)
 
             frame = merger.merge(dtype=img.dtype)
 

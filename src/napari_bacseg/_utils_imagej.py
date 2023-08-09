@@ -6,7 +6,6 @@ from roifile import ImagejRoi, roiread
 
 
 def read_imagej_file(path, image, widget_notifications=True):
-
     contours = []
     mask = np.zeros(image.shape[-2:], dtype=np.uint16)
 
@@ -26,13 +25,7 @@ def read_imagej_file(path, image, widget_notifications=True):
 
         for i in range(len(contours)):
             cnt = contours[i]
-            cv2.drawContours(
-                mask,
-                [cnt],
-                contourIdx=-1,
-                color=(i + 1, i + 1, i + 1),
-                thickness=-1,
-            )
+            cv2.drawContours(mask, [cnt], contourIdx=-1, color=(i + 1, i + 1, i + 1), thickness=-1, )
     except:
         if widget_notifications:
             show_info("Image does not contain ImageJ Overlays")
@@ -55,9 +48,4 @@ def export_imagej(image, contours, metadata, file_path):
         except:
             pass
 
-    tifffile.imwrite(
-        file_path,
-        image,
-        imagej=True,
-        metadata={"Overlays": overlays, "metadata": metadata},
-    )
+    tifffile.imwrite(file_path, image, imagej=True, metadata={"Overlays": overlays, "metadata": metadata}, )

@@ -17,38 +17,31 @@ from scipy.spatial.distance import cdist
 from scipy.spatial import Voronoi
 import matplotlib.pyplot as plt
 
+
 def centre_oufti_midlines(self, mode="all"):
-
     def _event(viewer):
-
         layer_names = [layer.name for layer in self.viewer.layers]
 
         if "center_lines" in layer_names:
-
-            from napari_bacseg._utils_oufti import get_mask_polygons, get_contour_index, centre_midline, \
-                get_midline_boundary_lines, interpolate_data
+            from napari_bacseg._utils_oufti import get_mask_polygons, get_contour_index, centre_midline, get_midline_boundary_lines, interpolate_data
 
             meta_stack = self.segLayer.metadata.copy()
             mask_stack = self.segLayer.data.copy()
 
             if mode == "active":
-
                 current_step = self.viewer.dims.current_step[0]
 
                 dim_range = [current_step]
             else:
-
                 dim_range = np.arange(mask_stack.shape[0])
 
             for i in dim_range:
-
                 mask = mask_stack[i]
                 meta = meta_stack[i]
 
                 polygons, contours, contour_ids = get_mask_polygons(mask)
 
                 if "midlines" in meta.keys():
-
                     mid_lines = meta["midlines"]
 
                     for j in range(len(mid_lines)):
@@ -81,8 +74,8 @@ def centre_oufti_midlines(self, mode="all"):
 
     return _event
 
-def update_midlines(self):
 
+def update_midlines(self):
     layer_names = [layer.name for layer in self.viewer.layers]
 
     if "center_lines" in layer_names:
@@ -94,11 +87,9 @@ def update_midlines(self):
 
 
 def midline_edit_toggle(self, viewer=None):
-
     layer_names = [layer.name for layer in self.viewer.layers]
 
     if "center_lines" in layer_names:
-
         self.viewer.layers.selection.select_only(self.shapeLayer)
 
         if self.shapeLayer.mode == "pan_zoom":
@@ -115,9 +106,7 @@ def midline_edit_toggle(self, viewer=None):
 
 
 def generate_midlines(self, mode="all"):
-
     def _event(viewer):
-
         vertexes = int(self.oufti_midline_vertexes.currentText())
 
         layer_names = [layer.name for layer in self.viewer.layers]
@@ -125,12 +114,7 @@ def generate_midlines(self, mode="all"):
         meta = self.segLayer.metadata.copy()
 
         if "center_lines" not in layer_names:
-            self.shapeLayer = self.viewer.add_shapes(shape_type='path',
-                                                     edge_width=0.5,
-                                                     opacity=0.5,
-                                                     edge_color='red',
-                                                     face_color='black',
-                                                     name="center_lines")
+            self.shapeLayer = self.viewer.add_shapes(shape_type='path', edge_width=0.5, opacity=0.5, edge_color='red', face_color='black', name="center_lines")
 
             self.shapeLayer.mouse_drag_callbacks.append(self._segmentationEvents)
 
@@ -146,7 +130,6 @@ def generate_midlines(self, mode="all"):
             dim_range = np.arange(mask_stack.shape[0])
 
         for i in dim_range:
-
             mask = mask_stack[i]
 
             mask_ids = np.unique(mask)
@@ -154,11 +137,8 @@ def generate_midlines(self, mode="all"):
             polygons = []
 
             for id in mask_ids:
-
                 if id != 0:
-
                     try:
-
                         cell_mask = np.zeros(mask.shape, dtype=np.uint8)
                         cell_mask[mask == id] = 255
 
@@ -198,27 +178,23 @@ def generate_midlines(self, mode="all"):
 
     return _event
 
+
 def _update_active_midlines(self):
-
     try:
-
         layer_names = [layer.name for layer in self.viewer.layers]
 
         if "center_lines" in layer_names:
-
             current_fov = self.viewer.dims.current_step[0]
 
             meta = self.segLayer.metadata[current_fov].copy()
 
             if "midlines" in meta.keys():
-
                 polygons = meta["midlines"]
 
                 self.shapeLayer.data = polygons
-                self.shapeLayer.shape_type = ["path"]*len(polygons)
+                self.shapeLayer.shape_type = ["path"] * len(polygons)
 
             else:
-
                 self.shapeLayer.data = []
                 self.shapeLayer.shape_type = []
 
@@ -255,11 +231,8 @@ def moving_average(line, padding=5, iterations=1):
     return line
 
 
-def get_voronoi_midline(cnt, smooth=True, voronoi_distance=2,
-                        poly_margin=10, poly_limits=[None, 1],
-                        extend=True, vertices=100):
+def get_voronoi_midline(cnt, smooth=True, voronoi_distance=2, poly_margin=10, poly_limits=[None, 1], extend=True, vertices=100):
     try:
-
         polygon = cnt.reshape(-1, 2)
 
         if smooth:
@@ -271,8 +244,7 @@ def get_voronoi_midline(cnt, smooth=True, voronoi_distance=2,
 
         vX = vor.vertices.T[0]
         vZ = vor.vertices.T[1]
-        vorMask = (vX >= polygon.T[0].min()) & (vX <= polygon.T[0].max()) & (vZ >= polygon.T[1].min()) & (
-                vZ <= polygon.T[1].max())
+        vorMask = (vX >= polygon.T[0].min()) & (vX <= polygon.T[0].max()) & (vZ >= polygon.T[1].min()) & (vZ <= polygon.T[1].max())
         verts = vor.vertices[vorMask]
 
         insideMask = path.contains_points(verts)
@@ -292,14 +264,12 @@ def get_voronoi_midline(cnt, smooth=True, voronoi_distance=2,
         mid_line = resize_line(mid_line, vertices)
         mid_line = np.array(mid_line.xy).T
     except:
-
         mid_line = None
 
     return mid_line
 
 
 def get_boundary_lines(mid_line, cnt, smooth=True, n_segments=100):
-
     cnt_array = cnt.reshape(-1, 2)
 
     if smooth:
@@ -350,7 +320,6 @@ def get_boundary_lines(mid_line, cnt, smooth=True, n_segments=100):
 
 def fit_polyline(x, y, polys=[2, 3], margin=50, poly_limits=None):
     with warnings.catch_warnings():
-
         warnings.filterwarnings('ignore')
 
         residual_list = []
@@ -370,13 +339,9 @@ def fit_polyline(x, y, polys=[2, 3], margin=50, poly_limits=None):
         poly_params = p.c[:2]
 
         if poly_limits != None:
-
             if len(poly_limits) == len(poly_params):
-
                 for i, limit in enumerate(poly_limits):
-
                     if limit != None:
-
                         if abs(poly_params[i]) >= limit:
                             params = np.polyfit(x.copy(), y.copy(), 1)
                             p = np.poly1d(params)
@@ -416,13 +381,11 @@ def polyarea(x, y):
 
 
 def compute_line_metrics(mesh):
-    steplength = euclidian_distance(mesh[1:, 0] + mesh[1:, 2], mesh[1:, 1] + mesh[1:, 3], mesh[:-1, 0] + mesh[:-1, 2],
-                                    mesh[:-1, 1] + mesh[:-1, 3]) / 2
+    steplength = euclidian_distance(mesh[1:, 0] + mesh[1:, 2], mesh[1:, 1] + mesh[1:, 3], mesh[:-1, 0] + mesh[:-1, 2], mesh[:-1, 1] + mesh[:-1, 3]) / 2
 
     steparea = []
     for i in range(len(mesh) - 1):
-        steparea.append(
-            polyarea([*mesh[i:i + 2, 0], *mesh[i:i + 2, 2][::-1]], [*mesh[i:i + 2, 1], *mesh[i:i + 2, 3][::-1]]))
+        steparea.append(polyarea([*mesh[i:i + 2, 0], *mesh[i:i + 2, 2][::-1]], [*mesh[i:i + 2, 1], *mesh[i:i + 2, 3][::-1]]))
 
     steparea = np.array(steparea)
 
@@ -451,14 +414,12 @@ def get_mesh(oufti_dict, bisector_length=100, n_segments=100):
 
     distances = np.linspace(0, midline_lineString.length, n_segments)[1:]
 
-    mid_line_segments = [LineString([midline_lineString.interpolate(distance - 0.01),
-                                     midline_lineString.interpolate(distance + 0.01)]) for distance in distances]
+    mid_line_segments = [LineString([midline_lineString.interpolate(distance - 0.01), midline_lineString.interpolate(distance + 0.01)]) for distance in distances]
 
     right_line_data = [end_intersections[0].tolist()]
     left_line_data = [end_intersections[0].tolist()]
 
     for segment in mid_line_segments:
-
         left_bisector = segment.parallel_offset(bisector_length, 'left')
         right_bisector = segment.parallel_offset(bisector_length, 'right')
 
@@ -502,18 +463,15 @@ def get_mesh(oufti_dict, bisector_length=100, n_segments=100):
 
 
 def get_contour_index(midline, polygons, contour_ids):
-
     intersection_index = None
 
     try:
-
         intersection_lengths = []
         intersection_ids = []
 
         midline_points = [Point(point) for point in midline]
 
         for i, poly in enumerate(polygons):
-
             inside_points = [poly.contains(point) for point in midline_points if poly.contains(point) == True]
 
             if len(inside_points) > 0:
@@ -521,8 +479,7 @@ def get_contour_index(midline, polygons, contour_ids):
                 intersection_ids.append(contour_ids[i])
 
         if len(intersection_lengths) != 0:
-            intersection_lengths, intersection_ids = zip(
-                *sorted(zip(intersection_lengths, intersection_ids), reverse=True))
+            intersection_lengths, intersection_ids = zip(*sorted(zip(intersection_lengths, intersection_ids), reverse=True))
 
             intersection_index = contour_ids.index(intersection_ids[0])
 
@@ -552,7 +509,6 @@ def check_midlines_intersecting(cnt, midline):
 
 
 def get_midline_boundary_lines(midline, cnt, smooth=True, n_segments=100):
-
     cnt_array = cnt.reshape(-1, 2)
 
     if smooth:
@@ -600,9 +556,7 @@ def get_midline_boundary_lines(midline, cnt, smooth=True, n_segments=100):
 
 
 def trim_midline(left_line, right_line, mid_line, margin=10):
-
     try:
-
         start_point = left_line[0]
         end_point = left_line[-1]
 
@@ -630,7 +584,6 @@ def trim_midline(left_line, right_line, mid_line, margin=10):
 
 
 def remove_intersecting(line, intersecting_line):
-
     line = LineString(line.exterior)
 
     intersection = line.intersection(intersecting_line)
@@ -644,7 +597,6 @@ def remove_intersecting(line, intersecting_line):
     end_indexes = np.unique(end_indexes).tolist()
 
     if end_indexes[1] - end_indexes[0] > 1:
-
         line = np.roll(line, -end_indexes[1], 0)
         distance = cdist(line, intersection)
         end_indexes = sorted([np.argmin(dist).tolist() for dist in distance.T])
@@ -683,7 +635,6 @@ def dilate_contour(cnt, dilation=0.2):
 
 
 def find_closest_point(point, line):
-
     point = Point(point)
 
     pol_ext = LinearRing(line)
@@ -692,6 +643,7 @@ def find_closest_point(point, line):
     closet_point = list(p.coords)[0]
 
     return closet_point
+
 
 def rotate_contour(cnt, angle=90, units="DEGREES"):
     cnt = cnt.copy()
@@ -759,18 +711,15 @@ def rotate_model(model, shift_xy, angle=-90, units="DEGREES"):
 
 def snap_midline_to_contour(cnt, midline, fit=False):
     try:
-
         cnt_array = cnt.reshape(-1, 2)
         cnt_poly = Polygon(cnt_array)
 
         if fit == True:
-
             midline = fit_polyline(midline[:, 0], midline[:, 1], polys=[2], margin=5, poly_limits=[None, None])
 
             del_indexes = []
 
             for i, point in enumerate(midline):
-
                 if cnt_poly.contains(Point(point)) == False:
                     del_indexes.append(i)
 
@@ -789,7 +738,6 @@ def snap_midline_to_contour(cnt, midline, fit=False):
 
 
 def get_oufti_data(self, image, mask, midlines=None):
-
     mesh_length = int(self.oufti_mesh_length.currentText())
     mesh_dilation = float(self.oufti_mesh_dilation.currentText())
 
@@ -800,9 +748,7 @@ def get_oufti_data(self, image, mask, midlines=None):
     contour_ids = []
 
     for i in range(len(mask_ids)):
-
         try:
-
             id = mask_ids[i]
 
             if id != 0:
@@ -825,11 +771,8 @@ def get_oufti_data(self, image, mask, midlines=None):
     oufti_data = []
 
     if midlines is None:
-
         for i in range(len(contours)):
-
             try:
-
                 cnt = contours[i]
 
                 x, y, w, h = cv2.boundingRect(cnt)
@@ -849,14 +792,7 @@ def get_oufti_data(self, image, mask, midlines=None):
 
                 mid_line, end_intersections = trim_midline(left_line, right_line, mid_line, margin=10)
 
-                oufti_dict = {"cnt": cnt,
-                              "end_intersections": end_intersections,
-                              "cnt_array": cnt_array,
-                              "mid_line": mid_line,
-                              "left_line": left_line,
-                              "right_line": right_line,
-                              "mask_shape": mask.shape,
-                              "mesh_length": mesh_length}
+                oufti_dict = {"cnt": cnt, "end_intersections": end_intersections, "cnt_array": cnt_array, "mid_line": mid_line, "left_line": left_line, "right_line": right_line, "mask_shape": mask.shape, "mesh_length": mesh_length}
 
                 oufti_data.append(oufti_dict)
 
@@ -865,18 +801,14 @@ def get_oufti_data(self, image, mask, midlines=None):
                 pass
 
     else:
-
         for i in range(len(midlines)):
-
             try:
-
                 midline = midlines[i].copy()
                 midline = np.flip(midline)
 
                 index = get_contour_index(midline, polygons, contour_ids)
 
                 if index != None:
-
                     cnt = contours[index]
 
                     if mesh_dilation == 0:
@@ -889,14 +821,7 @@ def get_oufti_data(self, image, mask, midlines=None):
 
                     _, end_intersections = trim_midline(left_line, right_line, midline, margin=10)
 
-                    oufti_dict = {"cnt": cnt,
-                                  "end_intersections": end_intersections,
-                                  "cnt_array": cnt_array,
-                                  "mid_line": midline,
-                                  "left_line": left_line,
-                                  "right_line": right_line,
-                                  "mask_shape": mask.shape,
-                                  "mesh_length": mesh_length}
+                    oufti_dict = {"cnt": cnt, "end_intersections": end_intersections, "cnt_array": cnt_array, "mid_line": midline, "left_line": left_line, "right_line": right_line, "mask_shape": mask.shape, "mesh_length": mesh_length}
 
                     oufti_data.append(oufti_dict)
 
@@ -907,7 +832,6 @@ def get_oufti_data(self, image, mask, midlines=None):
 
 
 def centre_midline(left_line, right_line, midline, fit_segments=100, export_segments=6):
-
     left_LineString = LineString(left_line)
     right_LineString = LineString(right_line)
 
@@ -935,7 +859,6 @@ def centre_midline(left_line, right_line, midline, fit_segments=100, export_segm
 
 
 def get_mask_polygons(mask):
-
     mask_ids = np.unique(mask)
 
     polygons = []
@@ -943,11 +866,9 @@ def get_mask_polygons(mask):
     contour_ids = []
 
     for i in range(len(mask_ids)):
-
         id = mask_ids[i]
 
         if id != 0:
-
             try:
                 cell_mask = np.zeros(mask.shape, dtype=np.uint8)
                 cell_mask[mask == id] = 255
@@ -969,7 +890,6 @@ def get_mask_polygons(mask):
 
 
 def interpolate_data(line, export_segments=100):
-
     from scipy import interpolate
     from scipy.interpolate import splev
 
@@ -1004,29 +924,10 @@ def export_oufti(image, oufti_data, file_path):
     cell_data = []
 
     for i in range(len(oufti_data)):
-
         try:
-
             mesh, model, steplength, steparea, stepvolume, boundingbox = get_mesh(oufti_data[i])
 
-            cell_struct = {'mesh': mesh,
-                           'model': model,
-                           'birthframe': 1,
-                           'divisions': [],
-                           'ancestors': [],
-                           'descendants': [],
-                           'timelapse': False,
-                           'algorithm': 5,
-                           'polarity': 0,
-                           'stage': 1,
-                           'box': boundingbox,
-                           'steplength': steplength,
-                           'length': np.sum(steplength),
-                           'lengthvector': steplength,
-                           'steparea': steparea,
-                           'area': np.sum(steparea),
-                           'stepvolume': stepvolume.T,
-                           'volume': np.sum(stepvolume)}
+            cell_struct = {'mesh': mesh, 'model': model, 'birthframe': 1, 'divisions': [], 'ancestors': [], 'descendants': [], 'timelapse': False, 'algorithm': 5, 'polarity': 0, 'stage': 1, 'box': boundingbox, 'steplength': steplength, 'length': np.sum(steplength), 'lengthvector': steplength, 'steparea': steparea, 'area': np.sum(steparea), 'stepvolume': stepvolume.T, 'volume': np.sum(stepvolume)}
 
             cell_data.append(cell_struct)
 
@@ -1051,15 +952,7 @@ def export_oufti(image, oufti_data, file_path):
     for p_index in range(len(microbeTrackerParamsString.split('\n'))):
         paramString[p_index] = paramSplit[p_index]
 
-    outdict = {'cellList': cellList,
-               'cellListN': cellListN,
-               'coefPCA': [],
-               'mCell': [],
-               'p': [],
-               'paramString': paramString,
-               'rawPhaseFolder': [],
-               'shiftfluo': np.zeros((2, 2)),
-               'shiftframes': [],
-               'weights': []}
+    outdict = {'cellList': cellList, 'cellListN': cellListN, 'coefPCA': [], 'mCell': [], 'p': [], 'paramString': paramString, 'rawPhaseFolder': [], 'shiftfluo': np.zeros((
+    2, 2)), 'shiftframes': [], 'weights': []}
 
     scipy.io.savemat(file_path, outdict)

@@ -9,9 +9,7 @@ from napari.utils.notifications import show_info
 
 def find_contours(img):
     # finds contours of shapes, only returns the external contours of the shapes
-    contours, hierarchy = cv2.findContours(
-        img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-    )
+    contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     contours = sorted(contours, key=cv2.contourArea, reverse=True)
     return contours
 
@@ -69,9 +67,7 @@ def _segmentationEvents(self, viewer, event):
                 if self.segmentation_mode == "add":
                     new_colour = _newSegColour(self)
                 else:
-                    data_coordinates = modify_channel.world_to_data(
-                        event.position
-                    )
+                    data_coordinates = modify_channel.world_to_data(event.position)
                     coord = np.round(data_coordinates).astype(int)
                     new_colour = modify_channel.get_value(coord)
 
@@ -96,14 +92,8 @@ def _segmentationEvents(self, viewer, event):
 
                 # on release
                 if dragged:
-                    if (
-                        new_colour != 0
-                        and new_colour != None
-                        and self.class_colour != None
-                    ):
-                        coordinates = np.round(np.array(coordinates)).astype(
-                            np.int32
-                        )
+                    if (new_colour != 0 and new_colour != None and self.class_colour != None):
+                        coordinates = np.round(np.array(coordinates)).astype(np.int32)
 
                         mask_dim = tuple(list(coordinates[0][:-2]) + [...])
 
@@ -116,9 +106,7 @@ def _segmentationEvents(self, viewer, event):
 
                         seg_mask = seg_stack[mask_dim]
 
-                        cv2.drawContours(
-                            seg_mask, [cnt], -1, int(new_colour), -1
-                        )
+                        cv2.drawContours(seg_mask, [cnt], -1, int(new_colour), -1)
 
                         seg_mask = fill_holes(seg_mask, new_colour)
 
@@ -181,9 +169,7 @@ def _segmentationEvents(self, viewer, event):
 
                 # on move
                 while event.type == "mouse_move":
-                    data_coordinates = modify_channel.world_to_data(
-                        event.position
-                    )
+                    data_coordinates = modify_channel.world_to_data(event.position)
                     coord = np.round(data_coordinates).astype(int)
                     mask_val = modify_channel.get_value(coord)
                     class_val = self.classLayer.get_value(coord)
@@ -200,15 +186,9 @@ def _segmentationEvents(self, viewer, event):
                     colours = np.delete(colours, np.where(colours == 0))
 
                     if new_colour in colours:
-                        colours = np.delete(
-                            colours, np.where(colours == new_colour)
-                        )
+                        colours = np.delete(colours, np.where(colours == new_colour))
 
-                    if (
-                        len(colours) == 1
-                        and new_colour not in colours
-                        and new_colour != None
-                    ):
+                    if (len(colours) == 1 and new_colour not in colours and new_colour != None):
                         mask_stack = modify_channel.data
 
                         mask_dim = tuple(list(coords[0][:-2]) + [...])
@@ -264,9 +244,7 @@ def _segmentationEvents(self, viewer, event):
 
                 # on move
                 while event.type == "mouse_move":
-                    data_coordinates = modify_channel.world_to_data(
-                        event.position
-                    )
+                    data_coordinates = modify_channel.world_to_data(event.position)
                     coords = np.round(data_coordinates).astype(int)
                     mask_val = modify_channel.get_value(coords)
                     colours.append(mask_val)
@@ -276,9 +254,7 @@ def _segmentationEvents(self, viewer, event):
                 # on release
                 if dragged:
                     colours = np.array(colours)
-                    colours = np.delete(
-                        colours, np.where(colours == new_colour)
-                    )
+                    colours = np.delete(colours, np.where(colours == new_colour))
 
                     colours[colours == None] = 0
 
@@ -288,14 +264,9 @@ def _segmentationEvents(self, viewer, event):
                         if num_colours == 2:
                             maskref = colours[colours != 0][0]
                         else:
-                            maskref = sorted(
-                                set(colours.tolist()),
-                                key=lambda x: colours.tolist().index(x),
-                            )[1]
+                            maskref = sorted(set(colours.tolist()), key=lambda x: colours.tolist().index(x), )[1]
 
-                        bisection = (
-                            colours[0] != maskref and colours[-1] != maskref
-                        )
+                        bisection = (colours[0] != maskref and colours[-1] != maskref)
 
                         if bisection and new_colour != None:
                             mask_dim = tuple(list(coords[:-2]) + [...])
@@ -318,9 +289,7 @@ def _segmentationEvents(self, viewer, event):
 
                             overlap = cv2.bitwise_and(shape_mask, line_mask)
 
-                            shape_mask_split = cv2.bitwise_xor(
-                                shape_mask, overlap
-                            ).astype(np.uint8)
+                            shape_mask_split = cv2.bitwise_xor(shape_mask, overlap).astype(np.uint8)
 
                             # update labels layers with split shape
                             split_mask = stored_mask[mask_dim]
@@ -330,10 +299,7 @@ def _segmentationEvents(self, viewer, event):
 
                             # fill one have of the split shape with the new colour
                             indices = np.where(shape_mask_split == 255)
-                            split_dim = list(
-                                list(mask_dim[:-1])
-                                + [indices[0][0], indices[1][0]]
-                            )
+                            split_dim = list(list(mask_dim[:-1]) + [indices[0][0], indices[1][0]])
                             split_dim = np.array(split_dim).flatten().tolist()
 
                             modify_channel.fill(split_dim, new_colour)
@@ -377,9 +343,7 @@ def _segmentationEvents(self, viewer, event):
                 if dragged:
                     modify_channel.data = stored_mask
 
-                    coordinates = np.round(np.array(coordinates)).astype(
-                        np.int32
-                    )
+                    coordinates = np.round(np.array(coordinates)).astype(np.int32)
                     cnt = coordinates[:, -2:]
 
                     cnt = np.fliplr(cnt)
@@ -416,9 +380,7 @@ def _segmentationEvents(self, viewer, event):
 
                     meta = modify_channel.metadata.copy()
 
-                    data_coordinates = modify_channel.world_to_data(
-                        event.position
-                    )
+                    data_coordinates = modify_channel.world_to_data(event.position)
                     coord = np.round(data_coordinates).astype(int)
                     mask_val = modify_channel.get_value(coord)
 
@@ -448,17 +410,7 @@ def _segmentationEvents(self, viewer, event):
                         self.update_image_folds()
 
             if self.segmentation_mode == "refine":
-                layer_names = [
-                    layer.name
-                    for layer in self.viewer.layers
-                    if layer.name
-                    not in [
-                        "Segmentations",
-                        "Nucleoid",
-                        "Classes",
-                        "center_lines",
-                    ]
-                ]
+                layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", ]]
 
                 modify_channel.mode == "pan_zoom"
                 modify_channel.brush_size = 1
@@ -483,9 +435,7 @@ def _segmentationEvents(self, viewer, event):
 
                     image = []
                     for layer in layer_names:
-                        image.append(
-                            self.viewer.layers[layer].data[current_fov]
-                        )
+                        image.append(self.viewer.layers[layer].data[current_fov])
                     image = np.stack(image, axis=0)
 
                     cell_mask = np.zeros(mask.shape, dtype=np.uint8)
@@ -494,34 +444,16 @@ def _segmentationEvents(self, viewer, event):
                     cell_mask[mask != mask_id] = 0
                     cell_mask[mask == mask_id] = 1
 
-                    from napari_bacseg._utils_colicoords import (
-                        process_colicoords,
-                        run_colicoords,
-                    )
+                    from napari_bacseg._utils_colicoords import (process_colicoords, run_colicoords, )
                     from napari_bacseg._utils_statistics import get_cell_images
 
-                    colicoords_dir = os.path.join(
-                        tempfile.gettempdir(), "colicoords"
-                    )
+                    colicoords_dir = os.path.join(tempfile.gettempdir(), "colicoords")
 
-                    cell_images_path = get_cell_images(
-                        self,
-                        image,
-                        mask,
-                        cell_mask,
-                        mask_id,
-                        layer_names,
-                        colicoords_dir,
-                    )
+                    cell_images_path = get_cell_images(self, image, mask, cell_mask, mask_id, layer_names, colicoords_dir, )
 
                     cell_data = {"cell_images_path": cell_images_path}
 
-                    colicoords_data = run_colicoords(
-                        self,
-                        cell_data=[cell_data],
-                        colicoords_channel=channel,
-                        multithreaded=True,
-                    )
+                    colicoords_data = run_colicoords(self, cell_data=[cell_data], colicoords_channel=channel, multithreaded=True, )
 
                     process_colicoords(self, colicoords_data)
 
@@ -776,7 +708,7 @@ def _modifyMode(self, mode, viewer=None):
 
 def autocontrast_values(image, clip_hist_percent=0.001):
     # calculate histogram
-    hist, bin_edges = np.histogram(image, bins=(2**16) - 1)
+    hist, bin_edges = np.histogram(image, bins=(2 ** 16) - 1)
     hist_size = len(hist)
 
     # calculate cumulative distribution from the histogram
@@ -892,29 +824,16 @@ def _viewerControls(self, key, viewer=None):
             self.segLayer.visible = self.modify_viewmasks.isChecked()
 
         if key == "c":
-            layer_names = [
-                layer.name
-                for layer in self.viewer.layers
-                if layer.name
-                not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
-            ]
+            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
 
             if len(layer_names) != 0:
                 active_layer = layer_names[-1]
 
-                image_dims = tuple(
-                    list(self.viewer.dims.current_step[:-2]) + [...]
-                )
+                image_dims = tuple(list(self.viewer.dims.current_step[:-2]) + [...])
 
-                image = (
-                    self.viewer.layers[str(active_layer)]
-                    .data[image_dims]
-                    .copy()
-                )
+                image = (self.viewer.layers[str(active_layer)].data[image_dims].copy())
 
-                crop = self.viewer.layers[str(active_layer)].corner_pixels[
-                    :, -2:
-                ]
+                crop = self.viewer.layers[str(active_layer)].corner_pixels[:, -2:]
 
                 [[y1, x1], [y2, x2]] = crop
 
@@ -923,9 +842,7 @@ def _viewerControls(self, key, viewer=None):
                 contrast_limit = [np.min(image_crop), np.max(image_crop)]
 
                 if contrast_limit[1] > contrast_limit[0]:
-                    self.viewer.layers[
-                        str(active_layer)
-                    ].contrast_limits = contrast_limit
+                    self.viewer.layers[str(active_layer)].contrast_limits = contrast_limit
 
     return _event
 
@@ -991,12 +908,7 @@ def _clear_images(self):
     layer_names = [layer.name for layer in self.viewer.layers]
 
     for layer_name in layer_names:
-        if layer_name not in [
-            "Segmentations",
-            "Nucleoid",
-            "Classes",
-            "center_lines",
-        ]:
+        if layer_name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", ]:
             self.viewer.layers.remove(self.viewer.layers[layer_name])
 
 
@@ -1040,9 +952,7 @@ def _deleteallmasks(self, viewer=None, mode="all"):
                     mask_ids = np.unique(mask)
 
                     if len(viewer_dims) == 2:
-                        self.update_image_folds(
-                            mask_ids=mask_ids, image_index=image_index
-                        )
+                        self.update_image_folds(mask_ids=mask_ids, image_index=image_index)
 
                     else:
                         for mask_id in mask_ids:

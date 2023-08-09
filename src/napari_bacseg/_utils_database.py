@@ -12,8 +12,8 @@ from qtpy.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QLabel, QProgress
 
 from napari_bacseg._utils_database_IO import read_user_metadata
 
-def _create_bacseg_database(self, viewer=None, database_name="BacSeg", path=None):
 
+def _create_bacseg_database(self, viewer=None, database_name="BacSeg", path=None):
     if type(path) != str:
         desktop = os.path.expanduser("~/Desktop")
         path = QFileDialog.getExistingDirectory(self, "Select Directory", desktop)
@@ -42,7 +42,8 @@ def _create_bacseg_database(self, viewer=None, database_name="BacSeg", path=None
                 if os.path.exists(folder_path) == False:
                     os.mkdir(folder_path)
 
-            database_metadata_list = ["abxconcentration", "antibiotic", "content", "microscope", "modality", "mount", "protocol", "source", "stain", "treatment_time", "user_initial", "strain", "phenotype"]
+            database_metadata_list = ["abxconcentration", "antibiotic", "content", "microscope", "modality", "mount", "protocol", "source", "stain", "treatment_time", "user_initial", "strain",
+                                      "phenotype"]
 
             user_metadata_list = ["example_user"]
 
@@ -103,7 +104,6 @@ def _show_database_controls(self, visible=True):
 
 
 def generate_txt_metadata(self, database_directory):
-
     database_name = (pathlib.Path(database_directory).parts[-1].replace("_Database", ""))
 
     path = pathlib.PurePath(database_directory, "Metadata", f"{database_name} Metadata.xlsx")
@@ -111,19 +111,11 @@ def generate_txt_metadata(self, database_directory):
     if os.path.exists:
         akmeta = pd.read_excel(path, usecols="B:M", header=2)
 
-        akmeta = dict(
-            user_initial=akmeta["User Initial"].dropna().astype(str).tolist(),
-            content=akmeta["Image Content"].dropna().astype(str).tolist(),
-            microscope=akmeta["Microscope"].dropna().astype(str).tolist(),
-            modality=akmeta["Modality"].dropna().astype(str).tolist(),
-            source=akmeta["Light Source"].dropna().astype(str).tolist(),
-            antibiotic=akmeta["Antibiotic"].dropna().astype(str).tolist(),
-            abxconcentration=akmeta["Antibiotic Concentration"].dropna().astype(str).tolist(),
-            treatment_time=akmeta["Treatment Time (mins)"].dropna().astype(str).tolist(),
-            stain=akmeta["Stains"].dropna().astype(str).tolist(),
-            stain_target=akmeta["Stain Target"].dropna().astype(str).tolist(),
-            mount=akmeta["Mounting Method"].dropna().astype(str).tolist(),
-            protocol=akmeta["Protocol"].dropna().astype(str).tolist(), )
+        akmeta = dict(user_initial=akmeta["User Initial"].dropna().astype(str).tolist(), content=akmeta["Image Content"].dropna().astype(str).tolist(), microscope=akmeta[
+            "Microscope"].dropna().astype(str).tolist(), modality=akmeta["Modality"].dropna().astype(str).tolist(), source=akmeta["Light Source"].dropna().astype(str).tolist(), antibiotic=akmeta[
+            "Antibiotic"].dropna().astype(str).tolist(), abxconcentration=akmeta["Antibiotic Concentration"].dropna().astype(str).tolist(), treatment_time=akmeta[
+            "Treatment Time (mins)"].dropna().astype(str).tolist(), stain=akmeta["Stains"].dropna().astype(str).tolist(), stain_target=akmeta["Stain Target"].dropna().astype(str).tolist(), mount=
+        akmeta["Mounting Method"].dropna().astype(str).tolist(), protocol=akmeta["Protocol"].dropna().astype(str).tolist(), )
 
         # generate file metadata
 
@@ -150,7 +142,6 @@ def generate_txt_metadata(self, database_directory):
 
             num_keys = self.user_metadata_keys
             for i in range(1, num_keys + 1):
-
                 txt_meta += f"\n# User Meta [{i}] (add new entries below):"
                 txt_meta_key = f"User Meta #{i}"
 
@@ -172,7 +163,6 @@ def generate_txt_metadata(self, database_directory):
 
 
 def read_txt_metadata(self, database_directory):
-
     database_name = (pathlib.Path(database_directory).parts[-1].replace("_Database", ""))
 
     metadata_directory = str(pathlib.PurePath(database_directory, "Metadata"))
@@ -271,7 +261,6 @@ def populate_upload_combos(self):
 
 
 def update_database_metadata(self, control=None):
-
     new_user = False
     new_user_initial = ""
 
@@ -284,10 +273,7 @@ def update_database_metadata(self, control=None):
 
         dbmeta, usermeta = read_txt_metadata(self, self.database_path)
 
-        control_dict = {"abxconcentration": "upload_abxconcentration", "antibiotic": "upload_antibiotic", "content": "upload_content",
-                        "microscope": "upload_microscope", "modality": "label_modality", "mount": "upload_mount", "strain": "upload_strain", "phenotype": "upload_phenotype",
-                        "protocol": "upload_protocol", "source": "label_light_source", "stain": "label_stain", "stain_target":
-                        "label_stain_target", "treatment_time": "upload_treatmenttime", "user_initial": "upload_initial"}
+        control_dict = {"abxconcentration": "upload_abxconcentration", "antibiotic": "upload_antibiotic", "content": "upload_content", "microscope": "upload_microscope", "modality": "label_modality", "mount": "upload_mount", "strain": "upload_strain", "phenotype": "upload_phenotype", "protocol": "upload_protocol", "source": "label_light_source", "stain": "label_stain", "stain_target": "label_stain_target", "treatment_time": "upload_treatmenttime", "user_initial": "upload_initial"}
 
         num_keys = self.user_metadata_keys
 
@@ -363,10 +349,8 @@ def update_database_metadata(self, control=None):
 
                         combo_box_items = [str(item).lstrip().rstrip() for item in combo_box_items]
                         combo_box_items.append(str(combo_box.currentText()))
-                        combo_box_items = [item for item in combo_box_items if item not in ["", " ", "Required for upload",
-                                                                                    'example_item1', 'example_item2', 'example_item3']]
-                        meta_values = [item for item in meta_values if item not in ["", " ", "Required for upload",
-                                                                                    'example_item1', 'example_item2', 'example_item3']]
+                        combo_box_items = [item for item in combo_box_items if item not in ["", " ", "Required for upload", 'example_item1', 'example_item2', 'example_item3']]
+                        meta_values = [item for item in meta_values if item not in ["", " ", "Required for upload", 'example_item1', 'example_item2', 'example_item3']]
 
                         combo_box_items = np.unique(combo_box_items).tolist()
                         meta_values = np.unique(meta_values).tolist()
@@ -417,7 +401,6 @@ def update_database_metadata(self, control=None):
 
 
 def read_file_metadata(self):
-
     control_dict = {}
 
     user_file_meta = {}
@@ -433,33 +416,24 @@ def read_file_metadata(self):
     user_initial = self.upload_initial.currentText()
 
     if database_path != "" and user_initial != "":
-
         user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
 
         if os.path.exists(user_metadata_path):
-
-            user_metadata, _ = read_user_metadata(self, user_metadata_path = user_metadata_path)
+            user_metadata, _ = read_user_metadata(self, user_metadata_path=user_metadata_path)
 
             for key, dfkey in control_dict.items():
-
                 if dfkey in user_metadata.columns:
-
                     values = user_metadata[dfkey].unique().tolist()
 
                     user_file_meta[key] = values
 
                 else:
-
                     user_file_meta[key] = []
 
     return user_file_meta
 
 
-
-
-
 def _populateUSERMETA(self):
-
     try:
         _, usermeta = read_txt_metadata(self, self.database_path)
 
@@ -469,8 +443,7 @@ def _populateUSERMETA(self):
 
         num_keys = self.user_metadata_keys
 
-        for key in range(1, num_keys + 1 ):
-
+        for key in range(1, num_keys + 1):
             control_name = f"upload_usermeta{key}"
             combo_box = getattr(self, control_name)
             combo_box.clear()
@@ -481,9 +454,7 @@ def _populateUSERMETA(self):
 
                 meta_values = np.unique(user_meta_values + file_meta_values).tolist()
 
-                meta_values = [value for value in meta_values if value not in ["", " ", "nan", "Required for upload",
-                                                                               'example_item1', 'example_item2', 'example_item3',
-                                                                               None, np.nan]]
+                meta_values = [value for value in meta_values if value not in ["", " ", "nan", "Required for upload", 'example_item1', 'example_item2', 'example_item3', None, np.nan]]
                 combo_box.addItems([""] + meta_values)
             else:
                 combo_box.setCurrentText("")
