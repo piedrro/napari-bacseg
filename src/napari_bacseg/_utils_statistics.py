@@ -7,6 +7,7 @@ Created on Wed Apr 27 10:32:45 2022
 import math
 import os
 import tempfile
+import traceback
 
 import cv2
 import numpy as np
@@ -383,6 +384,7 @@ def get_layer_statistics(image, cell_mask, box, layer_names):
 
 
 def get_cell_statistics(self, mode, pixel_size, colicoords_dir, progress_callback=None):
+
     layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
 
     if mode == "active":
@@ -486,9 +488,21 @@ def get_cell_statistics(self, mode, pixel_size, colicoords_dir, progress_callbac
 
                 layer_stats = get_layer_statistics(image, cell_mask, box, layer_names)
 
-                morphology_stats = dict(file_names=file_names, colicoords=False, cell_type=cell_type, pixel_size_um=pixel_size, length=contour_statistics["cell_length"], radius=(
-                contour_statistics["cell_radius"]), area=contour_statistics["cell_area"], circumference=contour_statistics["circumference"], aspect_ratio=contour_statistics["aspect_ratio"], solidity=
-                contour_statistics["solidity"], overlap_percentage=overlap_percentage, box=box, cell_images_path=cell_images_path, )
+                morphology_stats = dict(
+                    file_names=file_names,
+                    colicoords=False,
+                    cell_type=cell_type,
+                    pixel_size_um=pixel_size,
+                    length=contour_statistics["cell_length"],
+                    width=contour_statistics["cell_width"],
+                    radius=(contour_statistics["cell_radius"]),
+                    area=contour_statistics["cell_area"],
+                    circumference=contour_statistics["circumference"],
+                    aspect_ratio=contour_statistics["aspect_ratio"],
+                    solidity=contour_statistics["solidity"],
+                    overlap_percentage=overlap_percentage,
+                    box=box,
+                    cell_images_path=cell_images_path, )
 
                 stats = {**morphology_stats, **image_stats, **layer_stats}
 
@@ -501,29 +515,35 @@ def get_cell_statistics(self, mode, pixel_size, colicoords_dir, progress_callbac
 
 
 def process_cell_statistics(self, cell_statistics, path):
+
     def _event(viewer, cell_statistics=None):
-        if type(cell_statistics) == dict:
-            ldist_data = cell_statistics["ldist_data"]
-            ldist_data = pd.DataFrame.from_dict(ldist_data).dropna(how="all")
-            cell_statistics = cell_statistics["cell_statistics"]
-        else:
-            ldist_data = None
 
-        export_path = os.path.join(path, "statistics.xlsx")
+        try:
 
-        drop_columns = ["cell_image", "cell_mask", "offset", "shift_xy", "edge", "vertical", "mask_id", "contour", "edge", "vertical", "mask_id", "cell", "refined_cnt", "oufti", "statistics",
-            "colicoords_channel", "channels", "cell_images_path", "ldist", ]
+            if type(cell_statistics) == dict:
+                ldist_data = cell_statistics["ldist_data"]
+                ldist_data = pd.DataFrame.from_dict(ldist_data).dropna(how="all")
+                cell_statistics = cell_statistics["cell_statistics"]
+            else:
+                ldist_data = None
 
-        cell_statistics = pd.DataFrame(cell_statistics)
+            export_path = os.path.join(path, "statistics.xlsx")
 
-        cell_statistics = cell_statistics.drop(columns=[col for col in cell_statistics if col in drop_columns])
+            drop_columns = ["cell_image", "cell_mask", "offset", "shift_xy", "edge", "vertical", "mask_id", "contour", "edge", "vertical", "mask_id", "cell", "refined_cnt", "oufti", "statistics",
+                "colicoords_channel", "channels", "cell_images_path", "ldist", ]
 
-        cell_statistics = cell_statistics.dropna(how="all")
+            cell_statistics = pd.DataFrame(cell_statistics)
 
-        with pd.ExcelWriter(export_path) as writer:
-            cell_statistics.to_excel(writer, sheet_name="Cell Statistics", index=False, startrow=1, startcol=1, )
-            if isinstance(ldist_data, pd.DataFrame):
-                ldist_data.to_excel(writer, sheet_name="Length Distribution Data", index=False, startrow=1, startcol=1, )
+            cell_statistics = cell_statistics.drop(columns=[col for col in cell_statistics if col in drop_columns])
+
+            cell_statistics = cell_statistics.dropna(how="all")
+
+            with pd.ExcelWriter(export_path) as writer:
+                cell_statistics.to_excel(writer, sheet_name="Cell Statistics", index=False, startrow=1, startcol=1, )
+                if isinstance(ldist_data, pd.DataFrame):
+                    ldist_data.to_excel(writer, sheet_name="Length Distribution Data", index=False, startrow=1, startcol=1, )
+        except:
+            print(traceback.format_exc())
 
         return
 
