@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import itertools
 import os
@@ -38,9 +39,7 @@ def get_ziess_channel_dict(path):
 
     metadata = xmltodict.parse(metadata)["ImageDocument"]["Metadata"]
 
-    channels_metadata = metadata["Information"]["Image"]["Dimensions"][
-        "Channels"
-    ]["Channel"]
+    channels_metadata = metadata["Information"]["Image"]["Dimensions"]["Channels"]["Channel"]
 
     channel_dict = {}
 
@@ -138,13 +137,7 @@ def get_zeiss_measurements(self, paths):
     return czi_measurements, channel_names, num_measurements
 
 
-def read_zeiss_image_files(
-    self,
-    progress_callback,
-    zeiss_measurements,
-    channel_names,
-    num_measurements,
-):
+def read_zeiss_image_files(self, progress_callback, zeiss_measurements, channel_names, num_measurements, ):
     from aicspylibczi import CziFile
 
     zeiss_images = {}
@@ -154,6 +147,8 @@ def read_zeiss_image_files(
     num_loaded = 0
 
     for path, dim_list in zeiss_measurements.groupby("path"):
+        path = os.path.normpath(path)
+
         dim_list = dim_list.drop("path", axis=1).dropna(axis=1)
 
         czi = CziFile(path)
@@ -163,6 +158,7 @@ def read_zeiss_image_files(
         key_dim_cols = dim_list.columns.drop(["C"]).tolist()
 
         if key_dim_cols == []:
+
             images, img_shape = czi.read_image()
 
             num_loaded += 1
@@ -174,12 +170,9 @@ def read_zeiss_image_files(
             for channel_index, img_channel in enumerate(images):
                 akseg_hash = get_hash(img=img_channel)
                 contrast_limit = np.percentile(img_channel, (1, 99))
-                contrast_limit = [
-                    int(contrast_limit[0] * 0.5),
-                    int(contrast_limit[1] * 2),
-                ]
+                contrast_limit = [int(contrast_limit[0] * 0.5), int(contrast_limit[1] * 2), ]
 
-                meta = channel_dict[channel_index]
+                meta = copy.deepcopy(channel_dict[channel_index])
 
                 image_name = os.path.basename(path).replace(".czi", "")
                 image_name = image_name + "_" + meta["@Name"].replace(" ", "")
@@ -187,6 +180,7 @@ def read_zeiss_image_files(
                 meta["akseg_hash"] = akseg_hash
                 meta["image_name"] = image_name
                 meta["image_path"] = path
+                meta["folder"] = path.split(os.sep)[-2]
                 meta["mask_name"] = None
                 meta["mask_path"] = None
                 meta["label_name"] = None
@@ -197,34 +191,19 @@ def read_zeiss_image_files(
                 meta["contrast_beta"] = 0
                 meta["contrast_gamma"] = 0
                 meta["dims"] = [img_channel.shape[-1], img_channel.shape[-2]]
-                meta["crop"] = [
-                    0,
-                    img_channel.shape[-2],
-                    0,
-                    img_channel.shape[-1],
-                ]
+                meta["crop"] = [0, img_channel.shape[-2], 0, img_channel.shape[-1], ]
 
                 channel_name = meta["@Name"]
 
                 fov_channels.append(channel_name)
 
                 if channel_name not in zeiss_images:
-                    zeiss_images[channel_name] = dict(
-                        images=[img_channel],
-                        masks=[],
-                        nmasks=[],
-                        classes=[],
-                        metadata={0: meta},
-                    )
+                    zeiss_images[channel_name] = dict(images=[img_channel], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
                 else:
                     zeiss_images[channel_name]["images"].append(img_channel)
-                    zeiss_images[channel_name]["metadata"][0] = meta
+                    zeiss_images[channel_name]["metadata"][i] = meta
 
-            missing_channels = [
-                channel
-                for channel in channel_names
-                if channel not in fov_channels
-            ]
+            missing_channels = [channel for channel in channel_names if channel not in fov_channels]
 
             for channel_name in missing_channels:
                 img_channel = np.zeros_like(img_channel)
@@ -242,25 +221,14 @@ def read_zeiss_image_files(
                 meta["contrast_beta"] = None
                 meta["contrast_gamma"] = None
                 meta["dims"] = [img_channel.shape[-1], img_channel.shape[-2]]
-                meta["crop"] = [
-                    0,
-                    img_channel.shape[-2],
-                    0,
-                    img_channel.shape[-1],
-                ]
+                meta["crop"] = [0, img_channel.shape[-2], 0, img_channel.shape[-1], ]
                 meta["light_source"] = channel_name
 
                 if channel_name not in zeiss_images:
-                    zeiss_images[channel_name] = dict(
-                        images=[img_channel],
-                        masks=[],
-                        nmasks=[],
-                        classes=[],
-                        metadata={0: {}},
-                    )
+                    zeiss_images[channel_name] = dict(images=[img_channel], masks=[], nmasks=[], classes=[], metadata={i: {}}, )
                 else:
                     zeiss_images[channel_name]["images"].append(img_channel)
-                    zeiss_images[channel_name]["metadata"][0] = meta
+                    zeiss_images[channel_name]["metadata"][i] = meta
 
         else:
             iter = 0
@@ -283,27 +251,21 @@ def read_zeiss_image_files(
 
                     akseg_hash = get_hash(img=img_channel)
                     contrast_limit = np.percentile(img_channel, (1, 99))
-                    contrast_limit = [
-                        int(contrast_limit[0] * 0.5),
-                        int(contrast_limit[1] * 2),
-                    ]
+                    contrast_limit = [int(contrast_limit[0] * 0.5), int(contrast_limit[1] * 2), ]
 
-                    meta = channel_dict[channel_index]
+                    meta = copy.deepcopy(channel_dict[channel_index])
 
                     image_name = os.path.basename(path).replace(".czi", "")
 
                     for key, value in czi_indeces.items():
                         image_name = image_name + "_" + str(key) + str(value)
-                    image_name = (
-                        image_name
-                        + "_"
-                        + meta["@Name"].replace(" ", "")
-                        + ".tif"
-                    )
+
+                    image_name = (image_name + "_" + meta["@Name"].replace(" ", "") + ".tif")
 
                     meta["akseg_hash"] = akseg_hash
-                    meta["image_name"] = image_name
+                    meta["image_name"] = copy.deepcopy(image_name)
                     meta["image_path"] = path
+                    meta["folder"] = path.split(os.sep)[-2]
                     meta["mask_name"] = None
                     meta["mask_path"] = None
                     meta["label_name"] = None
@@ -313,42 +275,23 @@ def read_zeiss_image_files(
                     meta["contrast_alpha"] = 0
                     meta["contrast_beta"] = 0
                     meta["contrast_gamma"] = 0
-                    meta["dims"] = [
-                        img_channel.shape[-1],
-                        img_channel.shape[-2],
-                    ]
-                    meta["crop"] = [
-                        0,
-                        img_channel.shape[-2],
-                        0,
-                        img_channel.shape[-1],
-                    ]
+                    meta["dims"] = [img_channel.shape[-1], img_channel.shape[-2], ]
+                    meta["crop"] = [0, img_channel.shape[-2], 0, img_channel.shape[-1], ]
 
-                    channel_name = meta["@Name"]
+                    channel_name = copy.deepcopy(meta["@Name"])
 
                     fov_channels.append(channel_name)
 
-                    if channel_name not in zeiss_images:
-                        zeiss_images[channel_name] = dict(
-                            images=[img_channel],
-                            masks=[],
-                            nmasks=[],
-                            classes=[],
-                            metadata={i: meta},
-                        )
+                    if channel_name not in zeiss_images.keys():
+                        zeiss_images[channel_name] = dict(images=[img_channel], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
                     else:
-                        zeiss_images[channel_name]["images"].append(
-                            img_channel
-                        )
+                        zeiss_images[channel_name]["images"].append(img_channel)
                         zeiss_images[channel_name]["metadata"][i] = meta
 
-                missing_channels = [
-                    channel
-                    for channel in channel_names
-                    if channel not in fov_channels
-                ]
+                missing_channels = [channel for channel in channel_names if channel not in fov_channels]
 
                 for channel_name in missing_channels:
+
                     img_channel = np.zeros_like(img_channel)
 
                     meta = {}
@@ -363,31 +306,15 @@ def read_zeiss_image_files(
                     meta["contrast_alpha"] = None
                     meta["contrast_beta"] = None
                     meta["contrast_gamma"] = None
-                    meta["dims"] = [
-                        img_channel.shape[-1],
-                        img_channel.shape[-2],
-                    ]
-                    meta["crop"] = [
-                        0,
-                        img_channel.shape[-2],
-                        0,
-                        img_channel.shape[-1],
-                    ]
+                    meta["dims"] = [img_channel.shape[-1], img_channel.shape[-2], ]
+                    meta["crop"] = [0, img_channel.shape[-2], 0, img_channel.shape[-1], ]
                     meta["light_source"] = channel_name
 
                     if channel_name not in zeiss_images:
-                        zeiss_images[channel_name] = dict(
-                            images=[img_channel],
-                            masks=[],
-                            nmasks=[],
-                            classes=[],
-                            metadata={0: {}},
-                        )
+                        zeiss_images[channel_name] = dict(images=[img_channel], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
                     else:
-                        zeiss_images[channel_name]["images"].append(
-                            img_channel
-                        )
-                        zeiss_images[channel_name]["metadata"][0] = meta
+                        zeiss_images[channel_name]["images"].append(img_channel)
+                        zeiss_images[channel_name]["metadata"][i] = meta
 
     imported_data = dict(imported_images=zeiss_images)
 

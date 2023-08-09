@@ -61,8 +61,6 @@ def _postpocess_cellpose(self, mask):
     try:
         min_seg_size = int(self.cellpose_min_seg_size.currentText())
 
-        print(min_seg_size)
-
         post_processed_mask = np.zeros(mask.shape, dtype=np.uint16)
 
         mask_ids = sorted(np.unique(mask))

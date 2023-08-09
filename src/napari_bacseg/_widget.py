@@ -785,10 +785,12 @@ class BacSeg(QWidget):
         return func
 
     def overwrite_channel_info(self):
+
         all_layers = [layer.name for layer in self.viewer.layers]
         selected_layers = [layer.name for layer in self.viewer.layers.selection]
 
         if len(selected_layers) == 1:
+
             selected_layer = selected_layers[0]
             all_layers.pop(all_layers.index(selected_layer))
 
@@ -822,6 +824,7 @@ class BacSeg(QWidget):
                 self._updateFileName()
                 self._updateSegmentationCombo()
                 self._updateSegChannels()
+
 
     def _export_statistics(self, mode="active"):
         def _event(viewer):
@@ -1455,8 +1458,6 @@ class BacSeg(QWidget):
 
             viewer_text = ""
 
-            # print(metadata['image_name'])
-
             if (self.overlay_filename.isChecked() and "image_name" in metadata.keys()):
                 viewer_text = f"File Name: {metadata['image_name']}"
             if self.overlay_folder.isChecked() and "folder" in metadata.keys():
@@ -1567,6 +1568,7 @@ class BacSeg(QWidget):
                 current_nmask_stack = self.nucLayer.data
                 current_class_stack = self.classLayer.data
 
+
                 if len(current_image_stack) == 0:
                     setattr(self, layer_name, self.viewer.add_image(new_image_stack, name=layer_name, colormap=colormap, gamma=0.8, metadata=new_metadata, ), )
 
@@ -1578,6 +1580,8 @@ class BacSeg(QWidget):
                     self.nucLayer.data = new_nmask_stack
                     self.classLayer.data = new_class_stack
                     self.segLayer.metadata = new_metadata
+                    self.nucLayer.metadata = new_metadata
+                    self.classLayer.metadata = new_metadata
 
                 else:
                     from napari_bacseg._utils import append_image_stacks
@@ -1602,6 +1606,8 @@ class BacSeg(QWidget):
                     self.nucLayer.data = appended_nmask_stack
                     self.classLayer.data = appended_class_stack
                     self.segLayer.metadata = appended_metadata
+                    self.nucLayer.metadata = appended_metadata
+                    self.classLayer.metadata = new_metadata
 
             else:
                 if append_mode == 2:
@@ -1627,6 +1633,8 @@ class BacSeg(QWidget):
                 self.nucLayer.data = new_nmask_stack
                 self.classLayer.data = new_class_stack
                 self.segLayer.metadata = new_metadata
+                self.nucLayer.metadata = new_metadata
+                self.classLayer.metadata = new_metadata
 
         # sets labels such that only label contours are shown
         self.segLayer.contour = 1
