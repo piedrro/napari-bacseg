@@ -94,7 +94,19 @@ def _run_cellpose(self, progress_callback, images):
                 except:
                     pass
 
-                mask, flow, diam = model.eval(images[i], diameter=diameter, channels=[0, 0], flow_threshold=flow_threshold, cellprob_threshold=mask_threshold, min_size=min_size, batch_size=3, )
+                image = images[i]
+
+                if self.cellpose_invert_images.isChecked():
+                    image = cv2.bitwise_not(image)
+                    print(True)
+
+                mask, flow, diam = model.eval(
+                    image,
+                    diameter=diameter,
+                    channels=[0, 0],
+                    flow_threshold=flow_threshold,
+                    cellprob_threshold=mask_threshold,
+                    min_size=min_size, batch_size=3, )
 
                 mask = _postpocess_cellpose(self, mask)
 

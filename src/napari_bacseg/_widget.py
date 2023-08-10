@@ -288,6 +288,7 @@ class BacSeg(QWidget):
         self.cellpose_batchsize = self.findChild(QComboBox, "cellpose_batchsize")
         self.cellpose_min_seg_size = self.findChild(QComboBox, "cellpose_min_seg_size")
         self.cellpose_seg_mode = self.findChild(QComboBox, "cellpose_seg_mode")
+        self.cellpose_invert_images = self.findChild(QCheckBox, "cellpose_invert_images")
 
         # modify tab controls + variables from Qt Desinger References
         self.interface_mode = "panzoom"

@@ -38,271 +38,111 @@ def _modify_channel_changed(self, event):
     else:
         self.viewer.layers.selection.active = self.nucLayer
 
+def get_new_class(self, modify_channel, event):
+
+    data_coordinates = modify_channel.world_to_data(event.position)
+    coord = np.round(data_coordinates).astype(int)
+    new_colour = modify_channel.get_value(coord)
+
+    modify_channel.selected_label = new_colour
+    new_colour = modify_channel.get_value(coord)
+
+    new_class = self.classLayer.get_value(coord)
+
+    if new_class != None:
+        self.class_colour = new_class
+
+    return new_colour, new_class
+
+
+
+
 
 def _segmentationEvents(self, viewer, event):
     try:
-        if "Control" in event.modifiers:
-            self._modifyMode(mode="delete")
 
-        if "Shift" in event.modifiers:
-            self._modifyMode(mode="add")
+        # check if event.position contains a negative value
+        if any(i < 0 for i in event.position) == False:
 
-        if self.modify_channel.currentIndex() == 0:
-            modify_channel = self.segLayer
-            self.viewer.layers.selection.active = self.segLayer
-        else:
-            modify_channel = self.nucLayer
-            self.viewer.layers.selection.active = self.nucLayer
+            if "Control" in event.modifiers:
+                self._modifyMode(mode="delete")
 
-        if self.interface_mode == "segment":
-            # add segmentation
-            if self.segmentation_mode in ["add", "extend"]:
-                modify_channel.mode = "paint"
-                modify_channel.brush_size = 1
+            if "Shift" in event.modifiers:
+                self._modifyMode(mode="add")
 
-                stored_mask = modify_channel.data.copy()
-                stored_class = self.classLayer.data.copy()
-                meta = modify_channel.metadata.copy()
+            if self.modify_channel.currentIndex() == 0:
+                modify_channel = self.segLayer
+                self.viewer.layers.selection.active = self.segLayer
+            else:
+                modify_channel = self.nucLayer
+                self.viewer.layers.selection.active = self.nucLayer
 
-                if self.segmentation_mode == "add":
-                    new_colour = _newSegColour(self)
-                else:
-                    data_coordinates = modify_channel.world_to_data(event.position)
-                    coord = np.round(data_coordinates).astype(int)
-                    new_colour = modify_channel.get_value(coord)
+            if self.interface_mode == "segment":
+                # add segmentation
+                if self.segmentation_mode in ["add", "extend"]:
+                    modify_channel.mode = "paint"
+                    modify_channel.brush_size = 1
 
-                    modify_channel.selected_label = new_colour
-                    new_colour = modify_channel.get_value(coord)
+                    stored_mask = modify_channel.data.copy()
+                    stored_class = self.classLayer.data.copy()
+                    meta = modify_channel.metadata.copy()
 
-                    new_class = self.classLayer.get_value(coord)
-
-                    if new_class != None:
-                        self.class_colour = new_class
-
-                dragged = False
-                coordinates = []
-
-                yield
-
-                # # on move
-                while event.type == "mouse_move":
-                    coordinates.append(event.position)
-                    dragged = True
-                    yield
-
-                # on release
-                if dragged:
-                    if (new_colour != 0 and new_colour != None and self.class_colour != None):
-                        coordinates = np.round(np.array(coordinates)).astype(np.int32)
-
-                        mask_dim = tuple(list(coordinates[0][:-2]) + [...])
-
-                        cnt = coordinates[:, -2:]
-
-                        cnt = np.fliplr(cnt)
-                        cnt = cnt.reshape((-1, 1, 2))
-
-                        seg_stack = modify_channel.data
-
-                        seg_mask = seg_stack[mask_dim]
-
-                        cv2.drawContours(seg_mask, [cnt], -1, int(new_colour), -1)
-
-                        seg_mask = fill_holes(seg_mask, new_colour)
-
-                        seg_stack[mask_dim] = seg_mask
-
-                        modify_channel.data = seg_stack
-
-                        # update class
-
-                        class_stack = self.classLayer.data
-                        class_colour = self.class_colour
-                        seg_stack = modify_channel.data
-
-                        seg_mask = seg_stack[mask_dim]
-                        class_mask = class_stack[mask_dim]
-
-                        class_mask[seg_mask == int(new_colour)] = class_colour
-                        class_stack[mask_dim] = class_mask
-
-                        self.classLayer.data = class_stack
-
-                        # update metadata
-
-                        meta["manual_segmentation"] = True
-                        modify_channel.metadata = meta
-                        modify_channel.mode = "pan_zoom"
-                        self.update_image_folds()
-
+                    if self.segmentation_mode == "add":
+                        new_colour = _newSegColour(self)
                     else:
-                        modify_channel.data = stored_mask
-                        self.classLayer.data = stored_class
-                        modify_channel.mode = "pan_zoom"
 
-            # join segmentations
-            if self.segmentation_mode == "join":
-                modify_channel.mode = "paint"
-                modify_channel.brush_size = 1
+                        new_colour, new_class = get_new_class(self, modify_channel, event)
 
-                stored_mask = modify_channel.data.copy()
-                stored_class = self.classLayer.data.copy()
-                meta = modify_channel.metadata.copy()
+                    dragged = False
+                    coordinates = []
 
-                data_coordinates = modify_channel.world_to_data(event.position)
-                coord = np.round(data_coordinates).astype(int)
-                new_colour = modify_channel.get_value(coord)
-
-                modify_channel.selected_label = new_colour
-                new_colour = modify_channel.get_value(coord)
-
-                new_class = self.classLayer.get_value(coord)
-
-                if new_class != None:
-                    self.class_colour = new_class
-
-                dragged = False
-                colours = []
-                classes = []
-                coords = []
-                yield
-
-                # on move
-                while event.type == "mouse_move":
-                    data_coordinates = modify_channel.world_to_data(event.position)
-                    coord = np.round(data_coordinates).astype(int)
-                    mask_val = modify_channel.get_value(coord)
-                    class_val = self.classLayer.get_value(coord)
-                    colours.append(mask_val)
-                    classes.append(class_val)
-                    coords.append(coord)
-                    dragged = True
                     yield
 
-                # on release
-                if dragged:
-                    colours = np.array(colours)
-                    colours = np.unique(colours)
-                    colours = np.delete(colours, np.where(colours == 0))
+                    # # on move
+                    while event.type == "mouse_move":
+                        coordinates.append(event.position)
+                        dragged = True
+                        yield
 
-                    if new_colour in colours:
-                        colours = np.delete(colours, np.where(colours == new_colour))
+                    # on release
+                    if dragged:
+                        if (new_colour != 0 and new_colour != None and self.class_colour != None):
+                            coordinates = np.round(np.array(coordinates)).astype(np.int32)
 
-                    if (len(colours) == 1 and new_colour not in colours and new_colour != None):
-                        mask_stack = modify_channel.data
+                            mask_dim = tuple(list(coordinates[0][:-2]) + [...])
 
-                        mask_dim = tuple(list(coords[0][:-2]) + [...])
+                            cnt = coordinates[:, -2:]
 
-                        mask = mask_stack[mask_dim]
+                            cnt = np.fliplr(cnt)
+                            cnt = cnt.reshape((-1, 1, 2))
 
-                        mask[mask == colours[0]] = new_colour
+                            seg_stack = modify_channel.data
 
-                        mask = fill_holes(mask, new_colour)
+                            seg_mask = seg_stack[mask_dim]
 
-                        mask_stack[mask_dim] = mask
+                            cv2.drawContours(seg_mask, [cnt], -1, int(new_colour), -1)
 
-                        modify_channel.data = mask_stack
+                            seg_mask = fill_holes(seg_mask, new_colour)
 
-                        # update class
+                            seg_stack[mask_dim] = seg_mask
 
-                        class_stack = self.classLayer.data
-                        seg_stack = modify_channel.data
+                            modify_channel.data = seg_stack
 
-                        seg_mask = seg_stack[mask_dim]
-                        class_mask = class_stack[mask_dim]
+                            # update class
 
-                        class_mask[seg_mask == new_colour] = 2
-                        class_stack[mask_dim] = class_mask
+                            class_stack = self.classLayer.data
+                            class_colour = self.class_colour
+                            seg_stack = modify_channel.data
 
-                        self.classLayer.data = class_stack
+                            seg_mask = seg_stack[mask_dim]
+                            class_mask = class_stack[mask_dim]
 
-                        # update metadata
+                            class_mask[seg_mask == int(new_colour)] = class_colour
+                            class_stack[mask_dim] = class_mask
 
-                        meta["manual_segmentation"] = True
-                        modify_channel.metadata = meta
-                        modify_channel.mode = "pan_zoom"
-                        self.update_image_folds()
+                            self.classLayer.data = class_stack
 
-                    else:
-                        modify_channel.data = stored_mask
-                        self.classLayer.data = stored_class
-                        modify_channel.mode = "pan_zoom"
-
-            # split segmentations
-            if self.segmentation_mode == "split":
-                modify_channel.mode = "paint"
-                modify_channel.brush_size = 1
-
-                new_colour = _newSegColour(self)
-                stored_mask = modify_channel.data.copy()
-                stored_class = self.classLayer.data
-                meta = modify_channel.metadata.copy()
-
-                dragged = False
-                colours = []
-                yield
-
-                # on move
-                while event.type == "mouse_move":
-                    data_coordinates = modify_channel.world_to_data(event.position)
-                    coords = np.round(data_coordinates).astype(int)
-                    mask_val = modify_channel.get_value(coords)
-                    colours.append(mask_val)
-                    dragged = True
-                    yield
-
-                # on release
-                if dragged:
-                    colours = np.array(colours)
-                    colours = np.delete(colours, np.where(colours == new_colour))
-
-                    colours[colours == None] = 0
-
-                    num_colours = len(np.unique(colours))
-
-                    if num_colours == 2 or num_colours == 3:
-                        if num_colours == 2:
-                            maskref = colours[colours != 0][0]
-                        else:
-                            maskref = sorted(set(colours.tolist()), key=lambda x: colours.tolist().index(x), )[1]
-
-                        bisection = (colours[0] != maskref and colours[-1] != maskref)
-
-                        if bisection and new_colour != None:
-                            mask_dim = tuple(list(coords[:-2]) + [...])
-                            shape_mask = stored_mask[mask_dim].copy()
-
-                            class_mask = stored_class[mask_dim].copy()
-                            class_mask[shape_mask == maskref] = 3
-                            stored_class[mask_dim] = class_mask
-                            self.classLayer.data = stored_class
-
-                            shape_mask[shape_mask != maskref] = 0
-                            shape_mask[shape_mask == maskref] = 255
-                            shape_mask = shape_mask.astype(np.uint8)
-
-                            line_mask = modify_channel.data.copy()
-                            line_mask = line_mask[mask_dim]
-                            line_mask[line_mask != new_colour] = 0
-                            line_mask[line_mask == new_colour] = 255
-                            line_mask = line_mask.astype(np.uint8)
-
-                            overlap = cv2.bitwise_and(shape_mask, line_mask)
-
-                            shape_mask_split = cv2.bitwise_xor(shape_mask, overlap).astype(np.uint8)
-
-                            # update labels layers with split shape
-                            split_mask = stored_mask[mask_dim]
-                            split_mask[overlap == 255] = new_colour
-                            stored_mask[mask_dim] = split_mask
-                            modify_channel.data = stored_mask
-
-                            # fill one have of the split shape with the new colour
-                            indices = np.where(shape_mask_split == 255)
-                            split_dim = list(list(mask_dim[:-1]) + [indices[0][0], indices[1][0]])
-                            split_dim = np.array(split_dim).flatten().tolist()
-
-                            modify_channel.fill(split_dim, new_colour)
+                            # update metadata
 
                             meta["manual_segmentation"] = True
                             modify_channel.metadata = meta
@@ -311,196 +151,360 @@ def _segmentationEvents(self, viewer, event):
 
                         else:
                             modify_channel.data = stored_mask
+                            self.classLayer.data = stored_class
+                            modify_channel.mode = "pan_zoom"
+
+                # join segmentations
+                if self.segmentation_mode == "join":
+                    modify_channel.mode = "paint"
+                    modify_channel.brush_size = 1
+
+                    stored_mask = modify_channel.data.copy()
+                    stored_class = self.classLayer.data.copy()
+                    meta = modify_channel.metadata.copy()
+
+                    new_colour, new_class = get_new_class(self, modify_channel, event)
+
+                    dragged = False
+                    colours = []
+                    classes = []
+                    coords = []
+                    yield
+
+                    # on move
+                    while event.type == "mouse_move":
+                        data_coordinates = modify_channel.world_to_data(event.position)
+                        coord = np.round(data_coordinates).astype(int)
+                        mask_val = modify_channel.get_value(coord)
+                        class_val = self.classLayer.get_value(coord)
+                        colours.append(mask_val)
+                        classes.append(class_val)
+                        coords.append(coord)
+                        dragged = True
+                        yield
+
+                    # on release
+                    if dragged:
+                        colours = np.array(colours)
+                        colours = np.unique(colours)
+                        colours = np.delete(colours, np.where(colours == 0))
+
+                        if new_colour in colours:
+                            colours = np.delete(colours, np.where(colours == new_colour))
+
+                        if (len(colours) == 1 and new_colour not in colours and new_colour != None):
+                            mask_stack = modify_channel.data
+
+                            mask_dim = tuple(list(coords[0][:-2]) + [...])
+
+                            mask = mask_stack[mask_dim]
+
+                            mask[mask == colours[0]] = new_colour
+
+                            mask = fill_holes(mask, new_colour)
+
+                            mask_stack[mask_dim] = mask
+
+                            modify_channel.data = mask_stack
+
+                            # update class
+
+                            class_stack = self.classLayer.data
+                            seg_stack = modify_channel.data
+
+                            seg_mask = seg_stack[mask_dim]
+                            class_mask = class_stack[mask_dim]
+
+                            class_mask[seg_mask == new_colour] = 2
+                            class_stack[mask_dim] = class_mask
+
+                            self.classLayer.data = class_stack
+
+                            # update metadata
+
+                            meta["manual_segmentation"] = True
+                            modify_channel.metadata = meta
+                            modify_channel.mode = "pan_zoom"
+                            self.update_image_folds()
+
+                        else:
+                            modify_channel.data = stored_mask
+                            self.classLayer.data = stored_class
+                            modify_channel.mode = "pan_zoom"
+
+                # split segmentations
+                if self.segmentation_mode == "split":
+                    modify_channel.mode = "paint"
+                    modify_channel.brush_size = 1
+
+                    new_colour = _newSegColour(self)
+                    stored_mask = modify_channel.data.copy()
+                    stored_class = self.classLayer.data
+                    meta = modify_channel.metadata.copy()
+
+                    dragged = False
+                    colours = []
+                    yield
+
+                    # on move
+                    while event.type == "mouse_move":
+                        data_coordinates = modify_channel.world_to_data(event.position)
+                        coords = np.round(data_coordinates).astype(int)
+                        mask_val = modify_channel.get_value(coords)
+                        colours.append(mask_val)
+                        dragged = True
+                        yield
+
+                    # on release
+                    if dragged:
+                        colours = np.array(colours)
+                        colours = np.delete(colours, np.where(colours == new_colour))
+
+                        colours[colours == None] = 0
+
+                        num_colours = len(np.unique(colours))
+
+                        if num_colours == 2 or num_colours == 3:
+                            if num_colours == 2:
+                                maskref = colours[colours != 0][0]
+                            else:
+                                maskref = sorted(set(colours.tolist()), key=lambda x: colours.tolist().index(x), )[1]
+
+                            bisection = (colours[0] != maskref and colours[-1] != maskref)
+
+                            if bisection and new_colour != None:
+                                mask_dim = tuple(list(coords[:-2]) + [...])
+                                shape_mask = stored_mask[mask_dim].copy()
+
+                                class_mask = stored_class[mask_dim].copy()
+                                class_mask[shape_mask == maskref] = 3
+                                stored_class[mask_dim] = class_mask
+                                self.classLayer.data = stored_class
+
+                                shape_mask[shape_mask != maskref] = 0
+                                shape_mask[shape_mask == maskref] = 255
+                                shape_mask = shape_mask.astype(np.uint8)
+
+                                line_mask = modify_channel.data.copy()
+                                line_mask = line_mask[mask_dim]
+                                line_mask[line_mask != new_colour] = 0
+                                line_mask[line_mask == new_colour] = 255
+                                line_mask = line_mask.astype(np.uint8)
+
+                                overlap = cv2.bitwise_and(shape_mask, line_mask)
+
+                                shape_mask_split = cv2.bitwise_xor(shape_mask, overlap).astype(np.uint8)
+
+                                # update labels layers with split shape
+                                split_mask = stored_mask[mask_dim]
+                                split_mask[overlap == 255] = new_colour
+                                stored_mask[mask_dim] = split_mask
+                                modify_channel.data = stored_mask
+
+                                # fill one have of the split shape with the new colour
+                                indices = np.where(shape_mask_split == 255)
+                                split_dim = list(list(mask_dim[:-1]) + [indices[0][0], indices[1][0]])
+                                split_dim = np.array(split_dim).flatten().tolist()
+
+                                modify_channel.fill(split_dim, new_colour)
+
+                                meta["manual_segmentation"] = True
+                                modify_channel.metadata = meta
+                                modify_channel.mode = "pan_zoom"
+                                self.update_image_folds()
+
+                            else:
+                                modify_channel.data = stored_mask
+                                modify_channel.mode = "pan_zoom"
+                        else:
+                            modify_channel.data = stored_mask
                             modify_channel.mode = "pan_zoom"
                     else:
                         modify_channel.data = stored_mask
                         modify_channel.mode = "pan_zoom"
-                else:
-                    modify_channel.data = stored_mask
-                    modify_channel.mode = "pan_zoom"
 
-            # delete segmentations
-            if self.segmentation_mode == "delete":
-                modify_channel.mode = "paint"
-                modify_channel.brush_size = 1
+                # delete segmentations
+                if self.segmentation_mode == "delete":
+                    modify_channel.mode = "paint"
+                    modify_channel.brush_size = 1
 
-                new_colour = _newSegColour(self)
-                stored_mask = modify_channel.data.copy()
-                stored_class = self.classLayer.data
-                meta = modify_channel.metadata.copy()
-
-                dragged = False
-                coordinates = []
-                yield
-
-                # on move
-                while event.type == "mouse_move":
-                    coordinates.append(event.position)
-                    dragged = True
-                    yield
-
-                # on release
-                if dragged:
-                    modify_channel.data = stored_mask
-
-                    coordinates = np.round(np.array(coordinates)).astype(np.int32)
-                    cnt = coordinates[:, -2:]
-
-                    cnt = np.fliplr(cnt)
-                    cnt = cnt.reshape((-1, 1, 2))
-
-                    mask_dim = tuple(list(coordinates[0][:-2]) + [...])
-
-                    seg_stack = modify_channel.data.copy()
-                    class_stack = self.classLayer.data.copy()
-
-                    seg_mask = seg_stack[mask_dim]
-                    class_mask = class_stack[mask_dim]
-
-                    delete_mask = np.zeros_like(seg_mask)
-                    cv2.drawContours(delete_mask, [cnt], -1, 255, -1)
-
-                    delete_colours = np.unique(seg_mask[delete_mask == 255])
-
-                    for colour in delete_colours:
-                        seg_mask[seg_mask == colour] = 0
-
-                    class_mask[seg_mask == 0] = 0
-
-                    seg_stack[mask_dim] = seg_mask
-                    class_stack[mask_dim] = class_mask
-
-                    modify_channel.data = seg_stack
-                    self.classLayer.data = class_stack
-
-                else:
-                    modify_channel.data = stored_mask
-                    modify_channel.mode = "pan_zoom"
-                    self.update_image_folds()
-
+                    new_colour = _newSegColour(self)
+                    stored_mask = modify_channel.data.copy()
+                    stored_class = self.classLayer.data
                     meta = modify_channel.metadata.copy()
 
-                    data_coordinates = modify_channel.world_to_data(event.position)
-                    coord = np.round(data_coordinates).astype(int)
-                    mask_val = modify_channel.get_value(coord)
+                    dragged = False
+                    coordinates = []
+                    yield
 
-                    if mask_val != 0:
-                        mask_dim = tuple(list(coord[:-2]) + [...])[0]
+                    # on move
+                    while event.type == "mouse_move":
+                        coordinates.append(event.position)
+                        dragged = True
+                        yield
 
-                        mask_stack = modify_channel.data
-                        class_stack = self.classLayer.data
+                    # on release
+                    if dragged:
+                        modify_channel.data = stored_mask
 
-                        mask = mask_stack[mask_dim]
+                        coordinates = np.round(np.array(coordinates)).astype(np.int32)
+                        cnt = coordinates[:, -2:]
+
+                        cnt = np.fliplr(cnt)
+                        cnt = cnt.reshape((-1, 1, 2))
+
+                        mask_dim = tuple(list(coordinates[0][:-2]) + [...])
+
+                        seg_stack = modify_channel.data.copy()
+                        class_stack = self.classLayer.data.copy()
+
+                        seg_mask = seg_stack[mask_dim]
                         class_mask = class_stack[mask_dim]
 
-                        class_mask[mask == mask_val] = 0
-                        mask[mask == mask_val] = 0
+                        delete_mask = np.zeros_like(seg_mask)
+                        cv2.drawContours(delete_mask, [cnt], -1, 255, -1)
 
+                        delete_colours = np.unique(seg_mask[delete_mask == 255])
+
+                        for colour in delete_colours:
+                            seg_mask[seg_mask == colour] = 0
+
+                        class_mask[seg_mask == 0] = 0
+
+                        seg_stack[mask_dim] = seg_mask
                         class_stack[mask_dim] = class_mask
-                        mask_stack[mask_dim] = mask
 
+                        modify_channel.data = seg_stack
                         self.classLayer.data = class_stack
-                        modify_channel.data = mask_stack
 
-                        # update metadata
-
-                        meta["manual_segmentation"] = True
-                        modify_channel.metadata = meta
+                    else:
+                        modify_channel.data = stored_mask
                         modify_channel.mode = "pan_zoom"
                         self.update_image_folds()
 
-            if self.segmentation_mode == "refine":
-                layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", ]]
+                        meta = modify_channel.metadata.copy()
 
+                        data_coordinates = modify_channel.world_to_data(event.position)
+                        coord = np.round(data_coordinates).astype(int)
+                        mask_val = modify_channel.get_value(coord)
+
+                        if mask_val != 0:
+                            mask_dim = tuple(list(coord[:-2]) + [...])[0]
+
+                            mask_stack = modify_channel.data
+                            class_stack = self.classLayer.data
+
+                            mask = mask_stack[mask_dim]
+                            class_mask = class_stack[mask_dim]
+
+                            class_mask[mask == mask_val] = 0
+                            mask[mask == mask_val] = 0
+
+                            class_stack[mask_dim] = class_mask
+                            mask_stack[mask_dim] = mask
+
+                            self.classLayer.data = class_stack
+                            modify_channel.data = mask_stack
+
+                            # update metadata
+
+                            meta["manual_segmentation"] = True
+                            modify_channel.metadata = meta
+                            modify_channel.mode = "pan_zoom"
+                            self.update_image_folds()
+
+                if self.segmentation_mode == "refine":
+                    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", ]]
+
+                    modify_channel.mode == "pan_zoom"
+                    modify_channel.brush_size = 1
+
+                    data_coordinates = modify_channel.world_to_data(event.position)
+                    coord = np.round(data_coordinates).astype(int)
+                    mask_id = modify_channel.get_value(coord)
+
+                    modify_channel.selected_label = mask_id
+
+                    if mask_id != 0:
+                        current_fov = self.viewer.dims.current_step[0]
+
+                        channel = self.refine_channel.currentText()
+                        channel = channel.replace("Mask + ", "")
+
+                        label_stack = self.classLayer.data
+                        mask_stack = modify_channel.data
+
+                        mask = mask_stack[current_fov, :, :].copy()
+                        label = label_stack[current_fov, :, :].copy()
+
+                        image = []
+                        for layer in layer_names:
+                            image.append(self.viewer.layers[layer].data[current_fov])
+                        image = np.stack(image, axis=0)
+
+                        cell_mask = np.zeros(mask.shape, dtype=np.uint8)
+
+                        mask[mask != mask_id] = 0
+                        cell_mask[mask != mask_id] = 0
+                        cell_mask[mask == mask_id] = 1
+
+                        from napari_bacseg._utils_colicoords import (process_colicoords, run_colicoords, )
+                        from napari_bacseg._utils_statistics import get_cell_images
+
+                        colicoords_dir = os.path.join(tempfile.gettempdir(), "colicoords")
+
+                        cell_images_path = get_cell_images(self, image, mask, cell_mask, mask_id, layer_names, colicoords_dir, )
+
+                        cell_data = {"cell_images_path": cell_images_path}
+
+                        colicoords_data = run_colicoords(self, cell_data=[cell_data], colicoords_channel=channel, multithreaded=True, )
+
+                        process_colicoords(self, colicoords_data)
+
+            if self.interface_mode == "classify":
                 modify_channel.mode == "pan_zoom"
                 modify_channel.brush_size = 1
 
                 data_coordinates = modify_channel.world_to_data(event.position)
                 coord = np.round(data_coordinates).astype(int)
-                mask_id = modify_channel.get_value(coord)
+                mask_val = modify_channel.get_value(coord).copy()
 
-                modify_channel.selected_label = mask_id
+                modify_channel.selected_label = mask_val
 
-                if mask_id != 0:
-                    current_fov = self.viewer.dims.current_step[0]
+                if mask_val != 0:
+                    stored_mask = modify_channel.data.copy()
+                    stored_class = self.classLayer.data.copy()
 
-                    channel = self.refine_channel.currentText()
-                    channel = channel.replace("Mask + ", "")
+                    if len(stored_mask.shape) > 2:
+                        current_fov = self.viewer.dims.current_step[0]
 
-                    label_stack = self.classLayer.data
-                    mask_stack = modify_channel.data
+                        seg_mask = stored_mask[current_fov, :, :]
+                        class_mask = stored_class[current_fov, :, :]
 
-                    mask = mask_stack[current_fov, :, :].copy()
-                    label = label_stack[current_fov, :, :].copy()
+                        class_mask[seg_mask == mask_val] = self.class_colour
 
-                    image = []
-                    for layer in layer_names:
-                        image.append(self.viewer.layers[layer].data[current_fov])
-                    image = np.stack(image, axis=0)
+                        stored_class[current_fov, :, :] = class_mask
 
-                    cell_mask = np.zeros(mask.shape, dtype=np.uint8)
+                        self.classLayer.data = stored_class
+                        modify_channel.mode = "pan_zoom"
 
-                    mask[mask != mask_id] = 0
-                    cell_mask[mask != mask_id] = 0
-                    cell_mask[mask == mask_id] = 1
+                    else:
+                        stored_class[stored_mask == mask_val] = self.class_colour
 
-                    from napari_bacseg._utils_colicoords import (process_colicoords, run_colicoords, )
-                    from napari_bacseg._utils_statistics import get_cell_images
+                        self.classLayer.data = stored_class
+                        modify_channel.mode = "pan_zoom"
 
-                    colicoords_dir = os.path.join(tempfile.gettempdir(), "colicoords")
+            if self.interface_mode == "panzoom":
+                mouse_button = event.button
 
-                    cell_images_path = get_cell_images(self, image, mask, cell_mask, mask_id, layer_names, colicoords_dir, )
+                data_coordinates = modify_channel.world_to_data(event.position)
+                coord = np.round(data_coordinates).astype(int)
 
-                    cell_data = {"cell_images_path": cell_images_path}
-
-                    colicoords_data = run_colicoords(self, cell_data=[cell_data], colicoords_channel=channel, multithreaded=True, )
-
-                    process_colicoords(self, colicoords_data)
-
-        if self.interface_mode == "classify":
-            modify_channel.mode == "pan_zoom"
-            modify_channel.brush_size = 1
-
-            data_coordinates = modify_channel.world_to_data(event.position)
-            coord = np.round(data_coordinates).astype(int)
-            mask_val = modify_channel.get_value(coord).copy()
-
-            modify_channel.selected_label = mask_val
-
-            if mask_val != 0:
-                stored_mask = modify_channel.data.copy()
-                stored_class = self.classLayer.data.copy()
-
-                if len(stored_mask.shape) > 2:
-                    current_fov = self.viewer.dims.current_step[0]
-
-                    seg_mask = stored_mask[current_fov, :, :]
-                    class_mask = stored_class[current_fov, :, :]
-
-                    class_mask[seg_mask == mask_val] = self.class_colour
-
-                    stored_class[current_fov, :, :] = class_mask
-
-                    self.classLayer.data = stored_class
-                    modify_channel.mode = "pan_zoom"
-
-                else:
-                    stored_class[stored_mask == mask_val] = self.class_colour
-
-                    self.classLayer.data = stored_class
-                    modify_channel.mode = "pan_zoom"
-
-        if self.interface_mode == "panzoom":
-            mouse_button = event.button
-
-            data_coordinates = modify_channel.world_to_data(event.position)
-            coord = np.round(data_coordinates).astype(int)
-
-        if self.modify_auto_panzoom.isChecked() == True:
-            self.interface_mode = "panzoom"
-            self.modify_panzoom.setEnabled(False)
-            self.modify_segment.setEnabled(True)
-            self.modify_classify.setEnabled(True)
+            if self.modify_auto_panzoom.isChecked() == True:
+                self.interface_mode = "panzoom"
+                self.modify_panzoom.setEnabled(False)
+                self.modify_segment.setEnabled(True)
+                self.modify_classify.setEnabled(True)
 
     except:
         print(traceback.format_exc())

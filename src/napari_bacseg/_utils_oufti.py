@@ -738,6 +738,7 @@ def snap_midline_to_contour(cnt, midline, fit=False):
 
 
 def get_oufti_data(self, image, mask, midlines=None):
+
     mesh_length = int(self.oufti_mesh_length.currentText())
     mesh_dilation = float(self.oufti_mesh_dilation.currentText())
 

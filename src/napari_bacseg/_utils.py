@@ -1358,6 +1358,7 @@ def import_cellpose(self, progress_callback, file_paths):
 
 
 def import_oufti(self, progress_callback, file_paths):
+
     if os.path.isdir(file_paths[0]):
         file_paths = glob(file_paths[0] + r"**\*", recursive=True)
 
@@ -1481,6 +1482,7 @@ def import_oufti(self, progress_callback, file_paths):
 
 
 def import_mat_data(self, image_path, mat_path):
+
     import_precision = self.import_precision.currentText()
     multiframe_mode = self.import_multiframe_mode.currentIndex()
     crop_mode = self.import_crop_mode.currentIndex()
