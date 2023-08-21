@@ -1199,7 +1199,7 @@
           <item row="2" column="0">
            <widget class="QLabel" name="label">
             <property name="text">
-             <string>Cellpose Model</string>
+             <string>Cellpose/Omnipose Model</string>
             </property>
            </widget>
           </item>
@@ -1233,6 +1233,41 @@
             <item>
              <property name="text">
               <string>general</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>bact_phase_omni</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>bact_fluor_omni</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>worm_omni</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>worm_bact_omni</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>worm_high_res_omni</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>cyto2_omni</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>plant_omni</string>
              </property>
             </item>
             <item>
@@ -1722,7 +1757,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Cellpose Pre Processing</string>
+           <string>Segmentation Pre-Processing</string>
           </property>
          </widget>
         </item>
@@ -1756,7 +1791,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Cellpose Post Processing</string>
+           <string>Segmentation Post-Processing</string>
           </property>
          </widget>
         </item>
