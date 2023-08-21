@@ -478,8 +478,8 @@ def _select_custom_cellpose_model(self, path=None):
         ):
             if os.path.isfile(path):
                 self.cellpose_custom_model_path = path
-                self.cellpose_segmodel.setCurrentIndex(6)
-                self.cellpose_trainmodel.setCurrentIndex(6)
+                self.cellpose_segmodel.setCurrentIndex(13)
+                self.cellpose_trainmodel.setCurrentIndex(13)
 
                 if "_omni" in model_name or "omnipose_" in model_name:
                     if self.widget_notifications:
