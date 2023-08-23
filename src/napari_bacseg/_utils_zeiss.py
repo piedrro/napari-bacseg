@@ -138,6 +138,7 @@ def get_zeiss_measurements(self, paths):
 
 
 def read_zeiss_image_files(self, progress_callback, zeiss_measurements, channel_names, num_measurements, ):
+
     from aicspylibczi import CziFile
 
     zeiss_images = {}
@@ -145,6 +146,7 @@ def read_zeiss_image_files(self, progress_callback, zeiss_measurements, channel_
     import_limit = self.import_limit.currentText()
 
     num_loaded = 0
+    img_index = {}
 
     for path, dim_list in zeiss_measurements.groupby("path"):
         path = os.path.normpath(path)
@@ -194,17 +196,23 @@ def read_zeiss_image_files(self, progress_callback, zeiss_measurements, channel_
 
                 channel_name = meta["@Name"]
 
+                if channel_name not in img_index.keys():
+                    img_index[channel_name] = 0
+
                 fov_channels.append(channel_name)
 
                 if channel_name not in zeiss_images:
-                    zeiss_images[channel_name] = dict(images=[img_channel], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
+                    zeiss_images[channel_name] = dict(images=[img_channel], masks=[], nmasks=[], classes=[], metadata={img_index[channel_name]: meta}, )
                 else:
                     zeiss_images[channel_name]["images"].append(img_channel)
-                    zeiss_images[channel_name]["metadata"][i] = meta
+                    zeiss_images[channel_name]["metadata"][img_index[channel_name]] = meta
+
+                img_index[channel_name] += 1
 
             missing_channels = [channel for channel in channel_names if channel not in fov_channels]
 
             for channel_name in missing_channels:
+
                 img_channel = np.zeros_like(img_channel)
 
                 meta = {}
@@ -223,12 +231,16 @@ def read_zeiss_image_files(self, progress_callback, zeiss_measurements, channel_
                 meta["crop"] = [0, img_channel.shape[-2], 0, img_channel.shape[-1], ]
                 meta["light_source"] = channel_name
 
+                if channel_name not in img_index.keys():
+                    img_index[channel_name] = 0
+
                 if channel_name not in zeiss_images:
-                    zeiss_images[channel_name] = dict(images=[img_channel], masks=[], nmasks=[], classes=[], metadata={i: {}}, )
+                    zeiss_images[channel_name] = dict(images=[img_channel], masks=[], nmasks=[], classes=[], metadata={img_index[channel_name]: {}}, )
                 else:
                     zeiss_images[channel_name]["images"].append(img_channel)
-                    zeiss_images[channel_name]["metadata"][i] = meta
+                    zeiss_images[channel_name]["metadata"][img_index[channel_name]] = meta
 
+                img_index[channel_name] += 1
         else:
             iter = 0
 
@@ -242,6 +254,7 @@ def read_zeiss_image_files(self, progress_callback, zeiss_measurements, channel_
                 fov_channels = []
 
                 for channel_index, czi_indeces in data.iterrows():
+
                     czi_indeces = czi_indeces.to_dict()
 
                     img, img_shape = czi.read_image(**czi_indeces)
@@ -279,13 +292,18 @@ def read_zeiss_image_files(self, progress_callback, zeiss_measurements, channel_
 
                     channel_name = copy.deepcopy(meta["@Name"])
 
+                    if channel_name not in img_index.keys():
+                        img_index[channel_name] = 0
+
                     fov_channels.append(channel_name)
 
                     if channel_name not in zeiss_images.keys():
-                        zeiss_images[channel_name] = dict(images=[img_channel], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
+                        zeiss_images[channel_name] = dict(images=[img_channel], masks=[], nmasks=[], classes=[], metadata={img_index[channel_name]: meta}, )
                     else:
                         zeiss_images[channel_name]["images"].append(img_channel)
-                        zeiss_images[channel_name]["metadata"][i] = meta
+                        zeiss_images[channel_name]["metadata"][img_index[channel_name]] = meta
+
+                    img_index[channel_name] += 1
 
                 missing_channels = [channel for channel in channel_names if channel not in fov_channels]
 
@@ -308,11 +326,16 @@ def read_zeiss_image_files(self, progress_callback, zeiss_measurements, channel_
                     meta["crop"] = [0, img_channel.shape[-2], 0, img_channel.shape[-1], ]
                     meta["light_source"] = channel_name
 
+                    if channel_name not in img_index.keys():
+                        img_index[channel_name] = 0
+
                     if channel_name not in zeiss_images:
-                        zeiss_images[channel_name] = dict(images=[img_channel], masks=[], nmasks=[], classes=[], metadata={i: meta}, )
+                        zeiss_images[channel_name] = dict(images=[img_channel], masks=[], nmasks=[], classes=[], metadata={img_index[channel_name]: meta}, )
                     else:
                         zeiss_images[channel_name]["images"].append(img_channel)
-                        zeiss_images[channel_name]["metadata"][i] = meta
+                        zeiss_images[channel_name]["metadata"][img_index[channel_name]] = meta
+
+                    img_index[channel_name] += 1
 
     imported_data = dict(imported_images=zeiss_images)
 
