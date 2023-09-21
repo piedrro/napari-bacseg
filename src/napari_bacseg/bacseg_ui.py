@@ -2849,11 +2849,57 @@ class Ui_tab_widget:
         self.verticalLayout_18.addLayout(self.gridLayout_26)
         spacerItem46 = QtWidgets.QSpacerItem(
             20,
+            20,
+            QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Minimum,
+        )
+        self.verticalLayout_18.addItem(spacerItem46)
+        self.label_104 = QtWidgets.QLabel(self.tab_14)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_104.setFont(font)
+        self.label_104.setObjectName("label_104")
+        self.verticalLayout_18.addWidget(self.label_104)
+        self.formLayout_24 = QtWidgets.QFormLayout()
+        self.formLayout_24.setObjectName("formLayout_24")
+        self.undrift_channel = QtWidgets.QComboBox(self.tab_14)
+        self.undrift_channel.setObjectName("undrift_channel")
+        self.formLayout_24.setWidget(
+            0, QtWidgets.QFormLayout.FieldRole, self.undrift_channel
+        )
+        self.label_106 = QtWidgets.QLabel(self.tab_14)
+        self.label_106.setObjectName("label_106")
+        self.formLayout_24.setWidget(
+            0, QtWidgets.QFormLayout.LabelRole, self.label_106
+        )
+        self.verticalLayout_18.addLayout(self.formLayout_24)
+        self.undrift_images = QtWidgets.QPushButton(self.tab_14)
+        self.undrift_images.setObjectName("undrift_images")
+        self.verticalLayout_18.addWidget(self.undrift_images)
+        self.formLayout_26 = QtWidgets.QFormLayout()
+        self.formLayout_26.setObjectName("formLayout_26")
+        self.label_107 = QtWidgets.QLabel(self.tab_14)
+        self.label_107.setObjectName("label_107")
+        self.formLayout_26.setWidget(
+            0, QtWidgets.QFormLayout.LabelRole, self.label_107
+        )
+        self.undrift_progressbar = QtWidgets.QProgressBar(self.tab_14)
+        self.undrift_progressbar.setProperty("value", 0)
+        self.undrift_progressbar.setTextVisible(True)
+        self.undrift_progressbar.setObjectName("undrift_progressbar")
+        self.formLayout_26.setWidget(
+            0, QtWidgets.QFormLayout.FieldRole, self.undrift_progressbar
+        )
+        self.verticalLayout_18.addLayout(self.formLayout_26)
+        spacerItem47 = QtWidgets.QSpacerItem(
+            20,
             40,
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding,
         )
-        self.verticalLayout_18.addItem(spacerItem46)
+        self.verticalLayout_18.addItem(spacerItem47)
         tab_widget.addTab(self.tab_14, "")
 
         self.retranslateUi(tab_widget)
@@ -3224,13 +3270,13 @@ class Ui_tab_widget:
         self.label_4.setText(_translate("tab_widget", "Diameter"))
         self.cellpose_diameter_label.setText(_translate("tab_widget", "15"))
         self.label_102.setText(
-            _translate("tab_widget", "Cellpose Pre Processing")
+            _translate("tab_widget", "Segmentation Pre-Processing")
         )
         self.cellpose_invert_images.setText(
             _translate("tab_widget", "Invert Images")
         )
         self.label_95.setText(
-            _translate("tab_widget", "Cellpose Post Processing")
+            _translate("tab_widget", "Segmentation Post-Processing")
         )
         self.label_96.setText(
             _translate("tab_widget", "Min Segmentation Size (Pixels)")
@@ -3966,6 +4012,10 @@ class Ui_tab_widget:
         self.align_all_images.setText(
             _translate("tab_widget", "Align All Images")
         )
+        self.label_104.setText(_translate("tab_widget", "Undrift Images"))
+        self.label_106.setText(_translate("tab_widget", "Reference Channel"))
+        self.undrift_images.setText(_translate("tab_widget", "Undift Images"))
+        self.label_107.setText(_translate("tab_widget", "Progress"))
         tab_widget.setTabText(
             tab_widget.indexOf(self.tab_14),
             _translate("tab_widget", "Utilities"),
