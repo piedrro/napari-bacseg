@@ -147,7 +147,7 @@ class BacSeg(QWidget):
         # import functions
         from napari_bacseg._utils import _manualImport, stack_images
         from napari_bacseg._utils_cellpose import (_initialise_cellpose_model, _select_cellpose_save_directory, _select_cellpose_save_path, _select_custom_cellpose_model, train_cellpose_model, )
-        from napari_bacseg._utils_database import (_create_bacseg_database, _load_bacseg_database, _populateUSERMETA, _show_database_controls, populate_upload_combos, update_database_metadata, )
+        from napari_bacseg._utils_database import (_create_bacseg_database, _load_bacseg_database, _show_database_controls, populate_upload_combos, update_upload_combos, update_database_metadata, )
         from napari_bacseg._utils_interface_events import (_copymasktoall, _delete_active_image, _deleteallmasks, _doubeClickEvents, _imageControls, _modify_channel_changed, _modifyMode, _segmentationEvents, _viewerControls, )
         from napari_bacseg._utils_oufti import (_update_active_midlines, centre_oufti_midlines, generate_midlines, midline_edit_toggle, update_midlines, )
         from napari_bacseg._utils_statistics import _compute_simple_cell_stats
@@ -155,6 +155,7 @@ class BacSeg(QWidget):
         from napari_bacseg.bacseg_ui import Ui_tab_widget
 
         self.populate_upload_combos = self.wrapper(populate_upload_combos)
+        self.update_upload_combos = self.wrapper(update_upload_combos)
         self.update_database_metadata = self.wrapper(update_database_metadata)
         self.stack_image = self.wrapper(stack_images)
         self._modifyMode = self.wrapper(_modifyMode)
@@ -162,7 +163,6 @@ class BacSeg(QWidget):
         self._copymasktoall = self.wrapper(_copymasktoall)
         self._deleteallmasks = self.wrapper(_deleteallmasks)
         self._delete_active_image = self.wrapper(_delete_active_image)
-        self._populateUSERMETA = self.wrapper(_populateUSERMETA)
         self._imageControls = self.wrapper(_imageControls)
         self._segmentationEvents = self.wrapper(_segmentationEvents)
         self._modify_channel_changed = self.wrapper(_modify_channel_changed)
@@ -572,7 +572,20 @@ class BacSeg(QWidget):
         self.database_download.clicked.connect(self._downloadDatabase)
         self.create_database.clicked.connect(self._create_bacseg_database)
         self.load_database.clicked.connect(self._load_bacseg_database)
-        self.upload_initial.currentTextChanged.connect(self._populateUSERMETA)
+
+        self.upload_initial.currentTextChanged.connect(self.populate_upload_combos)
+
+        self.upload_content.currentTextChanged.connect(self.update_upload_combos)
+        self.upload_microscope.currentTextChanged.connect(self.update_upload_combos)
+        self.upload_antibiotic.currentTextChanged.connect(self.update_upload_combos)
+        self.upload_abxconcentration.currentTextChanged.connect(self.update_upload_combos)
+        self.upload_treatmenttime.currentTextChanged.connect(self.update_upload_combos)
+        self.upload_mount.currentTextChanged.connect(self.update_upload_combos)
+        self.upload_protocol.currentTextChanged.connect(self.update_upload_combos)
+        self.upload_strain.currentTextChanged.connect(self.update_upload_combos)
+        self.upload_phenotype.currentTextChanged.connect(self.update_upload_combos)
+        self.updating_combos = False
+
 
         self.update_metadata.clicked.connect(self.update_database_metadata)
 

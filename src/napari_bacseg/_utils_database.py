@@ -86,10 +86,16 @@ def _load_bacseg_database(self, path=""):
 
             if set(target_database_folders).issubset(active_database_folders):
                 self.database_path = os.path.abspath(path)
-                from napari_bacseg._utils_database import (populate_upload_combos, )
 
-                populate_upload_combos(self)
-                self._populateUSERMETA
+                # read metadata lists from .txt files
+                meta_options, user_meta_options = read_txt_metadata(self, self.database_path)
+                file_usermeta, self.user_metadata = read_file_metadata(self)
+
+                self.upload_initial.clear()
+                self.upload_initial.addItems(["Required for upload"] + meta_options["user_initial"])
+
+                populate_upload_combos(self, meta_options, user_meta_options, file_usermeta)
+                update_upload_combos(self)
 
                 self.display_database_path.setText(path)
                 self._show_database_controls(True)
@@ -162,7 +168,8 @@ def generate_txt_metadata(self, database_directory):
                 f.write(txt_meta)
 
 
-def read_txt_metadata(self, database_directory):
+def read_txt_metadata(self, database_directory, user_initial=""):
+
     database_name = (pathlib.Path(database_directory).parts[-1].replace("_Database", ""))
 
     metadata_directory = str(pathlib.PurePath(database_directory, "Metadata"))
@@ -191,36 +198,39 @@ def read_txt_metadata(self, database_directory):
     user_metadata = {}
 
     for file in user_metadata_fies:
+
         user = strip_brackets(file)
 
-        with open(file) as f:
-            lines = f.readlines()
+        if user_initial == "" or user_initial == user:
 
-        metakey = None
+            with open(file) as f:
+                lines = f.readlines()
 
-        user_dict = {"User Initial": user}
+            metakey = None
 
-        for i, line in enumerate(lines):
-            line = line.lstrip().rstrip().replace("\n", "")
+            user_dict = {"User Initial": user}
 
-            if "User Meta" in line and i != 0:
-                metakey = f"meta{strip_brackets(line)}"
+            for i, line in enumerate(lines):
+                line = line.lstrip().rstrip().replace("\n", "")
 
-                if metakey not in user_dict.keys():
-                    user_dict[metakey] = []
+                if "User Meta" in line and i != 0:
+                    metakey = f"user_meta{strip_brackets(line)}"
 
-            else:
-                if metakey is not None and line.strip() not in ["", ",", " ", None, ]:
-                    user_dict[metakey].append(line)
+                    if metakey not in user_dict.keys():
+                        user_dict[metakey] = []
 
-        loaded_keys = list(user_dict.keys())
-        expected_keys = [f"meta{i}" for i in range(1, self.user_metadata_keys + 1)]
+                else:
+                    if metakey is not None and line.strip() not in ["", ",", " ", None, ]:
+                        user_dict[metakey].append(line)
 
-        for key in expected_keys:
-            if key not in loaded_keys:
-                user_dict[key] = []
+            loaded_keys = list(user_dict.keys())
+            expected_keys = [f"user_meta{i}" for i in range(1, self.user_metadata_keys + 1)]
 
-        user_metadata[user] = user_dict
+            for key in expected_keys:
+                if key not in loaded_keys:
+                    user_dict[key] = []
+
+            user_metadata[user] = user_dict
 
     return image_metadata, user_metadata
 
@@ -231,36 +241,8 @@ def strip_brackets(string):
     return value
 
 
-def populate_upload_combos(self):
-    try:
-        akmeta, _ = read_txt_metadata(self, self.database_path)
-
-        self.upload_initial.clear()
-        self.upload_initial.addItems(["Required for upload"] + akmeta["user_initial"])
-        self.upload_content.clear()
-        self.upload_content.addItems(["Required for upload"] + akmeta["content"])
-        self.upload_microscope.clear()
-        self.upload_microscope.addItems(["Required for upload"] + akmeta["microscope"])
-        self.upload_antibiotic.clear()
-        self.upload_antibiotic.addItems([""] + akmeta["antibiotic"])
-        self.upload_abxconcentration.clear()
-        self.upload_abxconcentration.addItems([""] + akmeta["abxconcentration"])
-        self.upload_treatmenttime.clear()
-        self.upload_treatmenttime.addItems([""] + akmeta["treatment_time"])
-        self.upload_mount.clear()
-        self.upload_mount.addItems([""] + akmeta["mount"])
-        self.upload_protocol.clear()
-        self.upload_protocol.addItems([""] + akmeta["protocol"])
-        self.upload_strain.clear()
-        self.upload_strain.addItems([""] + akmeta["strain"])
-        self.upload_phenotype.clear()
-        self.upload_phenotype.addItems([""] + akmeta["phenotype"])
-
-    except:
-        print(traceback.format_exc())
-
-
 def update_database_metadata(self, control=None):
+
     new_user = False
     new_user_initial = ""
 
@@ -392,7 +374,6 @@ def update_database_metadata(self, control=None):
             show_info(f"Added new user metadata files for {new_user_initial} in {database_name} database")
 
         self.populate_upload_combos()
-        self._populateUSERMETA
         self.upload_initial.setCurrentIndex(user_intial_index)
 
         for control_name, control_text in upload_control_dict.items():
@@ -401,64 +382,186 @@ def update_database_metadata(self, control=None):
 
 
 def read_file_metadata(self):
-    control_dict = {}
 
-    user_file_meta = {}
+    column_list = ["user_initial",
+                    "content",
+                     "microscope",
+                     "antibiotic",
+                     "abxconcentration",
+                     "treatment_time",
+                     "mount",
+                     "protocol",
+                     "strain",
+                     "phenotype"]
 
-    user_key_list = np.arange(1, self.user_metadata_keys + 1).tolist()
-    user_key_list.reverse()
-
-    for key in user_key_list:
-        user_key = f"meta{key}"
-        control_dict[user_key] = f"user_meta{key}"
+    for i in range(1, self.user_metadata_keys + 1):
+        column_list.append(f"user_meta{i}")
 
     database_path = self.database_path
     user_initial = self.upload_initial.currentText()
+
+    user_file_meta = {}
+    user_metadata = ""
 
     if database_path != "" and user_initial != "":
         user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
 
         if os.path.exists(user_metadata_path):
+
             user_metadata, _ = read_user_metadata(self, user_metadata_path=user_metadata_path)
 
-            for key, dfkey in control_dict.items():
-                if dfkey in user_metadata.columns:
-                    values = user_metadata[dfkey].unique().tolist()
+            for key in column_list:
+
+                if key in user_metadata.columns:
+
+                    values = user_metadata[key].unique().tolist()
 
                     user_file_meta[key] = values
 
                 else:
                     user_file_meta[key] = []
 
-    return user_file_meta
+    return user_file_meta, user_metadata
 
 
-def _populateUSERMETA(self):
+
+def generate_control_dict(self):
+
+    user_key_list = np.arange(1, self.user_metadata_keys + 1).tolist()
+
+    control_dict = {"user_initial": "upload_initial",
+                    "content": "upload_content",
+                    "microscope": "upload_microscope",
+                    "antibiotic": "upload_antibiotic",
+                    "abxconcentration": "upload_abxconcentration",
+                    "treatment_time": "upload_treatmenttime",
+                    "mount": "upload_mount",
+                    "protocol": "upload_protocol",
+                    "strain": "upload_strain",
+                    "phenotype": "upload_phenotype"}
+
+    for key in user_key_list:
+        control_key = f"user_meta{key}"
+        control_dict[control_key] = f"upload_usermeta{key}"
+
+    return control_dict
+
+
+def populate_upload_combos(self, meta_options=None, user_meta_options=None, file_usermeta=None):
+
     try:
-        _, usermeta = read_txt_metadata(self, self.database_path)
-
-        file_usermeta = read_file_metadata(self)
 
         user_initial = self.upload_initial.currentText()
 
-        num_keys = self.user_metadata_keys
+        control_dict = generate_control_dict(self)
 
-        for key in range(1, num_keys + 1):
-            control_name = f"upload_usermeta{key}"
-            combo_box = getattr(self, control_name)
-            combo_box.clear()
+        if user_initial not in ["Required for upload",""]:
 
-            if user_initial in usermeta.keys():
-                user_meta_values = usermeta[user_initial][f"meta{key}"]
-                file_meta_values = file_usermeta[f"meta{key}"]
+            # read metadata lists from .txt files
+            if type(meta_options) == type(None) or type(user_meta_options) == type(None):
+                meta_options, user_meta_options = read_txt_metadata(self, self.database_path, user_initial)
 
-                meta_values = np.unique(user_meta_values + file_meta_values).tolist()
+            if type(file_usermeta) == type(None):
+                file_usermeta, _ = read_file_metadata(self)
 
-                meta_values = [value for value in meta_values if value not in ["", " ", "nan", "Required for upload", 'example_item1', 'example_item2', 'example_item3', None, np.nan]]
-                combo_box.addItems([""] + meta_values)
-            else:
-                combo_box.setCurrentText("")
+            if user_initial in user_meta_options.keys():
+
+                for meta_name, control_name in control_dict.items():
+
+                    if meta_name != "user_initial":
+
+                        combo_box = getattr(self, control_name)
+
+                        combo_box_items = []
+
+                        if "user_meta" in meta_name:
+                            if meta_name in user_meta_options[user_initial]:
+                                combo_box_items.extend(user_meta_options[user_initial][meta_name])
+                        else:
+                            if meta_name in meta_options.keys():
+                                combo_box_items.extend(meta_options[meta_name])
+
+                        if meta_name in file_usermeta.keys():
+                            combo_box_items.extend(file_usermeta[meta_name])
+
+                        combo_box_items = [value for value in combo_box_items if value not in ["", " ", "nan", "Required for upload",
+                                                                                               'example_item1', 'example_item2', 'example_item3',
+                                                                                               None, np.nan]]
+
+                        combo_box_items = list(set(combo_box_items))
+                        combo_box_items = sorted(combo_box_items)
+
+                        combo_box.clear()
+                        combo_box.addItems([""] + combo_box_items)
 
     except:
-        # print(traceback.format_exc())
+        print(traceback.format_exc())
+        pass
+
+def update_upload_combos(self):
+
+    try:
+
+        if self.updating_combos == False:
+
+            self.updating_combos = True
+
+            user_initial = self.upload_initial.currentText()
+
+            control_dict = generate_control_dict(self)
+
+            if user_initial not in ["Required for upload", ""]:
+
+                if hasattr(self, "user_metadata") == False:
+                    file_usermeta, self.user_metadata = read_file_metadata(self)
+
+                filtered_metadata = self.user_metadata[self.user_metadata["user_initial"] == user_initial].copy()
+
+                for meta_name, control_name in control_dict.items():
+
+                    control_value = getattr(self, control_name).currentText()
+
+                    if control_value != "":
+                        if meta_name in filtered_metadata.columns:
+                            filtered_metadata = filtered_metadata[filtered_metadata[meta_name] == control_value]
+
+
+
+                num_filtered = 0
+
+                for meta_name, control_name in control_dict.items():
+                    if meta_name != "user_initial":
+
+                        combo_box = getattr(self, control_name)
+                        combo_box_current = combo_box.currentText()
+                        combo_box_values = [combo_box.itemText(i) for i in range(combo_box.count())]
+
+                        combo_box_items = []
+
+                        if meta_name in filtered_metadata.columns:
+                            combo_box_items.extend(filtered_metadata[meta_name].unique().tolist())
+
+                        combo_box_items = [value for value in combo_box_items if value not in ["", " ", "nan", "Required for upload", 'example_item1', 'example_item2', 'example_item3', None, np.nan]]
+                        combo_box_items = [""] + combo_box_items
+
+                        combo_box_items = list(set(combo_box_items))
+                        combo_box_items = sorted(combo_box_items)
+
+                        if combo_box_items != []:
+                            num_filtered += 1
+                            if combo_box_current in combo_box_items:
+                                combo_box_index = combo_box_items.index(combo_box_current)
+                            else:
+                                combo_box_index = 0
+                        else:
+                            combo_box_index = 0
+
+                        combo_box.clear()
+                        combo_box.addItems(combo_box_items)
+                        combo_box.setCurrentIndex(combo_box_index)
+
+            self.updating_combos = False
+
+    except:
+        self.updating_combos = False
         pass

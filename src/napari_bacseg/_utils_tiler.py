@@ -57,6 +57,7 @@ def unfold_images(self):
                         num_image_tiles = 0
 
                         for tile_id, tile in self.tiler_object.iterate(image[i]):
+                            
                             bbox = np.array(self.tiler_object.get_tile_bbox(tile_id=tile_id))
                             bbox = bbox[..., [-2, -1]]
                             y1, x1, y2, x2 = (bbox[0][0], bbox[0][1], bbox[1][0], bbox[1][1],)

@@ -8,6 +8,7 @@ import numpy as np
 
 
 def export_coco_json(image_name, image, mask, nmask, label, file_path):
+    
     file_path = os.path.splitext(file_path)[0] + ".txt"
 
     info = {"description": "COCO 2017 Dataset", "url": "http://cocodataset.org", "version": "1.0", "year": datetime.datetime.now().year, "contributor": "COCO Consortium", "date_created": datetime.datetime.now().strftime("%d/%m/%y"), }

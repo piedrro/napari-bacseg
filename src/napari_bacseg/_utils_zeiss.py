@@ -12,6 +12,7 @@ from aicspylibczi import CziFile
 
 
 def get_hash(img_path=None, img=None):
+    
     if img is not None:
         img_path = tempfile.TemporaryFile(suffix=".tif").name
         tifffile.imwrite(img_path, img)
