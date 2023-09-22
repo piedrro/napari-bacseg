@@ -695,6 +695,8 @@ class BacSeg(QWidget):
 
         try:
 
+            # remove borders from all images
+
             undrift_channel = self.undrift_channel.currentText()
 
             boundary_image = np.min(self.viewer.layers[undrift_channel].data.copy(), axis=0)
