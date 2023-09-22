@@ -5685,7 +5685,7 @@
     <item>
      <widget class="QPushButton" name="undrift_images">
       <property name="text">
-       <string>Undift Images</string>
+       <string>Undrift Images</string>
       </property>
      </widget>
     </item>
