@@ -19,7 +19,7 @@ import cv2
 import napari
 import numpy as np
 from napari.utils.notifications import show_info
-from PyQt6.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from qtpy.QtCore import QObject, QRunnable, QThreadPool
 from qtpy.QtWidgets import (
     QCheckBox,

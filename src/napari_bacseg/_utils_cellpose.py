@@ -5,7 +5,7 @@ import warnings
 import cv2
 import numpy as np
 from napari.utils.notifications import show_info
-from PyQt6.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog
 
 
 def export_cellpose(file_path, image, mask):
