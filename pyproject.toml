@@ -15,7 +15,7 @@ line_length = 79
 
 [project]
 name = "napari-bacseg"
-version = "1.0.10"
+version = "1.0.11"
 authors = [
   { name="Piers Turner", email="piers.turner@physics.ox.ac.uk"},
 ]
