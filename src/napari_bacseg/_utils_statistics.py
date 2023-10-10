@@ -423,7 +423,7 @@ def get_cell_statistics(self, mode, pixel_size, colicoords_dir, progress_callbac
 
     cell_statistics = []
 
-    cell_dict = {1: "Single", 2: "Dividing", 3: "Divided", 4: "Broken", 5: "Vertical", 6: "Edge", }
+    cell_dict = {1: "Single", 2: "Dividing", 3: "Divided", 4: "Broken", 5: "Vertical"}
 
     for i in range(len(image_stack)):
         progress = int(((i + 1) / len(image_stack)) * 100)
@@ -461,6 +461,7 @@ def get_cell_statistics(self, mode, pixel_size, colicoords_dir, progress_callbac
                 cell_label = np.unique(label[mask == mask_id])[0]
 
                 if cell_label in cell_dict.keys():
+                    # print(cell_label)
                     cell_types.append(cell_dict[cell_label])
 
                     try:

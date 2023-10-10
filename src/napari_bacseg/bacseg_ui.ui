@@ -1179,6 +1179,20 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="cellpose_seg_mode">
+            <item>
+             <property name="text">
+              <string>Cell Wall</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Nucleiod</string>
+             </property>
+            </item>
+           </widget>
+          </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_2">
             <property name="text">
@@ -1270,21 +1284,17 @@
             </item>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="cellpose_seg_mode">
-            <item>
-             <property name="text">
-              <string>Cell Wall</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Nucleiod</string>
-             </property>
-            </item>
-           </widget>
-          </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cellpose_auto_classify">
+          <property name="text">
+           <string>Auto Asign Labels</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
         <item>
          <spacer name="verticalSpacer_9">
@@ -3952,11 +3962,38 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="update_metadata">
-      <property name="text">
-       <string>Update Metadata Categories</string>
-      </property>
-     </widget>
+     <layout class="QGridLayout" name="gridLayout_9">
+      <item row="0" column="1">
+       <widget class="QPushButton" name="filter_metadata">
+        <property name="toolTip">
+         <string>filter metadata categories</string>
+        </property>
+        <property name="text">
+         <string>Filter</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="store_metadata">
+        <property name="toolTip">
+         <string>store metadata categories</string>
+        </property>
+        <property name="text">
+         <string>Store</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="reset_metadata">
+        <property name="toolTip">
+         <string>reset metadata categories</string>
+        </property>
+        <property name="text">
+         <string>Reset</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
      <spacer name="verticalSpacer_31">

@@ -289,72 +289,74 @@ def download_bacseg_files(measurement, channels, database_path):
     try:
         segmentation_channel = measurement["segmentation_channel"].unique()[0]
 
-        segmentation_file = measurement[measurement["channel"] == segmentation_channel]["file_name"].item()
-        user_initial = measurement[measurement["channel"] == segmentation_channel]["user_initial"].item()
-        folder = measurement[measurement["channel"] == segmentation_channel]["folder"].item()
+        if segmentation_channel not in ["", " ", None, np.nan]:
 
-        json_path = os.path.join(database_path, "Images", user_initial, "json", folder, segmentation_file, )
+            segmentation_file = measurement[measurement["channel"] == segmentation_channel]["file_name"].item()
+            user_initial = measurement[measurement["channel"] == segmentation_channel]["user_initial"].item()
+            folder = measurement[measurement["channel"] == segmentation_channel]["folder"].item()
 
-        mask, nmask, label = import_coco_json(json_path)
+            json_path = os.path.join(database_path, "Images", user_initial, "json", folder, segmentation_file, )
 
-        for j in range(len(channels)):
-            channel = channels[j]
+            mask, nmask, label = import_coco_json(json_path)
 
-            measurement_channels = measurement["channel"].unique()
+            for j in range(len(channels)):
+                channel = channels[j]
 
-            if channel in measurement_channels:
-                dat = measurement[measurement["channel"] == channel]
+                measurement_channels = measurement["channel"].unique()
 
-                file_name = dat["file_name"].item()
-                user_initial = dat["user_initial"].item()
-                folder = dat["folder"].item()
+                if channel in measurement_channels:
+                    dat = measurement[measurement["channel"] == channel]
 
-                image_path = os.path.join(database_path, "Images", user_initial, "images", folder, file_name, )
-                image_path = os.path.abspath(image_path)
+                    file_name = dat["file_name"].item()
+                    user_initial = dat["user_initial"].item()
+                    folder = dat["folder"].item()
 
-                image = tifffile.imread(image_path)
+                    image_path = os.path.join(database_path, "Images", user_initial, "images", folder, file_name, )
+                    image_path = os.path.abspath(image_path)
 
-                with tifffile.TiffFile(image_path) as tif:
-                    try:
-                        meta = tif.pages[0].tags["ImageDescription"].value
-                        meta = json.loads(meta)
-                    except:
-                        meta = {}
+                    image = tifffile.imread(image_path)
 
-                meta["import_mode"] = "BacSeg"
+                    with tifffile.TiffFile(image_path) as tif:
+                        try:
+                            meta = tif.pages[0].tags["ImageDescription"].value
+                            meta = json.loads(meta)
+                        except:
+                            meta = {}
 
-                for key, value in dat.to_dict("records")[0].items():
-                    meta[key] = value
+                    meta["import_mode"] = "BacSeg"
 
-                if "segmentation_file" in meta.keys():
-                    if meta["segmentation_file"] in [None, "None"]:
-                        meta["segmentation_file"] = list_from_string(measurement["file_list"].iloc[0])[0]
-                        meta["segmentation_channel"] = list_from_string(measurement["channel_list"].iloc[0])[0]
+                    for key, value in dat.to_dict("records")[0].items():
+                        meta[key] = value
 
-            else:
-                image = np.zeros((100, 100), dtype=np.uint16)
-                mask = np.zeros((100, 100), dtype=np.uint16)
-                nmask = np.zeros((100, 100), dtype=np.uint16)
-                label = np.zeros((100, 100), dtype=np.uint16)
+                    if "segmentation_file" in meta.keys():
+                        if meta["segmentation_file"] in [None, "None"]:
+                            meta["segmentation_file"] = list_from_string(measurement["file_list"].iloc[0])[0]
+                            meta["segmentation_channel"] = list_from_string(measurement["channel_list"].iloc[0])[0]
 
-                meta = {}
+                else:
+                    image = np.zeros((100, 100), dtype=np.uint16)
+                    mask = np.zeros((100, 100), dtype=np.uint16)
+                    nmask = np.zeros((100, 100), dtype=np.uint16)
+                    label = np.zeros((100, 100), dtype=np.uint16)
 
-                meta["image_name"] = "missing image channel"
-                meta["image_path"] = "missing image channel"
-                meta["folder"] = (None,)
-                meta["parent_folder"] = (None,)
-                meta["akseg_hash"] = None
-                meta["fov_mode"] = None
-                meta["import_mode"] = "BacSeg"
-                meta["contrast_limit"] = None
-                meta["contrast_alpha"] = None
-                meta["contrast_beta"] = None
-                meta["contrast_gamma"] = None
-                meta["dims"] = [image.shape[-1], image.shape[-2]]
-                meta["crop"] = [0, image.shape[-2], 0, image.shape[-1]]
-                meta["light_source"] = channel
+                    meta = {}
 
-            imported_images[channel] = dict(images=image, masks=mask, nmasks=nmask, classes=label, metadata=meta, )
+                    meta["image_name"] = "missing image channel"
+                    meta["image_path"] = "missing image channel"
+                    meta["folder"] = (None,)
+                    meta["parent_folder"] = (None,)
+                    meta["akseg_hash"] = None
+                    meta["fov_mode"] = None
+                    meta["import_mode"] = "BacSeg"
+                    meta["contrast_limit"] = None
+                    meta["contrast_alpha"] = None
+                    meta["contrast_beta"] = None
+                    meta["contrast_gamma"] = None
+                    meta["dims"] = [image.shape[-1], image.shape[-2]]
+                    meta["crop"] = [0, image.shape[-2], 0, image.shape[-1]]
+                    meta["light_source"] = channel
+
+                imported_images[channel] = dict(images=image, masks=mask, nmasks=nmask, classes=label, metadata=meta, )
 
     except:
         print(traceback.format_exc())
@@ -971,6 +973,29 @@ def get_filtered_database_metadata(self):
                     sort_directions = [False] * len(sort_names)
                 user_metadata = user_metadata.sort_values(sort_names, ascending=sort_directions).reset_index(drop=True)
 
+            sort_columns = []
+
+            user_metadata = user_metadata.drop_duplicates()
+
+            if "folder" in user_metadata.columns:
+                sort_columns.append("folder")
+                user_metadata.loc[user_metadata["folder"].isna(), "folder"] = "None"
+            if "segmentation_file" in user_metadata.columns:
+                sort_columns.append("segmentation_file")
+                user_metadata.loc[user_metadata["segmentation_file"].isna(), "segmentation_file",] = "None"
+            if "posX" in user_metadata.columns:
+                sort_columns.append("posX")
+                user_metadata['posX'] = user_metadata['posX'].fillna(0, inplace=True)
+                user_metadata.loc[user_metadata["posX"].isna(), "posX"] = 0
+            if "posY" in user_metadata.columns:
+                sort_columns.append("posY")
+                user_metadata['posY'] = user_metadata['posY'].fillna(0, inplace=True)
+                user_metadata.loc[user_metadata["posY"].isna(), "posY"] = 0
+            if "posZ" in user_metadata.columns:
+                sort_columns.append("posZ")
+                user_metadata['posZ'] = user_metadata['posZ'].fillna(0, inplace=True)
+                user_metadata.loc[user_metadata["posZ"].isna(), "posZ"] = 0
+
             import_limit = self.database_download_limit.currentText()
 
             segmentation_files = user_metadata["segmentation_file"].unique()
@@ -999,29 +1024,9 @@ def get_filtered_database_metadata(self):
             if len2 < len1:
                 show_info(f"{len1 - len2} files with missing critical metadata removed.")
 
-            sort_columns = []
-
-            user_metadata = user_metadata.drop_duplicates()
-
-            if "folder" in user_metadata.columns:
-                sort_columns.append("folder")
-                user_metadata.loc[user_metadata["folder"].isna(), "folder"] = "None"
-            if "segmentation_file" in user_metadata.columns:
-                sort_columns.append("segmentation_file")
-                user_metadata.loc[user_metadata["segmentation_file"].isna(), "segmentation_file",] = "None"
-            if "posX" in user_metadata.columns:
-                sort_columns.append("posX")
-                user_metadata.loc[user_metadata["posX"].isna(), "posX"] = 0
-            if "posY" in user_metadata.columns:
-                sort_columns.append("posY")
-                user_metadata.loc[user_metadata["posY"].isna(), "posY"] = 0
-            if "posZ" in user_metadata.columns:
-                sort_columns.append("posZ")
-                user_metadata.loc[user_metadata["posZ"].isna(), "posZ"] = 0
-
             measurements = user_metadata.groupby(sort_columns)
 
-            show_info(f"Found {len(file_paths) // len(channels)} matching database files.")
+            show_info(f"Found {len(measurements)} matching database files.")
 
     except:
         print(traceback.format_exc())

@@ -3,7 +3,7 @@ import pathlib
 
 # from napari_bacseg._utils_json import import_coco_json, export_coco_json
 import traceback
-
+import math
 import numpy as np
 import pandas as pd
 from glob2 import glob
@@ -470,35 +470,45 @@ def populate_upload_combos(self, meta_options=None, user_meta_options=None, file
 
                     if meta_name != "user_initial":
 
-                        combo_box = getattr(self, control_name)
+                        try:
 
-                        combo_box_items = []
+                            combo_box = getattr(self, control_name)
 
-                        if "user_meta" in meta_name:
-                            if meta_name in user_meta_options[user_initial]:
-                                combo_box_items.extend(user_meta_options[user_initial][meta_name])
-                        else:
-                            if meta_name in meta_options.keys():
-                                combo_box_items.extend(meta_options[meta_name])
+                            combo_box_items = []
 
-                        if meta_name in file_usermeta.keys():
-                            combo_box_items.extend(file_usermeta[meta_name])
+                            if "user_meta" in meta_name:
+                                if meta_name in user_meta_options[user_initial]:
+                                    combo_box_items.extend(user_meta_options[user_initial][meta_name])
+                            else:
+                                if meta_name in meta_options.keys():
+                                    combo_box_items.extend(meta_options[meta_name])
 
-                        combo_box_items = [value for value in combo_box_items if value not in ["", " ", "nan", "Required for upload",
-                                                                                               'example_item1', 'example_item2', 'example_item3',
-                                                                                               None, np.nan]]
+                            if meta_name in file_usermeta.keys():
+                                combo_box_items.extend(file_usermeta[meta_name])
 
-                        combo_box_items = list(set(combo_box_items))
-                        combo_box_items = sorted(combo_box_items)
+                            for index, item in enumerate(combo_box_items):
+                                if type(item) in [float,int]:
+                                    if math.isnan(item):
+                                        combo_box_items[index] = ""
+                                    if item in [" ", "", "nan", None, np.nan, float("nan")]:
+                                        combo_box_items[index] = ""
+                                    if item in ["Required for upload",'example_item1', 'example_item2', 'example_item3']:
+                                        combo_box_items[index] = ""
 
-                        combo_box.clear()
-                        combo_box.addItems([""] + combo_box_items)
+                            combo_box_items = list(set(combo_box_items))
+                            combo_box_items = sorted(combo_box_items)
+
+                            combo_box.clear()
+                            combo_box.addItems([""] + combo_box_items)
+
+                        except:
+                            pass
 
     except:
         print(traceback.format_exc())
         pass
 
-def update_upload_combos(self):
+def update_upload_combos(self, control_name = ""):
 
     try:
 
@@ -522,43 +532,55 @@ def update_upload_combos(self):
                     control_value = getattr(self, control_name).currentText()
 
                     if control_value != "":
+
                         if meta_name in filtered_metadata.columns:
                             filtered_metadata = filtered_metadata[filtered_metadata[meta_name] == control_value]
-
-
 
                 num_filtered = 0
 
                 for meta_name, control_name in control_dict.items():
                     if meta_name != "user_initial":
 
-                        combo_box = getattr(self, control_name)
-                        combo_box_current = combo_box.currentText()
-                        combo_box_values = [combo_box.itemText(i) for i in range(combo_box.count())]
+                        try:
+                            combo_box = getattr(self, control_name)
+                            combo_box_current = combo_box.currentText()
+                            combo_box_values = [combo_box.itemText(i) for i in range(combo_box.count())]
 
-                        combo_box_items = []
+                            combo_box_items = []
 
-                        if meta_name in filtered_metadata.columns:
-                            combo_box_items.extend(filtered_metadata[meta_name].unique().tolist())
+                            if meta_name in filtered_metadata.columns:
+                                combo_box_items.extend(filtered_metadata[meta_name].unique().tolist())
 
-                        combo_box_items = [value for value in combo_box_items if value not in ["", " ", "nan", "Required for upload", 'example_item1', 'example_item2', 'example_item3', None, np.nan]]
-                        combo_box_items = [""] + combo_box_items
+                            for index, item in enumerate(combo_box_items):
+                                if type(item) in [float,int]:
+                                    if math.isnan(item):
+                                        combo_box_items[index] = ""
+                                    if item in [" ", "", "nan", None, np.nan, float("nan")]:
+                                        combo_box_items[index] = ""
+                                    if item in ["Required for upload",'example_item1', 'example_item2', 'example_item3']:
+                                        combo_box_items[index] = ""
 
-                        combo_box_items = list(set(combo_box_items))
-                        combo_box_items = sorted(combo_box_items)
+                            combo_box_items = ["", combo_box_current] + combo_box_items
 
-                        if combo_box_items != []:
-                            num_filtered += 1
-                            if combo_box_current in combo_box_items:
-                                combo_box_index = combo_box_items.index(combo_box_current)
+                            combo_box_items = list(set(combo_box_items))
+                            combo_box_items = sorted(combo_box_items)
+
+                            if combo_box_items != []:
+                                num_filtered += 1
+                                if combo_box_current in combo_box_items:
+                                    combo_box_index = combo_box_items.index(combo_box_current)
+                                else:
+                                    combo_box_index = 0
                             else:
                                 combo_box_index = 0
-                        else:
-                            combo_box_index = 0
 
-                        combo_box.clear()
-                        combo_box.addItems(combo_box_items)
-                        combo_box.setCurrentIndex(combo_box_index)
+                            combo_box.clear()
+                            combo_box.addItems(combo_box_items)
+                            combo_box.setCurrentIndex(combo_box_index)
+
+                        except:
+                            print(traceback.format_exc())
+                            pass
 
             self.updating_combos = False
 

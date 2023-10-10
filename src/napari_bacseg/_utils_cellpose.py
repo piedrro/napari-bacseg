@@ -21,9 +21,7 @@ def export_cellpose(file_path, image, mask):
             cell_mask = np.zeros(mask.shape, dtype=np.uint8)
             cell_mask[mask == i] = 255
 
-            contours, _ = cv2.findContours(
-                cell_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-            )
+            contours, _ = cv2.findContours(cell_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
             cnt = contours[0]
 
             outlines = cv2.drawContours(outlines, cnt, -1, i, 1)
@@ -37,24 +35,8 @@ def export_cellpose(file_path, image, mask):
         except:
             pass
 
-    np.save(
-        base + "_seg.npy",
-        {
-            "img": image.astype(np.uint32),
-            "colors": colours,
-            "outlines": outlines.astype(np.uint16)
-            if outlines.max() < 2**16 - 1
-            else outlines.astype(np.uint32),
-            "masks": mask.astype(np.uint16)
-            if mask.max() < 2**16 - 1
-            else mask.astype(np.uint32),
-            "chan_choose": [0, 0],
-            "ismanual": ismanual,
-            "filename": file_path,
-            "flows": flow,
-            "est_diam": 15,
-        },
-    )
+    np.save(base + "_seg.npy", {"img": image.astype(np.uint32), "colors": colours, "outlines": outlines.astype(np.uint16) if outlines.max() < 2 ** 16 - 1 else outlines.astype(np.uint32), "masks": mask.astype(np.uint16) if mask.max() < 2 ** 16 - 1 else mask.astype(np.uint32), "chan_choose": [
+        0, 0], "ismanual": ismanual, "filename": file_path, "flows": flow, "est_diam": 15, }, )
 
 
 def _postpocess_cellpose(self, mask):
@@ -69,9 +51,7 @@ def _postpocess_cellpose(self, mask):
             cell_mask = np.zeros(mask.shape, dtype=np.uint8)
             cell_mask[mask == i] = 255
 
-            contours, _ = cv2.findContours(
-                cell_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-            )
+            contours, _ = cv2.findContours(cell_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
             cnt = contours[0]
 
@@ -99,12 +79,7 @@ def _run_cellpose(self, progress_callback, images):
         model_type = self.cellpose_segmodel.currentText()
         model_path = self.cellpose_custom_model_path
 
-        (
-            model,
-            gpu,
-            omnipose_model,
-            labels_to_flows,
-        ) = _initialise_cellpose_model(self, model_type, model_path, diameter)
+        (model, gpu, omnipose_model, labels_to_flows,) = _initialise_cellpose_model(self, model_type, model_path, diameter)
 
         if model != None:
             masks = []
@@ -125,28 +100,10 @@ def _run_cellpose(self, progress_callback, images):
                     image = cv2.bitwise_not(image)
 
                 if omnipose_model:
-                    mask, flow, diam = model.eval(
-                        image,
-                        channels=[0, 0],
-                        mask_threshold=mask_threshold,
-                        flow_threshold=flow_threshold,
-                        diameter=diameter,
-                        invert=False,
-                        cluster=True,
-                        net_avg=True,
-                        do_3D=False,
-                        omni=True,
-                    )
+                    mask, flow, diam = model.eval(image, channels=[0,
+                                                                   0], mask_threshold=mask_threshold, flow_threshold=flow_threshold, diameter=diameter, invert=False, cluster=True, net_avg=True, do_3D=False, omni=True, )
                 else:
-                    mask, flow, diam = model.eval(
-                        image,
-                        diameter=diameter,
-                        channels=[0, 0],
-                        flow_threshold=flow_threshold,
-                        cellprob_threshold=mask_threshold,
-                        min_size=min_size,
-                        batch_size=3,
-                    )
+                    mask, flow, diam = model.eval(image, diameter=diameter, channels=[0, 0], flow_threshold=flow_threshold, cellprob_threshold=mask_threshold, min_size=min_size, batch_size=3, )
 
                 mask = _postpocess_cellpose(self, mask)
 
@@ -184,7 +141,7 @@ def _process_cellpose(self, segmentation_data):
         self.cellpose_segmentation = True
         self.cellpose_progressbar.setValue(0)
 
-        if self.cellpose_seg_mode.currentIndex() == 0:
+        if self.cellpose_auto_classify.isChecked() == True:
             self._autoClassify(reset=True)
 
         self._autoContrast()
@@ -199,9 +156,13 @@ def _process_cellpose(self, segmentation_data):
 
 def load_cellpose_dependencies(self):
     if self.widget_notifications:
-        show_info("Loading Cellpose dependencies")
+        show_info("Loading Cellpose dependencies [pytorch]")
 
     import torch
+
+    if self.widget_notifications:
+        show_info("Loading Cellpose dependencies [cellpose]")
+
     from cellpose import models
     from cellpose.dynamics import labels_to_flows
 
@@ -212,17 +173,28 @@ def load_cellpose_dependencies(self):
             show_info("Cellpose Using GPU")
         gpu = True
         torch.cuda.empty_cache()
+    else:
+        if self.widget_notifications:
+            show_info("Cellpose Using CPU")
 
     return gpu, models, labels_to_flows
 
 
 def load_omnipose_dependencies(self):
     if self.widget_notifications:
-        show_info("Loading Omnipose dependencies")
+        show_info("Loading Omnipose dependencies [pytorch]")
 
     import torch
-    from cellpose_omni import models
+
+    if self.widget_notifications:
+        show_info("Loading Omnipose dependencies [omnipose]")
+
     from omnipose.core import labels_to_flows
+
+    if self.widget_notifications:
+        show_info("Loading Omnipose dependencies [cellpose_omni]")
+
+    from cellpose_omni import models
 
     gpu = False
 
@@ -231,13 +203,15 @@ def load_omnipose_dependencies(self):
             show_info("Omnipose Using GPU")
         gpu = True
         torch.cuda.empty_cache()
+    else:
+        if self.widget_notifications:
+            show_info("Omnipose Using CPU")
 
     return gpu, models, labels_to_flows
 
 
-def _initialise_cellpose_model(
-    self, model_type="custom", model_path=None, diameter=15, mode="eval"
-):
+def _initialise_cellpose_model(self, model_type="custom", model_path=None, diameter=15, mode="eval"):
+
     model = None
     gpu = False
     omnipose_model = False
@@ -253,17 +227,9 @@ def _initialise_cellpose_model(
                 gpu, models, labels_to_flows = load_omnipose_dependencies(self)
 
                 if self.widget_notifications:
-                    show_info(
-                        f"Loading Omnipose Model: {os.path.basename(model_path)}"
-                    )
+                    show_info(f"Loading Omnipose Model: {os.path.basename(model_path)}")
 
-                model = models.CellposeModel(
-                    pretrained_model=model_path,
-                    diam_mean=diameter,
-                    model_type=None,
-                    gpu=gpu,
-                    net_avg=False,
-                )
+                model = models.CellposeModel(pretrained_model=model_path, diam_mean=diameter, model_type=None, gpu=gpu, net_avg=False, )
 
             elif "cellpose_" in model_name:
                 omnipose_model = False
@@ -271,25 +237,12 @@ def _initialise_cellpose_model(
                 gpu, models, labels_to_flows = load_cellpose_dependencies(self)
 
                 if self.widget_notifications:
-                    show_info(
-                        f"Loading Cellpose Model: {os.path.basename(model_path)}"
-                    )
+                    show_info(f"Loading Cellpose Model: {os.path.basename(model_path)}")
 
-                model = models.CellposeModel(
-                    pretrained_model=model_path,
-                    diam_mean=diameter,
-                    model_type=None,
-                    gpu=gpu,
-                    net_avg=False,
-                )
+                model = models.CellposeModel(pretrained_model=model_path, diam_mean=diameter, model_type=None, gpu=gpu, net_avg=False, )
 
             else:
-                model, gpu, omnipose_model, labels_to_flows = (
-                    None,
-                    None,
-                    True,
-                    None,
-                )
+                model, gpu, omnipose_model, labels_to_flows = (None, None, True, None,)
 
         else:
             if self.widget_notifications:
@@ -310,12 +263,7 @@ def _initialise_cellpose_model(
                 show_info(f"Loading Cellpose Model: {model_type}")
 
             gpu, models, labels_to_flows = load_cellpose_dependencies(self)
-            model = models.CellposeModel(
-                diam_mean=diameter,
-                model_type=model_type,
-                gpu=gpu,
-                net_avg=False,
-            )
+            model = models.CellposeModel(diam_mean=diameter, model_type=model_type, gpu=gpu, net_avg=False, )
 
         else:
             if self.widget_notifications:
@@ -325,10 +273,7 @@ def _initialise_cellpose_model(
 
 
 def unstack_images(stack, axis=0):
-    images = [
-        np.squeeze(e, axis)
-        for e in np.split(stack, stack.shape[axis], axis=axis)
-    ]
+    images = [np.squeeze(e, axis) for e in np.split(stack, stack.shape[axis], axis=axis)]
 
     return images
 
@@ -354,14 +299,7 @@ def train_cellpose_model(self, progress_callback=0):
         model_save_path = self.cellpose_train_model_path
         diameter = int(self.cellpose_diameter_label.text())
 
-        (
-            model,
-            gpu,
-            omnipose_model,
-            labels_to_flows,
-        ) = _initialise_cellpose_model(
-            self, model_type, model_load_path, diameter, mode="train"
-        )
+        (model, gpu, omnipose_model, labels_to_flows,) = _initialise_cellpose_model(self, model_type, model_load_path, diameter, mode="train")
 
         if model != None:
             from cellpose.io import logger_setup
@@ -376,9 +314,7 @@ def train_cellpose_model(self, progress_callback=0):
             if self.widget_notifications:
                 show_info("Generating Cellpose training dataset...")
 
-            flows = labels_to_flows(
-                masks, use_gpu=False, device=None, redo_flows=False
-            )
+            flows = labels_to_flows(masks, use_gpu=False, device=None, redo_flows=False)
 
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -386,19 +322,9 @@ def train_cellpose_model(self, progress_callback=0):
                 if self.widget_notifications:
                     show_info("Training Cellpose Model...")
 
-                pretrained_model = model.train(
-                    images,
-                    flows,
-                    channels=[0, 0],
-                    batch_size=batchsize,
-                    n_epochs=nepochs,
-                    save_path=file_path,
-                    save_every=1,
-                )
+                pretrained_model = model.train(images, flows, channels=[0, 0], batch_size=batchsize, n_epochs=nepochs, save_path=file_path, save_every=1, )
                 if self.widget_notifications:
-                    show_info(
-                        f"Training Complete. Cellpose model path: {pretrained_model}"
-                    )
+                    show_info(f"Training Complete. Cellpose model path: {pretrained_model}")
 
     except:
         print(traceback.format_exc())
@@ -411,9 +337,7 @@ def train_cellpose_model(self, progress_callback=0):
 
 def _select_cellpose_save_path(self):
     desktop = os.path.expanduser("~/Desktop")
-    path = QFileDialog.getExistingDirectory(
-        self, "Select Save Directory", desktop
-    )
+    path = QFileDialog.getExistingDirectory(self, "Select Save Directory", desktop)
 
     if os.path.isdir(path):
         self.cellpose_train_model_path = path
@@ -425,37 +349,19 @@ def _select_cellpose_save_directory(self):
     else:
         file_path = os.path.expanduser("~/Desktop")
 
-    path = QFileDialog.getExistingDirectory(
-        self, "Select Cellpose Save Directory", file_path
-    )
+    path = QFileDialog.getExistingDirectory(self, "Select Cellpose Save Directory", file_path)
 
     if path != "":
         if os.path.isdir(path):
             self.cellpose_train_model_path = os.path.abspath(path)
 
             if self.widget_notifications:
-                show_info(
-                    f"Cellpose model save path: {self.cellpose_train_model_path}"
-                )
+                show_info(f"Cellpose model save path: {self.cellpose_train_model_path}")
 
 
 def _select_custom_cellpose_model(self, path=None):
-    cellpose_model_names = [
-        "bact_phase_cp",
-        "bact_fluor_cp",
-        "plant_cp",
-        "worm_cp",
-        "cyto2_omni",
-        "bact_phase_omni",
-        "bact_fluor_omni",
-        "plant_omni",
-        "worm_omni",
-        "worm_bact_omni",
-        "worm_high_res_omni",
-        "cyto",
-        "cyto2",
-        "nuclei",
-    ]
+    cellpose_model_names = ["bact_phase_cp", "bact_fluor_cp", "plant_cp", "worm_cp", "cyto2_omni", "bact_phase_omni", "bact_fluor_omni", "plant_omni", "worm_omni", "worm_bact_omni",
+        "worm_high_res_omni", "cyto", "cyto2", "nuclei", ]
 
     if self.database_path != "":
         file_path = os.path.join(self.database_path, "Models")
@@ -463,9 +369,7 @@ def _select_custom_cellpose_model(self, path=None):
         file_path = os.path.expanduser("~/Desktop")
 
     if type(path) != str:
-        path, _ = QFileDialog.getOpenFileName(
-            self, "Open File", file_path, "Cellpose Models (*)"
-        )
+        path, _ = QFileDialog.getOpenFileName(self, "Open File", file_path, "Cellpose Models (*)")
 
     if path != "":
         model_name = os.path.basename(path)
@@ -473,11 +377,7 @@ def _select_custom_cellpose_model(self, path=None):
         if "torch" in model_name:
             model_name = model_name.split("torch")[0]
 
-        if (
-            "cellpose_" in model_name
-            or "omnipose_" in model_name
-            or model_name in cellpose_model_names
-        ):
+        if ("cellpose_" in model_name or "omnipose_" in model_name or model_name in cellpose_model_names):
             if os.path.isfile(path):
                 self.cellpose_custom_model_path = path
                 self.cellpose_segmodel.setCurrentIndex(13)
