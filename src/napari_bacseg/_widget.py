@@ -686,7 +686,7 @@ class BacSeg(QWidget):
 
         self.widget_notifications = True
 
-    def export_picasso_localisations(self,  event = None, export_mode = "csv"):
+    def export_picasso_localisations(self,  event = None, export_mode = "stormtracker"):
 
         try:
 
