@@ -100,8 +100,8 @@ def _run_cellpose(self, progress_callback, images):
                     image = cv2.bitwise_not(image)
 
                 if omnipose_model:
-                    mask, flow, diam = model.eval(image, channels=[0,
-                                                                   0], mask_threshold=mask_threshold, flow_threshold=flow_threshold, diameter=diameter, invert=False, cluster=True, net_avg=True, do_3D=False, omni=True, )
+                    mask, flow, diam = model.eval(image, channels=[0,0],
+                        mask_threshold=mask_threshold, flow_threshold=flow_threshold, diameter=diameter, invert=False, cluster=True, net_avg=True, do_3D=False, omni=True, )
                 else:
                     mask, flow, diam = model.eval(image, diameter=diameter, channels=[0, 0], flow_threshold=flow_threshold, cellprob_threshold=mask_threshold, min_size=min_size, batch_size=3, )
 
