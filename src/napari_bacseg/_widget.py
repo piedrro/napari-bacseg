@@ -838,16 +838,16 @@ class BacSeg(QWidget):
     def get_localisation_centres(self, locs):
 
         try:
-            loc_centres = {}
+            loc_centres = []
             for loc in locs:
                 frame = int(loc.frame)
-                if frame not in loc_centres.keys():
-                    loc_centres[frame] = []
-                loc_centres[frame].append([loc.y, loc.x])
+                # if frame not in loc_centres.keys():
+                #     loc_centres[frame] = []
+                loc_centres.append([frame, loc.y, loc.x])
 
         except:
             print(traceback.format_exc())
-            loc_centres = {}
+            loc_centres = []
 
         return loc_centres
 
@@ -859,10 +859,12 @@ class BacSeg(QWidget):
             self.localisation_centres = self.get_localisation_centres(self.fitted_locs)
             self.display_localisations()
 
-            num_frames = len(self.localisation_centres.keys())
+            num_frames = self.localisation_centres[-1][0] + 1
             num_locs = len(self.detected_locs)
 
             show_info(f"Picasso Fitted {num_locs} localisations in {num_frames} frame(s)")
+
+            self._reorderLayers()
 
         except:
             pass
@@ -873,7 +875,7 @@ class BacSeg(QWidget):
 
             image_frames = self.picasso_image_frames.currentText()
 
-            n_detected_frames = len(self.localisation_centres.keys())
+            n_detected_frames = self.localisation_centres[-1][0] + 1
 
             if image_frames.lower() == "active":
                 image_data = self.viewer.layers[image_channel].data[self.viewer.dims.current_step[0]]
@@ -918,6 +920,7 @@ class BacSeg(QWidget):
     def _detect_localisations(self, progress_callback=None, min_net_gradient=100, box_size=3, camera_info={}, image_channel="", ):
 
         self.detected_locs = []
+        self.localisation_centres = {}
 
         try:
             from picasso import localize
@@ -1000,10 +1003,12 @@ class BacSeg(QWidget):
             self.localisation_centres = self.get_localisation_centres(self.detected_locs)
             self.display_localisations()
 
-            num_frames = len(self.localisation_centres.keys())
+            num_frames = self.localisation_centres[-1][0] + 1
             num_locs = len(self.detected_locs)
 
             show_info(f"Picasso Detected {num_locs} localisations in {num_frames} frame(s)")
+
+            self._reorderLayers()
 
         except:
             print(traceback.format_exc())
@@ -1011,6 +1016,7 @@ class BacSeg(QWidget):
 
     def update_localisation_visualisation(self):
         try:
+            pass
             if self.picasso_show_vis.isChecked():
                 self.display_localisations()
             else:
@@ -1025,7 +1031,6 @@ class BacSeg(QWidget):
             try:
                 layer_names = [layer.name for layer in self.viewer.layers]
 
-                current_step = list(self.viewer.dims.current_step)[0]
                 vis_mode = self.picasso_vis_mode.currentText()
                 vis_size = float(self.picasso_vis_size.currentText())
                 vis_opacity = float(self.picasso_vis_opacity.currentText())
@@ -1038,32 +1043,31 @@ class BacSeg(QWidget):
                 elif vis_mode.lower() == "x":
                     symbol = "cross"
 
-                if current_step in self.localisation_centres.keys():
-                    box_centres = self.localisation_centres[current_step].copy()
+                box_centres = self.localisation_centres.copy()
 
-                    if len(box_centres) > 0:
-                        if "localisations" not in layer_names:
+                if len(box_centres) > 0:
+                    if "localisations" not in layer_names:
 
-                            self.viewer.add_points(
-                                box_centres,
-                                edge_color="red",
-                                face_color=[0,0,0,0],
-                                opacity=vis_opacity,
-                                name = "localisations",
-                                symbol = symbol,
-                                size = vis_size,
-                                edge_width = vis_edge_width
-                            )
-                        else:
-                            self.viewer.layers["localisations"].data = box_centres
-                            self.viewer.layers["localisations"].symbol = symbol
-                            self.viewer.layers["localisations"].size = vis_size
-                            self.viewer.layers["localisations"].opacity = vis_opacity
-                            self.viewer.layers["localisations"].edge_width = vis_edge_width
-                            self.viewer.layers["localisations"].edge_color = "red"
+                        self.viewer.add_points(
+                            box_centres,
+                            edge_color="blue",
+                            face_color=[0,0,0,0],
+                            opacity=vis_opacity,
+                            name = "localisations",
+                            symbol = symbol,
+                            size = vis_size,
+                            edge_width = vis_edge_width
+                        )
                     else:
-                        if "localisations" in layer_names:
-                            self.viewer.layers["localisations"].data = []
+                        self.viewer.layers["localisations"].data = []
+
+                        self.viewer.layers["localisations"].data = box_centres
+                        self.viewer.layers["localisations"].symbol = symbol
+                        self.viewer.layers["localisations"].size = vis_size
+                        self.viewer.layers["localisations"].opacity = vis_opacity
+                        self.viewer.layers["localisations"].edge_width = vis_edge_width
+                        self.viewer.layers["localisations"].edge_color = "blue"
+
                 else:
                     if "localisations" in layer_names:
                         self.viewer.layers["localisations"].data = []
@@ -1982,7 +1986,7 @@ class BacSeg(QWidget):
         self._autoContrast()
         self._updateScaleBar()
         self._update_active_midlines()
-        self.display_localisations()
+        # self.display_localisations()
 
     def _updateScaleBar(self):
         layer_names = [layer.name for layer in self.viewer.layers]
@@ -2242,7 +2246,7 @@ class BacSeg(QWidget):
         try:
             layer_names = [layer.name for layer in self.viewer.layers if layer.name in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
 
-            for layer in ["center_lines", "Classes", "Nucleoid", "Segmentations", ]:
+            for layer in ["center_lines", "Localisations", "Classes", "Nucleoid", "Segmentations", ]:
                 if layer in layer_names:
                     layer_index = self.viewer.layers.index(layer)
                     self.viewer.layers.move(layer_index, -1)
