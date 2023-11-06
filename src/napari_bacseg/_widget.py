@@ -596,8 +596,8 @@ class BacSeg(QWidget):
 
         self.picasso_detect.clicked.connect(self.detect_picasso_localisations)
         self.picasso_fit.clicked.connect(self.fit_picasso_localisations)
-        self.picasso_vis_size.currentIndexChanged.connect(self.update_visualisation_size)
-        self.picasso_vis_mode.currentIndexChanged.connect(self.update_visualisation_mode)
+        self.picasso_vis_size.currentIndexChanged.connect(self.update_localisation_visualisation)
+        self.picasso_vis_mode.currentIndexChanged.connect(self.update_localisation_visualisation)
         self.picasso_export.clicked.connect(self.export_picasso_localisations)
 
         self.upload_initial.currentTextChanged.connect(self.populate_upload_combos)
@@ -745,8 +745,13 @@ class BacSeg(QWidget):
         import pandas as pd
 
         try:
-            param_list = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", "z", "d_zcalib", "likelihood", "iterations", "group", "len", "n",
-                "photon_rate", ]
+            param_list = ["frame", "x", "y",
+                          "photons", "sx", "sy",
+                          "bg", "lpx", "lpy",
+                          "ellipticity", "net_gradient",
+                          "z", "d_zcalib", "likelihood",
+                          "iterations", "group",
+                          "len", "n", "photon_rate", ]
 
             loc_data = []
 
@@ -768,13 +773,14 @@ class BacSeg(QWidget):
         return loc_data
 
     def get_localisation_centres(self, locs):
+
         try:
             loc_centres = {}
             for loc in locs:
                 frame = int(loc.frame)
                 if frame not in loc_centres.keys():
                     loc_centres[frame] = []
-                loc_centres[frame].append([loc.x, loc.y])
+                loc_centres[frame].append([loc.y, loc.x])
 
         except:
             print(traceback.format_exc())
@@ -782,49 +788,21 @@ class BacSeg(QWidget):
 
         return loc_centres
 
-    def compute_localisation_dict(self):
-        localisation_dict = {}
-        localisaton_centres = {}
+    def _fit_localisations_cleanup(self):
 
         try:
-            if hasattr(self, "detected_locs"):
-                image_channel = self.picasso_image_channel.currentText()
-                image_shape = self.viewer.layers[image_channel].data.shape
-                vis_size = int(self.picasso_vis_size.currentText())
-                vis_mode = self.picasso_vis_mode.currentText()
+            self._Progresbar(100, "picasso")
 
-                y_max = image_shape[-2]
-                x_max = image_shape[-1]
+            self.localisation_centres = self.get_localisation_centres(self.fitted_locs)
+            self.display_localisations()
 
-                localisation_dict = {}
+            num_frames = len(self.localisation_centres.keys())
+            num_locs = len(self.detected_locs)
 
-                for loc in self.detected_locs:
-                    frame = int(loc.frame)
-
-                    if frame not in localisation_dict.keys():
-                        localisation_dict[int(frame)] = []
-                    if frame not in localisaton_centres.keys():
-                        localisaton_centres[int(frame)] = []
-
-                    cx = int(loc.x)
-                    cy = int(loc.y)
-
-                    localisaton_centres[frame].append([cx, cy])
-
-                    x1, x2, y1, y2 = (cx - vis_size, cx + vis_size, cy - vis_size, cy + vis_size,)
-
-                    if x1 > 0 and x2 < x_max and y1 > 0 and y2 < y_max:
-                        bbox = [[cy - vis_size, cx - vis_size], [cy + vis_size, cx - vis_size], [cy + vis_size, cx + vis_size], [cy - vis_size, cx + vis_size], ]
-
-                        localisation_dict[frame].append(bbox)
+            show_info(f"Picasso Fitted {num_locs} localisations in {num_frames} frame(s)")
 
         except:
-            print(traceback.format_exc())
-
-        return localisation_dict, localisaton_centres
-
-    def _fit_localisations_cleanup(self):
-        self._Progresbar(100, "picasso")
+            pass
 
     def _fit_localisations(self, progress_callback=None, min_net_gradient=100, box_size=3, camera_info={}, image_channel="", method="lq", gain=1, use_gpufit=False, ):
         try:
@@ -832,7 +810,7 @@ class BacSeg(QWidget):
 
             image_frames = self.picasso_image_frames.currentText()
 
-            n_detected_frames = len(self.localisation_dict.keys())
+            n_detected_frames = len(self.localisation_centres.keys())
 
             if image_frames.lower() == "active":
                 image_data = self.viewer.layers[image_channel].data[self.viewer.dims.current_step[0]]
@@ -870,36 +848,6 @@ class BacSeg(QWidget):
         except:
             print(traceback.format_exc())
 
-    # def filter_localisations(self, localisation_dict):
-    #
-    #     try:
-    #
-    #         for frame, locs in localisation_dict.items():
-    #
-    #             mask = self.segLayer.data[frame]  # Convert localizations to integers
-    #
-    #             int_locs = np.round(locs).astype(int)
-    #
-    #             # Ensure that the coordinates are within the boundaries of the instance mask
-    #             valid_coords = (0 <= int_locs[:, 0]) & \
-    #                            (int_locs[:, 0] < mask.shape[1]) & \
-    #                            (0 <= int_locs[:, 1]) & \
-    #                            (int_locs[:, 1] < mask.shape[0])
-    #
-    #             # Filter localizations based on boundaries
-    #             int_locs = int_locs[valid_coords]
-    #
-    #             # Check the value of the instance mask at each localization point
-    #             mask_values = mask[int_locs[:, 1], int_locs[:, 0]]
-    #
-    #             # Only keep localizations where the instance mask value is not 0 (background)
-    #             filtered_locs = locs[valid_coords][mask_values != 0]
-    #
-    #             print(len(filtered_locs), len(locs))
-    #
-    #
-    #     except:
-    #         print(traceback.format_exc())
 
     def _detect_localisations(self, progress_callback=None, min_net_gradient=100, box_size=3, camera_info={}, image_channel="", ):
         self.detected_locs = []
@@ -924,7 +872,7 @@ class BacSeg(QWidget):
                 for loc in self.detected_locs:
                     loc.frame = self.viewer.dims.current_step[0]
 
-            self.detected_locs = self.filter_localisations(self.detected_locs)
+            # self.detected_locs = self.filter_localisations(self.detected_locs)
 
         except:
             print(traceback.format_exc())
@@ -977,12 +925,10 @@ class BacSeg(QWidget):
 
     def _detect_localisations_cleanup(self):
         try:
-            (self.localisation_dict, self.localisation_centres,) = self.compute_localisation_dict()
+            self.localisation_centres = self.get_localisation_centres(self.detected_locs)
             self.display_localisations()
 
-            # self.filter_localisations(self.localisation_centres)
-
-            num_frames = len(self.localisation_dict.keys())
+            num_frames = len(self.localisation_centres.keys())
             num_locs = len(self.detected_locs)
 
             show_info(f"Picasso Detected {num_locs} localisations in {num_frames} frame(s)")
@@ -990,20 +936,8 @@ class BacSeg(QWidget):
         except:
             print(traceback.format_exc())
 
-    def update_visualisation_size(self):
-        try:
-            if self.picasso_show_vis.isChecked():
-                self.localisation_dict, _ = self.compute_localisation_dict()
-                self.display_localisations()
 
-            else:
-                if "localisations" in [layer.name for layer in self.viewer.layers]:
-                    self.viewer.layers["localisations"].data = []
-
-        except:
-            print(traceback.format_exc())
-
-    def update_visualisation_mode(self):
+    def update_localisation_visualisation(self):
         try:
             if self.picasso_show_vis.isChecked():
                 self.display_localisations()
@@ -1014,29 +948,43 @@ class BacSeg(QWidget):
             print(traceback.format_exc())
 
     def display_localisations(self):
-        if (hasattr(self, "localisation_dict") and self.picasso_show_vis.isChecked()):
+        if (hasattr(self, "localisation_centres") and self.picasso_show_vis.isChecked()):
             try:
                 layer_names = [layer.name for layer in self.viewer.layers]
 
                 current_step = list(self.viewer.dims.current_step)[0]
                 vis_mode = self.picasso_vis_mode.currentText()
+                vis_size = float(self.picasso_vis_size.currentText())
 
-                if vis_mode.lower() == "box":
-                    shape_type = "rectangle"
-                else:
-                    shape_type = "ellipse"
+                if vis_mode.lower() == "square":
+                    symbol = "square"
+                elif vis_mode.lower() == "disk":
+                    symbol = "disc"
+                elif vis_mode.lower() == "x":
+                    symbol = "cross"
 
-                if current_step in self.localisation_dict.keys():
-                    bounding_boxes = self.localisation_dict[current_step].copy()
+                if current_step in self.localisation_centres.keys():
+                    box_centres = self.localisation_centres[current_step].copy()
 
-                    if len(bounding_boxes) > 0:
+                    if len(box_centres) > 0:
                         if "localisations" not in layer_names:
-                            self.viewer.add_shapes(bounding_boxes, name="localisations", shape_type=[shape_type] * len(bounding_boxes), edge_width=1, edge_color="red", face_color=[0, 0, 0,
-                                                                                                                                                                                    0], opacity=0.7, )
 
+                            self.viewer.add_points(
+                                box_centres,
+                                edge_color="red",
+                                face_color=[0,0,0,0],
+                                opacity=0.3,
+                                name = "localisations",
+                                symbol = symbol,
+                                size = vis_size,
+                                edge_width = 0.5
+                            )
                         else:
-                            self.viewer.layers["localisations"].data = bounding_boxes
-                            self.viewer.layers["localisations"].shape_type = [shape_type] * len(bounding_boxes)
+                            self.viewer.layers["localisations"].data = box_centres
+                            self.viewer.layers["localisations"].symbol = symbol
+                            self.viewer.layers["localisations"].size = vis_size
+                            self.viewer.layers["localisations"].opacity = 0.3
+                            self.viewer.layers["localisations"].edge_width = 0.5
                     else:
                         if "localisations" in layer_names:
                             self.viewer.layers["localisations"].data = []
@@ -1065,7 +1013,7 @@ class BacSeg(QWidget):
             print(traceback.format_exc())
 
     def fit_picasso_localisations(self):
-        if hasattr(self, "localisation_dict") == False:
+        if hasattr(self, "localisation_centres") == False:
             show_info("No localisations detected, please detect localisations first")
         else:
             image_channel = self.picasso_image_channel.currentText()
