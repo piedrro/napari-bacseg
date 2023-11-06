@@ -980,16 +980,18 @@ class BacSeg(QWidget):
 
                         else:
                             # Query the value at the given coordinates in the instance mask
-                            mask_value = mask[y, x]
+                            mask_value = mask[int(y), int(x)]
 
                             # If the value is not 0, then the point is inside an instance
                             inside = mask_value != 0
 
                         if inside:
                             filtered_locs.append(loc)
-
+2
         except:
             print(traceback.format_exc())
+
+        filtered_locs = np.array(filtered_locs).view(np.recarray)
 
         n_removed = len(locs) - len(filtered_locs)
 
