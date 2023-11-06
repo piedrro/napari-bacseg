@@ -987,16 +987,17 @@ class BacSeg(QWidget):
 
                         if inside:
                             filtered_locs.append(loc)
-2
+
+
+            filtered_locs = np.array(filtered_locs).view(np.recarray)
+
+            n_removed = len(locs) - len(filtered_locs)
+
+            if n_removed > 0:
+                show_info(f"Picasso removed {n_removed} localisations outside of segmentations")
+
         except:
             print(traceback.format_exc())
-
-        filtered_locs = np.array(filtered_locs).view(np.recarray)
-
-        n_removed = len(locs) - len(filtered_locs)
-
-        if n_removed > 0:
-            show_info(f"Picasso removed {n_removed} localisations outside of segmentations")
 
         return filtered_locs
 
