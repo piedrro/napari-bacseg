@@ -248,11 +248,14 @@ class BacSeg(QWidget):
         self.picasso_fit = self.findChild(QPushButton, "picasso_fit")
         self.picasso_vis_mode = self.findChild(QComboBox, "picasso_vis_mode")
         self.picasso_vis_size = self.findChild(QComboBox, "picasso_vis_size")
+        self.picasso_vis_opacity = self.findChild(QComboBox, "picasso_vis_opacity")
+        self.picasso_vis_edge_width = self.findChild(QComboBox, "picasso_vis_edge_width")
         self.picasso_show_vis = self.findChild(QCheckBox, "picasso_show_vis")
         self.picasso_image_frames = self.findChild(QComboBox, "picasso_image_frames")
         self.picasso_progressbar = self.findChild(QProgressBar, "picasso_progressbar")
         self.picasso_export = self.findChild(QPushButton, "picasso_export")
         self.picasso_export_mode = self.findChild(QComboBox, "picasso_export_mode")
+        self.picasso_filter_localisations = self.findChild(QCheckBox, "picasso_filter_localisations")
 
         self.overlay_filename = self.findChild(QCheckBox, "overlay_filename")
         self.overlay_folder = self.findChild(QCheckBox, "overlay_folder")
@@ -598,6 +601,8 @@ class BacSeg(QWidget):
         self.picasso_fit.clicked.connect(self.fit_picasso_localisations)
         self.picasso_vis_size.currentIndexChanged.connect(self.update_localisation_visualisation)
         self.picasso_vis_mode.currentIndexChanged.connect(self.update_localisation_visualisation)
+        self.picasso_vis_opacity.currentIndexChanged.connect(self.update_localisation_visualisation)
+        self.picasso_vis_edge_width.currentIndexChanged.connect(self.update_localisation_visualisation)
         self.picasso_export.clicked.connect(self.export_picasso_localisations)
 
         self.upload_initial.currentTextChanged.connect(self.populate_upload_combos)
@@ -742,6 +747,7 @@ class BacSeg(QWidget):
             print(traceback.format_exc())
 
     def get_localisation_data(self, locs):
+
         import pandas as pd
 
         try:
@@ -845,11 +851,15 @@ class BacSeg(QWidget):
 
                 show_info(f"Picasso fitted {len(self.fitted_locs)} spots")
 
+                if self.picasso_filter_localisations.isChecked():
+                    self.fitted_locs = self.filter_localisations(self.fitted_locs)
+
         except:
             print(traceback.format_exc())
 
 
     def _detect_localisations(self, progress_callback=None, min_net_gradient=100, box_size=3, camera_info={}, image_channel="", ):
+
         self.detected_locs = []
 
         try:
@@ -872,7 +882,8 @@ class BacSeg(QWidget):
                 for loc in self.detected_locs:
                     loc.frame = self.viewer.dims.current_step[0]
 
-            # self.detected_locs = self.filter_localisations(self.detected_locs)
+            if self.picasso_filter_localisations.isChecked():
+                self.detected_locs = self.filter_localisations(self.detected_locs)
 
         except:
             print(traceback.format_exc())
@@ -880,6 +891,7 @@ class BacSeg(QWidget):
         return self.detected_locs
 
     def filter_localisations(self, locs):
+
         filtered_locs = []
 
         try:
@@ -919,7 +931,10 @@ class BacSeg(QWidget):
         except:
             print(traceback.format_exc())
 
-        print(len(filtered_locs), len(locs))
+        n_removed = len(locs) - len(filtered_locs)
+
+        if n_removed > 0:
+            show_info(f"Picasso removed {n_removed} localisations outside of segmentations")
 
         return filtered_locs
 
@@ -948,6 +963,7 @@ class BacSeg(QWidget):
             print(traceback.format_exc())
 
     def display_localisations(self):
+
         if (hasattr(self, "localisation_centres") and self.picasso_show_vis.isChecked()):
             try:
                 layer_names = [layer.name for layer in self.viewer.layers]
@@ -955,6 +971,8 @@ class BacSeg(QWidget):
                 current_step = list(self.viewer.dims.current_step)[0]
                 vis_mode = self.picasso_vis_mode.currentText()
                 vis_size = float(self.picasso_vis_size.currentText())
+                vis_opacity = float(self.picasso_vis_opacity.currentText())
+                vis_edge_width = float(self.picasso_vis_edge_width.currentText())
 
                 if vis_mode.lower() == "square":
                     symbol = "square"
@@ -973,18 +991,19 @@ class BacSeg(QWidget):
                                 box_centres,
                                 edge_color="red",
                                 face_color=[0,0,0,0],
-                                opacity=0.3,
+                                opacity=vis_opacity,
                                 name = "localisations",
                                 symbol = symbol,
                                 size = vis_size,
-                                edge_width = 0.5
+                                edge_width = vis_edge_width
                             )
                         else:
                             self.viewer.layers["localisations"].data = box_centres
                             self.viewer.layers["localisations"].symbol = symbol
                             self.viewer.layers["localisations"].size = vis_size
-                            self.viewer.layers["localisations"].opacity = 0.3
-                            self.viewer.layers["localisations"].edge_width = 0.5
+                            self.viewer.layers["localisations"].opacity = vis_opacity
+                            self.viewer.layers["localisations"].edge_width = vis_edge_width
+                            self.viewer.layers["localisations"].edge_color = "red"
                     else:
                         if "localisations" in layer_names:
                             self.viewer.layers["localisations"].data = []
@@ -1114,7 +1133,7 @@ class BacSeg(QWidget):
             import scipy
             from skimage.registration import phase_cross_correlation
 
-            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
+            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
             if layer_names != []:
                 shift_list = []
@@ -1190,7 +1209,7 @@ class BacSeg(QWidget):
         from skimage.registration import phase_cross_correlation
 
         try:
-            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
+            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
             if len(layer_names) > 2:
                 num_images = self.viewer.layers[layer_names[0]].data.shape[0]
@@ -1234,7 +1253,7 @@ class BacSeg(QWidget):
 
     def set_image_quality(self, mode="", value=""):
         try:
-            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
+            layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
             update_mode = self.set_quality_mode.currentIndex()
 
@@ -1291,7 +1310,7 @@ class BacSeg(QWidget):
             selected_layer = selected_layers[0]
             all_layers.pop(all_layers.index(selected_layer))
 
-            if selected_layer not in ["Segmentations", "Nucleoid", "Classes", "center_lines", ]:
+            if selected_layer not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]:
                 metadata = self.viewer.layers[selected_layer].metadata.copy()
 
                 label_modality = self.label_modality.currentText()
@@ -1472,7 +1491,7 @@ class BacSeg(QWidget):
 
             shift_image = False
             if active_layer != None:
-                if active_layer.name not in ["Segmentations", "Classes", "center_lines", ]:
+                if active_layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]:
                     shift_image = True
 
             if shift_image is True:
@@ -1603,7 +1622,7 @@ class BacSeg(QWidget):
             print(traceback.format_exc())
 
     def _updateSegChannels(self):
-        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
+        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines","Localisations"]]
 
         segChannel = self.cellpose_segchannel.currentText()
 
@@ -1855,7 +1874,7 @@ class BacSeg(QWidget):
             self.label.setText(str(slider_value))
 
     def _updateSegmentationCombo(self):
-        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
+        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
         self.cellpose_segchannel.clear()
         self.cellpose_segchannel.addItems(layer_names)
@@ -1933,7 +1952,7 @@ class BacSeg(QWidget):
     def _autoContrast(self):
         try:
             if self.autocontrast.isChecked():
-                layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", ]]
+                layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
                 if len(layer_names) != 0:
                     active_layer = layer_names[-1]
@@ -2013,7 +2032,7 @@ class BacSeg(QWidget):
             pass
 
     def _process_import(self, imported_data, rearrange=True):
-        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
+        layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
         append_mode = self.import_append_mode.currentIndex()
 

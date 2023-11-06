@@ -180,7 +180,7 @@ def generate_multichannel_stack(self):
         combo_box_value = combo_box.currentText()
         metadata[f"usermeta{key}"] = combo_box_value
 
-    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
+    layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
     layer_names.reverse()
 
@@ -654,7 +654,7 @@ def _upload_bacseg_database(self, progress_callback, mode):
                 user_metadata = pd.DataFrame(columns=self.metadata_columns)
 
             channel_labels = ["modality", "light_source", "stain", "stain_target", ]
-            channel_metadata = [layer.metadata[0] for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]]
+            channel_metadata = [layer.metadata[0] for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
             metalabels = []
 
@@ -680,7 +680,7 @@ def _upload_bacseg_database(self, progress_callback, mode):
 
             else:
                 segChannel = self.cellpose_segchannel.currentText()
-                channel_list = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", ]]
+                channel_list = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
                 if segChannel == "":
                     if self.widget_notifications:

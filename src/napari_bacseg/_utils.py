@@ -1863,7 +1863,7 @@ def align_image_channels(self):
         layer.name
         for layer in self.viewer.layers
         if layer.name
-        not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
+        not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]
     ]
 
     if self.import_align.isChecked() and len(layer_names) > 1:
@@ -2214,7 +2214,7 @@ def import_masks(self, file_paths, file_extension=""):
         layer.name
         for layer in self.viewer.layers
         if layer.name
-        not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
+        not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]
     ]
 
     matching_masks = []
@@ -2449,7 +2449,7 @@ def generate_export_image(
         layer.name
         for layer in self.viewer.layers
         if layer.name
-        not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
+        not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]
     ]
 
     layer_names.reverse()
@@ -2574,7 +2574,7 @@ def export_stacks(self, progress_callback, mode):
             layer.name
             for layer in self.viewer.layers
             if layer.name
-            not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
+            not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]
         ]
 
         export_stack_channel = self.export_stack_channel.currentText()
@@ -2588,7 +2588,7 @@ def export_stacks(self, progress_callback, mode):
                 layer.name
                 for layer in self.viewer.layers
                 if layer.name
-                not in ["Segmentations", "Nucleoid", "Classes", "center_lines"]
+                not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]
             ]
 
         overwrite = self.export_stack_overwrite_setting.isChecked()
