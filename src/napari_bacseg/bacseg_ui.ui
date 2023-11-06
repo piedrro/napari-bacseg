@@ -2886,6 +2886,11 @@
           <string>.pos.out</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>Picasso HDF5</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
