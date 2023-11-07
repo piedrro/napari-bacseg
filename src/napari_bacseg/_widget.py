@@ -1741,7 +1741,6 @@ class BacSeg(QWidget):
                 self.threadpool.start(worker)
 
             if import_mode == "Mask (.tif) Segmentation(s)":
-                print(True)
                 self.import_masks = self.wrapper(napari_bacseg._utils.import_masks)
                 self.import_masks(paths, file_extension=".tif")
                 self._autoClassify()
