@@ -66,6 +66,7 @@ def _postpocess_cellpose(self, mask):
 
 
 def _run_cellpose(self, progress_callback, images):
+
     mask_stack = []
 
     with warnings.catch_warnings():
@@ -75,6 +76,7 @@ def _run_cellpose(self, progress_callback, images):
         mask_threshold = float(self.cellpose_maskthresh_label.text())
         min_size = int(self.cellpose_minsize_label.text())
         diameter = int(self.cellpose_diameter_label.text())
+        batch_size = int(self.cellpose_seg_batchsize.currentText())
 
         model_type = self.cellpose_segmodel.currentText()
         model_path = self.cellpose_custom_model_path
@@ -83,37 +85,50 @@ def _run_cellpose(self, progress_callback, images):
 
         if model != None:
             masks = []
+
+            n_images = len(images)
+            n_segmented = 0
+
+            # split list into batches
+            batched_images = [images[i:i + batch_size] for i in range(0, len(images), batch_size)]
+
             if self.widget_notifications:
-                show_info(f"Segmenting {len(images)} images")
+                if batch_size == 1:
+                    show_info(f"Segmenting {len(images)} images")
+                else:
+                    show_info(f"Segmenting {len(images)} images in {len(batched_images)} batche of {len(batched_images[0])} images.")
 
-            for i in range(len(images)):
-                progress = int(((i + 1) / len(images)) * 100)
-
-                try:
-                    progress_callback.emit(progress)
-                except:
-                    pass
-
-                image = images[i]
-
-                if self.cellpose_invert_images.isChecked():
-                    image = cv2.bitwise_not(image)
+            for batch_index, batch in enumerate(batched_images):
 
                 if omnipose_model:
-                    mask, flow, diam = model.eval(image, channels=[0,0],
-                        mask_threshold=mask_threshold, flow_threshold=flow_threshold, diameter=diameter, invert=False, cluster=True, net_avg=True, do_3D=False, omni=True, )
+                    masks, flow, diam = model.eval(
+                        batch, channels=[0,0], diameter=diameter,
+                        mask_threshold=mask_threshold, flow_threshold=flow_threshold,
+                        min_size=min_size, batch_size=batch_size,
+                        invert=self.cellpose_invert_images.isChecked(),
+                        cluster=True, net_avg=True, do_3D=False, omni=True,
+                        progress=self.cellpose_progressbar)
                 else:
-                    mask, flow, diam = model.eval(image, diameter=diameter, channels=[0, 0], flow_threshold=flow_threshold, cellprob_threshold=mask_threshold, min_size=min_size, batch_size=3, )
+                    masks, flow, diam = model.eval(
+                        batch, channels=[0, 0], diameter=diameter,
+                        flow_threshold=flow_threshold, cellprob_threshold=mask_threshold,
+                        min_size=min_size, batch_size=batch_size,
+                        invert=self.cellpose_invert_images.isChecked(),
+                        progress=self.cellpose_progressbar)
 
-                mask = _postpocess_cellpose(self, mask)
+                for i, mask in enumerate(masks):
+                    masks[i] = _postpocess_cellpose(self, mask)
 
-                masks.append(mask)
+                n_segmented += len(batch)
+                progress = int((n_segmented / n_images) * 100)
+                progress_callback.emit(progress)
 
-            mask_stack = np.stack(masks, axis=0)
+                mask_stack.extend(masks)
+
+            mask_stack = np.stack(mask_stack, axis=0)
 
         if gpu:
             import torch
-
             torch.cuda.empty_cache()
 
         return mask_stack

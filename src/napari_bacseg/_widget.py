@@ -306,6 +306,7 @@ class BacSeg(QWidget):
         self.cellpose_trainchannel = self.findChild(QComboBox, "cellpose_trainchannel")
         self.cellpose_nepochs = self.findChild(QComboBox, "cellpose_nepochs")
         self.cellpose_batchsize = self.findChild(QComboBox, "cellpose_batchsize")
+        self.cellpose_seg_batchsize = self.findChild(QComboBox, "cellpose_seg_batchsize")
         self.cellpose_min_seg_size = self.findChild(QComboBox, "cellpose_min_seg_size")
         self.cellpose_seg_mode = self.findChild(QComboBox, "cellpose_seg_mode")
         self.cellpose_invert_images = self.findChild(QCheckBox, "cellpose_invert_images")
@@ -1656,6 +1657,7 @@ class BacSeg(QWidget):
         segChannel = self.cellpose_segchannel.currentText()
 
         self.export_channel.setCurrentText(segChannel)
+
 
     def _Progresbar(self, progress, progressbar):
         if progressbar == "picasso":
