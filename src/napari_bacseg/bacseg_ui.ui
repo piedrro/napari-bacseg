@@ -1370,6 +1370,11 @@
               <string>500</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string>auto</string>
+             </property>
+            </item>
            </widget>
           </item>
          </layout>

@@ -1,7 +1,7 @@
 import os
 import traceback
 import warnings
-
+import math
 import cv2
 import numpy as np
 from napari.utils.notifications import show_info
@@ -64,6 +64,16 @@ def _postpocess_cellpose(self, mask):
 
     return post_processed_mask
 
+def get_gpu_free_memory():
+
+    import torch
+    t = torch.cuda.get_device_properties(0).total_memory
+    r = torch.cuda.memory_reserved(0)
+    a = torch.cuda.memory_allocated(0)
+    f = r - a  # free inside reserved
+
+    return f
+
 
 def _run_cellpose(self, progress_callback, images):
 
@@ -76,7 +86,7 @@ def _run_cellpose(self, progress_callback, images):
         mask_threshold = float(self.cellpose_maskthresh_label.text())
         min_size = int(self.cellpose_minsize_label.text())
         diameter = int(self.cellpose_diameter_label.text())
-        batch_size = int(self.cellpose_seg_batchsize.currentText())
+        seg_batch_size = self.cellpose_seg_batchsize.currentText()
 
         model_type = self.cellpose_segmodel.currentText()
         model_path = self.cellpose_custom_model_path
@@ -89,6 +99,17 @@ def _run_cellpose(self, progress_callback, images):
             n_images = len(images)
             n_segmented = 0
 
+            if seg_batch_size.lower() == "auto":
+                if gpu:
+                    image_nbytes = images[0].nbytes
+                    gpu_memory_size = get_gpu_free_memory()
+
+                    batch_size = int(math.floor(gpu_memory_size / image_nbytes))
+                else:
+                    batch_size = 1
+            else:
+                batch_size = int(seg_batch_size)
+
             # split list into batches
             batched_images = [images[i:i + batch_size] for i in range(0, len(images), batch_size)]
 
@@ -96,7 +117,7 @@ def _run_cellpose(self, progress_callback, images):
                 if batch_size == 1:
                     show_info(f"Segmenting {len(images)} images")
                 else:
-                    show_info(f"Segmenting {len(images)} images in {len(batched_images)} batche of {len(batched_images[0])} images.")
+                    show_info(f"Segmenting {len(images)} images in {len(batched_images)} batches of {len(batched_images[0])} images.")
 
             for batch_index, batch in enumerate(batched_images):
 
@@ -104,17 +125,21 @@ def _run_cellpose(self, progress_callback, images):
                     masks, flow, diam = model.eval(
                         batch, channels=[0,0], diameter=diameter,
                         mask_threshold=mask_threshold, flow_threshold=flow_threshold,
-                        min_size=min_size, batch_size=batch_size,
+                        min_size=min_size,
+                        batch_size=batch_size,
                         invert=self.cellpose_invert_images.isChecked(),
-                        cluster=True, net_avg=True, do_3D=False, omni=True,
-                        progress=self.cellpose_progressbar)
+                        omni=True,
+                        progress=self.cellpose_progressbar,
+                    )
                 else:
                     masks, flow, diam = model.eval(
                         batch, channels=[0, 0], diameter=diameter,
                         flow_threshold=flow_threshold, cellprob_threshold=mask_threshold,
-                        min_size=min_size, batch_size=batch_size,
+                        min_size=min_size,
+                        batch_size=batch_size,
                         invert=self.cellpose_invert_images.isChecked(),
-                        progress=self.cellpose_progressbar)
+                        progress=self.cellpose_progressbar,
+                    )
 
                 for i, mask in enumerate(masks):
                     masks[i] = _postpocess_cellpose(self, mask)

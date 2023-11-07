@@ -1666,8 +1666,8 @@ class BacSeg(QWidget):
             self.import_progressbar.setValue(progress)
         if progressbar == "export":
             self.export_progressbar.setValue(progress)
-        if progressbar == "cellpose":
-            self.cellpose_progressbar.setValue(progress)
+        # if progressbar == "cellpose":
+        #     self.cellpose_progressbar.setValue(progress)
         if progressbar == "database":
             self.upload_progressbar.setValue(progress)
         if progressbar == "modify":
@@ -1683,7 +1683,7 @@ class BacSeg(QWidget):
             self.upload_progressbar.setValue(0)
             self.modify_progressbar.setValue(0)
             self.undrift_progressbar.setValue(0)
-            self.picasso_progressbar.setValue(0)
+            # self.picasso_progressbar.setValue(0)
 
     def _importDialog(self, paths=None):
         if self.unfolded == True:
@@ -1741,6 +1741,7 @@ class BacSeg(QWidget):
                 self.threadpool.start(worker)
 
             if import_mode == "Mask (.tif) Segmentation(s)":
+                print(True)
                 self.import_masks = self.wrapper(napari_bacseg._utils.import_masks)
                 self.import_masks(paths, file_extension=".tif")
                 self._autoClassify()

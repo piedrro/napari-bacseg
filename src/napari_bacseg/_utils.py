@@ -1874,6 +1874,7 @@ def autocontrast_values(image, clip_hist_percent=0.001):
 
 
 def import_masks(self, file_paths, file_extension=""):
+
     mask_stack = self.segLayer.data.copy()
     nmask_stack = self.nucLayer.data.copy()
     class_stack = self.classLayer.data.copy()
@@ -1953,6 +1954,7 @@ def import_masks(self, file_paths, file_extension=""):
             image, mask, meta = import_mat_data(self, image_path, mask_path)
             mask_stack[i, :, :][y1:y2, x1:x2] = mask
             self.segLayer.data = mask_stack.astype(np.uint16)
+
 
 
 def get_export_labels(self):
