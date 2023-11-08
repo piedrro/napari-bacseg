@@ -724,6 +724,9 @@ class BacSeg(QWidget):
                             export_path = os.path.abspath(export_path)
 
                             localisation_data = pd.DataFrame(localisation_data)
+
+                            localisation_data.sort_values(by=["frame","cell_index"], inplace=True)
+
                             localisation_data.to_csv(export_path, index=False)
 
                             show_info("Picasso localisations exported to: " + export_path)
@@ -796,7 +799,7 @@ class BacSeg(QWidget):
         import pandas as pd
 
         try:
-            param_list = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", "z", "d_zcalib", "likelihood", "iterations", "group", "len", "n",
+            param_list = ["frame", "cell_index", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", "z", "d_zcalib", "likelihood", "iterations", "group", "len", "n",
                 "photon_rate", ]
 
             loc_data = []
@@ -890,13 +893,13 @@ class BacSeg(QWidget):
 
                 show_info(f"Picasso fitted {len(self.fitted_locs)} spots")
 
-                if self.picasso_filter_localisations.isChecked():
-                    self.fitted_locs = self.filter_localisations(self.fitted_locs)
+                self.fitted_locs = self.process_localisations(self.fitted_locs)
 
         except:
             print(traceback.format_exc())
 
     def _detect_localisations(self, progress_callback=None, min_net_gradient=100, box_size=3, camera_info={}, image_channel="", ):
+
         self.detected_locs = []
         self.localisation_centres = {}
 
@@ -920,16 +923,19 @@ class BacSeg(QWidget):
                 for loc in self.detected_locs:
                     loc.frame = self.viewer.dims.current_step[0]
 
-            if self.picasso_filter_localisations.isChecked():
-                self.detected_locs = self.filter_localisations(self.detected_locs)
+            self.detected_locs = self.process_localisations(self.detected_locs)
 
         except:
             print(traceback.format_exc())
 
         return self.detected_locs
 
-    def filter_localisations(self, locs):
-        filtered_locs = []
+
+    def process_localisations(self, locs):
+
+        filter = self.picasso_filter_localisations.isChecked()
+
+        processed_locs = []
 
         try:
             loc_centres = {}
@@ -939,8 +945,6 @@ class BacSeg(QWidget):
                 if frame not in loc_centres.keys():
                     loc_centres[frame] = []
                 loc_centres[frame].append([index, loc, loc.x, loc.y])
-
-            filtered_locs = []
 
             for frame, loc_centres in loc_centres.items():
                 mask = self.segLayer.data[frame]
@@ -962,20 +966,36 @@ class BacSeg(QWidget):
                             # If the value is not 0, then the point is inside an instance
                             inside = mask_value != 0
 
-                        if inside:
-                            filtered_locs.append(loc)
+                        if mask_value == 0:
+                            mask_value = -1
 
-            filtered_locs = np.array(filtered_locs).view(np.recarray)
+                        # append new field to dtype
+                        dtype = np.dtype(loc.dtype.descr + [('cell_index', '<f4')])
 
-            n_removed = len(locs) - len(filtered_locs)
+                        appended_loc = np.zeros(1, dtype=dtype)[0]
+                        #
+                        for field in loc.dtype.names:
+                            appended_loc[field] = loc[field].copy()
 
-            if n_removed > 0:
+                        appended_loc['cell_index'] = mask_value
+                        appended_loc = appended_loc.view(np.recarray)
+
+                        if filter and inside:
+                            processed_locs.append(appended_loc)
+                        else:
+                            processed_locs.append(appended_loc)
+
+            processed_locs = np.array(processed_locs).view(np.recarray)
+
+            n_removed = len(locs) - len(processed_locs)
+
+            if filter:
                 show_info(f"Picasso removed {n_removed} localisations outside of segmentations")
 
         except:
             print(traceback.format_exc())
 
-        return filtered_locs
+        return processed_locs
 
     def _detect_localisations_cleanup(self):
         try:
