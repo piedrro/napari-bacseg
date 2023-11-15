@@ -951,7 +951,7 @@ class BacSeg(QWidget):
 
                 unique_mask_values = len(np.unique(mask))
 
-                if unique_mask_values > 1:
+                if unique_mask_values > 1 or filter == False:
                     for loc_dat in loc_centres:
                         index, loc, x, y = loc_dat
 
@@ -966,24 +966,24 @@ class BacSeg(QWidget):
                             # If the value is not 0, then the point is inside an instance
                             inside = mask_value != 0
 
-                        if mask_value == 0:
-                            mask_value = -1
+                            if mask_value == 0:
+                                mask_value = -1
 
-                        # append new field to dtype
-                        dtype = np.dtype(loc.dtype.descr + [('cell_index', '<f4')])
+                            # append new field to dtype
+                            dtype = np.dtype(loc.dtype.descr + [('cell_index', '<f4')])
 
-                        appended_loc = np.zeros(1, dtype=dtype)[0]
-                        #
-                        for field in loc.dtype.names:
-                            appended_loc[field] = loc[field].copy()
+                            appended_loc = np.zeros(1, dtype=dtype)[0]
 
-                        appended_loc['cell_index'] = mask_value
-                        appended_loc = appended_loc.view(np.recarray)
+                            for field in loc.dtype.names:
+                                appended_loc[field] = loc[field].copy()
 
-                        if filter and inside:
-                            processed_locs.append(appended_loc)
-                        else:
-                            processed_locs.append(appended_loc)
+                            appended_loc['cell_index'] = mask_value
+                            appended_loc = appended_loc.view(np.recarray)
+
+                            if filter == False:
+                                processed_locs.append(appended_loc)
+                            elif filter == True and mask_value != -1:
+                                processed_locs.append(appended_loc)
 
             processed_locs = np.array(processed_locs).view(np.recarray)
 
