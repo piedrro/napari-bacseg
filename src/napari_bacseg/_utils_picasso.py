@@ -190,6 +190,11 @@ class _picasso_utils:
             self._reorderLayers()
             self.display_localisations()
 
+            # select picasso channel
+
+            picasso_channel = self.picasso_image_channel.currentText()
+            self.viewer.layers.selection.active = self.viewer.layers[picasso_channel]
+
             num_frames = len(np.unique([loc[0] for loc in self.localisation_centres]))
             num_locs = len(self.detected_locs)
 
@@ -351,7 +356,10 @@ class _picasso_utils:
 
             show_info(f"Picasso Detected {num_locs} localisations in {num_frames} frame(s)")
 
+            picasso_channel = self.picasso_image_channel.currentText()
+
             self._reorderLayers()
+            self.viewer.layers.selection.active = self.viewer.layers[picasso_channel]
 
         except:
             print(traceback.format_exc())
@@ -361,8 +369,8 @@ class _picasso_utils:
             if self.picasso_show_vis.isChecked():
                 self.display_localisations()
             else:
-                if "localisations" in [layer.name for layer in self.viewer.layers]:
-                    self.viewer.layers["localisations"].data = []
+                if "Localisations" in [layer.name for layer in self.viewer.layers]:
+                    self.viewer.layers["Localisations"].data = []
         except:
             print(traceback.format_exc())
 
@@ -386,22 +394,22 @@ class _picasso_utils:
                 box_centres = self.localisation_centres.copy()
 
                 if len(box_centres) > 0:
-                    if "localisations" not in layer_names:
+                    if "Localisations" not in layer_names:
                         self.viewer.add_points(box_centres, edge_color="blue", face_color=[0, 0, 0,
-                                                                                           0], opacity=vis_opacity, name="localisations", symbol=symbol, size=vis_size, edge_width=vis_edge_width, )
+                                                                                           0], opacity=vis_opacity, name="Localisations", symbol=symbol, size=vis_size, edge_width=vis_edge_width, )
                     else:
-                        self.viewer.layers["localisations"].data = []
+                        self.viewer.layers["Localisations"].data = []
 
-                        self.viewer.layers["localisations"].data = box_centres
-                        self.viewer.layers["localisations"].symbol = symbol
-                        self.viewer.layers["localisations"].size = vis_size
-                        self.viewer.layers["localisations"].opacity = vis_opacity
-                        self.viewer.layers["localisations"].edge_width = vis_edge_width
-                        self.viewer.layers["localisations"].edge_color = "blue"
+                        self.viewer.layers["Localisations"].data = box_centres
+                        self.viewer.layers["Localisations"].symbol = symbol
+                        self.viewer.layers["Localisations"].size = vis_size
+                        self.viewer.layers["Localisations"].opacity = vis_opacity
+                        self.viewer.layers["Localisations"].edge_width = vis_edge_width
+                        self.viewer.layers["Localisations"].edge_color = "blue"
 
                 else:
-                    if "localisations" in layer_names:
-                        self.viewer.layers["localisations"].data = []
+                    if "Localisations" in layer_names:
+                        self.viewer.layers["Localisations"].data = []
 
             except:
                 print(traceback.format_exc())
