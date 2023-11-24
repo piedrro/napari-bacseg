@@ -22,6 +22,7 @@ import pandas as pd
 from napari.utils.notifications import show_info
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from qtpy.QtCore import QObject, QRunnable, QThreadPool
+from PyQt5.QtGui import QFont
 from qtpy.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QProgressBar, QPushButton, QRadioButton, QSlider, QTabWidget, QVBoxLayout, QWidget, )
 
 import napari_bacseg._utils
@@ -126,6 +127,10 @@ class BacSeg(QWidget, _picasso_utils):
 
         self.form = Ui_tab_widget()
         self.bacseg_ui = QTabWidget()
+
+        for child in self.bacseg_ui.findChildren(QWidget):
+            child.setFont(QFont("Arial", 10))
+
         self.form.setupUi(self.bacseg_ui)
 
         # add widget_gui layout to main layout
