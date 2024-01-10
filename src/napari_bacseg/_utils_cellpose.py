@@ -77,6 +77,7 @@ def get_gpu_free_memory():
 
 def _run_cellpose(self, progress_callback, images):
 
+
     mask_stack = []
 
     with warnings.catch_warnings():
@@ -119,36 +120,44 @@ def _run_cellpose(self, progress_callback, images):
                 else:
                     show_info(f"Segmenting {len(images)} images in {len(batched_images)} batches of {len(batched_images[0])} images.")
 
+            n_batches = len(batched_images)
+
             for batch_index, batch in enumerate(batched_images):
 
-                if omnipose_model:
-                    masks, flow, diam = model.eval(
-                        batch, channels=[0,0], diameter=diameter,
-                        mask_threshold=mask_threshold, flow_threshold=flow_threshold,
-                        min_size=min_size,
-                        batch_size=batch_size,
-                        invert=self.cellpose_invert_images.isChecked(),
-                        omni=True,
-                        progress=self.cellpose_progressbar,
-                    )
-                else:
-                    masks, flow, diam = model.eval(
-                        batch, channels=[0, 0], diameter=diameter,
-                        flow_threshold=flow_threshold, cellprob_threshold=mask_threshold,
-                        min_size=min_size,
-                        batch_size=batch_size,
-                        invert=self.cellpose_invert_images.isChecked(),
-                        progress=self.cellpose_progressbar,
-                    )
+                try:
 
-                for i, mask in enumerate(masks):
-                    masks[i] = _postpocess_cellpose(self, mask)
+                    if omnipose_model:
+                        masks, flow, diam = model.eval(
+                            batch, channels=[0,0], diameter=diameter,
+                            mask_threshold=mask_threshold, flow_threshold=flow_threshold,
+                            min_size=min_size,
+                            batch_size=batch_size,
+                            invert=self.cellpose_invert_images.isChecked(),
+                            omni=True,
+                            progress=self.cellpose_progressbar,
+                        )
+                    else:
+                        masks, flow, diam = model.eval(
+                            batch, channels=[0, 0], diameter=diameter,
+                            flow_threshold=flow_threshold, cellprob_threshold=mask_threshold,
+                            min_size=min_size,
+                            batch_size=batch_size,
+                            invert=self.cellpose_invert_images.isChecked(),
+                            progress=self.cellpose_progressbar,
+                        )
 
-                n_segmented += len(batch)
-                progress = int((n_segmented / n_images) * 100)
-                progress_callback.emit(progress)
+                    for i, mask in enumerate(masks):
+                        masks[i] = _postpocess_cellpose(self, mask)
 
-                mask_stack.extend(masks)
+                    n_segmented += len(batch)
+                    progress = int(((batch_index+1) / n_batches) * 100)
+                    progress_callback.emit(progress)
+
+                    mask_stack.extend(masks)
+
+                except:
+                    masks = [np.zeros_like(img) for img in batch]
+                    mask_stack.extend(masks)
 
             mask_stack = np.stack(mask_stack, axis=0)
 
@@ -156,10 +165,10 @@ def _run_cellpose(self, progress_callback, images):
             import torch
             torch.cuda.empty_cache()
 
-        return mask_stack
-
+    return mask_stack
 
 def _process_cellpose(self, segmentation_data):
+
     if len(segmentation_data) > 0:
         masks = segmentation_data
 
@@ -190,8 +199,6 @@ def _process_cellpose(self, segmentation_data):
             self.viewer.reset_view()
 
         self._reorderLayers()
-
-        # layer_names = [  #     layer.name  #     for layer in self.viewer.layers  #     if layer.name not in ["Segmentations", "Classes", "center_lines"]  # ]  #  # # ensures segmentation and classes is in correct order in the viewer  # for layer in layer_names:  #     layer_index = self.viewer.layers.index(layer)  #     self.viewer.layers.move(layer_index, 0)
 
 
 def load_cellpose_dependencies(self):
@@ -252,62 +259,72 @@ def load_omnipose_dependencies(self):
 
 def _initialise_cellpose_model(self, model_type="custom", model_path=None, diameter=15, mode="eval"):
 
-    model = None
-    gpu = False
-    omnipose_model = False
-    labels_to_flows = None
+    try:
 
-    if model_type == "custom":
-        if model_path not in ["", None] and os.path.isfile(model_path) == True:
-            model_name = os.path.basename(model_path)
+        model = None
+        gpu = False
+        omnipose_model = False
+        labels_to_flows = None
 
-            if "omnipose_" in model_name and mode == "eval":
+        if model_type == "custom":
+            if model_path not in ["", None] and os.path.isfile(model_path) == True:
+                model_name = os.path.basename(model_path)
+
+                if "omnipose_" in model_name and mode == "eval":
+                    omnipose_model = True
+
+                    gpu, models, labels_to_flows = load_omnipose_dependencies(self)
+
+                    if self.widget_notifications:
+                        show_info(f"Loading Omnipose Model: {os.path.basename(model_path)}")
+
+                    model = models.CellposeModel(pretrained_model=str(model_path),
+                        diam_mean=int(diameter), model_type=None, gpu=bool(gpu), net_avg=False, )
+
+                elif "cellpose_" in model_name:
+                    omnipose_model = False
+
+                    gpu, models, labels_to_flows = load_cellpose_dependencies(self)
+
+                    if self.widget_notifications:
+                        show_info(f"Loading Cellpose Model: {os.path.basename(model_path)}")
+
+                    model = models.CellposeModel(pretrained_model=str(model_path),
+                        diam_mean=int(diameter), model_type=None, gpu=bool(gpu), net_avg=False, )
+
+                else:
+                    model, gpu, omnipose_model, labels_to_flows = (None, None, True, None,)
+
+            else:
+                if self.widget_notifications:
+                    show_info("Please select valid Cellpose Model")
+
+        else:
+            if "_omni" in model_type and mode == "eval":
                 omnipose_model = True
+                if self.widget_notifications:
+                    show_info(f"Loading Omnipose Model: {model_type}")
 
                 gpu, models, labels_to_flows = load_omnipose_dependencies(self)
+                model = models.CellposeModel(gpu=bool(gpu), model_type=str(model_type))
 
-                if self.widget_notifications:
-                    show_info(f"Loading Omnipose Model: {os.path.basename(model_path)}")
-
-                model = models.CellposeModel(pretrained_model=model_path, diam_mean=diameter, model_type=None, gpu=gpu, net_avg=False, )
-
-            elif "cellpose_" in model_name:
+            elif "omni" not in model_type:
                 omnipose_model = False
 
                 gpu, models, labels_to_flows = load_cellpose_dependencies(self)
 
                 if self.widget_notifications:
-                    show_info(f"Loading Cellpose Model: {os.path.basename(model_path)}")
+                    show_info(f"Loading Cellpose Model: {model_type}")
 
-                model = models.CellposeModel(pretrained_model=model_path, diam_mean=diameter, model_type=None, gpu=gpu, net_avg=False, )
+                model = models.CellposeModel(diam_mean=int(diameter),
+                    model_type=str(model_type), gpu=bool(gpu), net_avg=False, )
 
             else:
-                model, gpu, omnipose_model, labels_to_flows = (None, None, True, None,)
+                if self.widget_notifications:
+                    show_info(f"Could not load model")
 
-        else:
-            if self.widget_notifications:
-                show_info("Please select valid Cellpose Model")
-
-    else:
-        if "_omni" in model_type and mode == "eval":
-            omnipose_model = True
-            if self.widget_notifications:
-                show_info(f"Loading Omnipose Model: {model_type}")
-
-            gpu, models, labels_to_flows = load_omnipose_dependencies(self)
-            model = models.CellposeModel(gpu=gpu, model_type=model_type)
-
-        elif "omni" not in model_type:
-            omnipose_model = False
-            if self.widget_notifications:
-                show_info(f"Loading Cellpose Model: {model_type}")
-
-            gpu, models, labels_to_flows = load_cellpose_dependencies(self)
-            model = models.CellposeModel(diam_mean=diameter, model_type=model_type, gpu=gpu, net_avg=False, )
-
-        else:
-            if self.widget_notifications:
-                show_info(f"Could not load model")
+    except:
+        print(traceback.format_exc())
 
     return model, gpu, omnipose_model, labels_to_flows
 

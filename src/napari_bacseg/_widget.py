@@ -127,11 +127,10 @@ class BacSeg(QWidget, _picasso_utils):
 
         self.form = Ui_tab_widget()
         self.bacseg_ui = QTabWidget()
+        self.form.setupUi(self.bacseg_ui)
 
         for child in self.bacseg_ui.findChildren(QWidget):
             child.setFont(QFont("Arial", 10))
-
-        self.form.setupUi(self.bacseg_ui)
 
         # add widget_gui layout to main layout
         self.layout().addWidget(self.bacseg_ui)
@@ -1220,8 +1219,8 @@ class BacSeg(QWidget, _picasso_utils):
             self.import_progressbar.setValue(progress)
         if progressbar == "export":
             self.export_progressbar.setValue(progress)
-        # if progressbar == "cellpose":
-        #     self.cellpose_progressbar.setValue(progress)
+        if progressbar == "cellpose":
+            self.cellpose_progressbar.setValue(progress)
         if progressbar == "database":
             self.upload_progressbar.setValue(progress)
         if progressbar == "modify":
@@ -1418,7 +1417,7 @@ class BacSeg(QWidget, _picasso_utils):
         current_fov = self.viewer.dims.current_step[0]
         chanel = self.cellpose_segchannel.currentText()
 
-        images = self.viewer.layers[chanel].data
+        images = self.viewer.layers[chanel].data.copy()
 
         image = [images[current_fov, :, :]]
 
@@ -1438,7 +1437,7 @@ class BacSeg(QWidget, _picasso_utils):
 
         channel = self.cellpose_segchannel.currentText()
 
-        images = self.viewer.layers[channel].data
+        images = self.viewer.layers[channel].data.copy()
 
         images = unstack_images(images)
 
@@ -1446,6 +1445,7 @@ class BacSeg(QWidget, _picasso_utils):
         worker.signals.result.connect(self._process_cellpose)
         worker.signals.progress.connect(partial(self._Progresbar, progressbar="cellpose"))
         self.threadpool.start(worker)
+
 
     def _updateSliderLabel(self, slider_name, label_name):
         self.slider = self.findChild(QSlider, slider_name)
