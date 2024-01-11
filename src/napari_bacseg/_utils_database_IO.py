@@ -55,6 +55,7 @@ def list_from_string(string):
 
 
 def read_bacseg_images(self, progress_callback, measurements, channels):
+
     database_path = self.database_path
 
     imported_images = {}
@@ -94,7 +95,8 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
 
                 return
 
-            results = [pool.apply_async(download_bacseg_files, args=(measurement, channels, database_path), callback=callback, ) for measurement in measurements]
+            results = [pool.apply_async(download_bacseg_files,
+                args=(measurement, channels, database_path), callback=callback, ) for measurement in measurements]
 
             try:
                 results[-1].get()
@@ -111,6 +113,7 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
 
         for dat in imported_data:
             for channel, channel_data in dat.items():
+
                 image = channel_data["images"]
                 mask = channel_data["masks"]
                 nmask = channel_data["nmasks"]
@@ -790,7 +793,8 @@ def _upload_bacseg_database(self, progress_callback, mode):
         print(traceback.format_exc())
 
 
-def read_user_metadata(self, user_metadata_path=""):
+def read_user_metadata(self, user_metadata_path="", update=False,):
+
     try:
         if user_metadata_path == "":
             database_path = self.database_path
@@ -798,33 +802,44 @@ def read_user_metadata(self, user_metadata_path=""):
 
             user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
 
-        if os.path.isfile(user_metadata_path) == False:
+        load_file = False
+        if self.user_metadata_path != user_metadata_path or update == True or len(self.user_metadata) == 0:
+            self.user_metadata_path = user_metadata_path
+            load_file = True
+
+        if os.path.isfile(self.user_metadata_path) == False:
             if self.widget_notifications:
                 show_info("Could not find metadata for user: " + user_initial)
 
-            measurements = []
-            file_paths = []
-            channels = []
+            user_metadata = None
+            expected_columns = None
 
         else:
-            sniffer = Sniffer()
 
-            # checks the delimiter of the metadata file
+            if load_file:
+                show_info("Loading metadata file: " + self.user_metadata_path)
 
-            with open(user_metadata_path) as f:
-                line = next(f).strip()
-                delim = sniffer.sniff(line)
+                sniffer = Sniffer()
 
-            user_metadata = pd.read_csv(user_metadata_path, sep=delim.delimiter, low_memory=False)
+                # checks the delimiter of the metadata file
+                with open(self.user_metadata_path) as f:
+                    line = next(f).strip()
+                    delim = sniffer.sniff(line)
 
-            user_metadata[["treatment time (mins)"]] = user_metadata[["treatment time (mins)"]].apply(pd.to_numeric, downcast="float", errors="coerce")
+                user_metadata = pd.read_csv(self.user_metadata_path, sep=delim.delimiter, low_memory=False)
 
-            user_metadata, expected_columns = check_metadata_format(user_metadata, self.metadata_columns)
+                user_metadata[["treatment time (mins)"]] = user_metadata[["treatment time (mins)"]].apply(pd.to_numeric, downcast="float", errors="coerce")
 
-            user_metadata["segmentation_channel"] = user_metadata["segmentation_channel"].astype(str)
+                user_metadata, expected_columns = check_metadata_format(user_metadata, self.metadata_columns)
 
-            self.user_metadata = user_metadata
-            self.expected_columns = expected_columns
+                user_metadata["segmentation_channel"] = user_metadata["segmentation_channel"].astype(str)
+
+                self.user_metadata = user_metadata
+                self.expected_columns = expected_columns
+
+            else:
+                user_metadata = self.user_metadata.copy()
+                expected_columns = self.expected_columns.copy()
 
     except:
         print(traceback.format_exc())
@@ -864,7 +879,16 @@ def backup_user_metadata(self, user_metadata=""):
 
 def get_filtered_database_metadata(self):
     try:
-        database_metadata = {"user_initial": self.upload_initial.currentText(), "content": self.upload_content.currentText(), "microscope": self.upload_microscope.currentText(), "phenotype": self.upload_phenotype.currentText(), "strain": self.upload_strain.currentText(), "antibiotic": self.upload_antibiotic.currentText(), "antibiotic concentration": self.upload_abxconcentration.currentText(), "treatment time (mins)": self.upload_treatmenttime.currentText(), "mounting method": self.upload_mount.currentText(), "protocol": self.upload_protocol.currentText(), }
+        database_metadata = {"user_initial": self.upload_initial.currentText(),
+                             "content": self.upload_content.currentText(),
+                             "microscope": self.upload_microscope.currentText(),
+                             "phenotype": self.upload_phenotype.currentText(),
+                             "strain": self.upload_strain.currentText(),
+                             "antibiotic": self.upload_antibiotic.currentText(),
+                             "antibiotic concentration": self.upload_abxconcentration.currentText(),
+                             "treatment time (mins)": self.upload_treatmenttime.currentText(),
+                             "mounting method": self.upload_mount.currentText(),
+                             "protocol": self.upload_protocol.currentText(), }
 
         num_user_keys = self.user_metadata_keys
 

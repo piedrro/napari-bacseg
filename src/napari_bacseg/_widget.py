@@ -304,6 +304,10 @@ class BacSeg(QWidget, _picasso_utils):
 
         # upload tab controls from Qt Desinger References
         self.database_path = ""
+        self.user_metadata_path = ""
+        self.user_metadata = None
+        self.expected_columns = None
+
         self.user_metadata_keys = 6
 
         self.metadata_columns = ["date_uploaded", "date_created", "date_modified", "file_name", "channel", "file_list", "channel_list", "segmentation_file", "segmentation_channel", "akseg_hash",
