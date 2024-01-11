@@ -15,7 +15,7 @@ line_length = 79
 
 [project]
 name = "napari-bacseg"
-version = "1.0.15"
+version = "1.0.16"
 authors = [{ name="Piers Turner", email="piers.turner@physics.ox.ac.uk"},]
 description = "Bacterial segmentation and analysis platform than can inport/export files in multiple formats. Integrating many tools such as Cellpose, ColiCoords, Oufti/MicrobeTracker."
 readme = "README.md"
