@@ -111,6 +111,8 @@ def _show_database_controls(self, visible=True):
     [item.setVisible(visible) for item in all_database_controls if item.objectName() not in load_database_controls]
 
 
+
+
 def generate_txt_metadata(self, database_directory):
     database_name = (pathlib.Path(database_directory).parts[-1].replace("_Database", ""))
 

@@ -345,6 +345,7 @@ class BacSeg(QWidget, _picasso_utils):
         self.load_database = self.findChild(QPushButton, "load_database")
         self.display_database_path = self.findChild(QLineEdit, "display_database_path")
         self.upload_progressbar = self.findChild(QProgressBar, "upload_progressbar")
+        self.download_progressbar = self.findChild(QProgressBar, "download_progressbar")
         self.upload_tab = self.findChild(QWidget, "upload_tab")
         self.upload_segmentation_combo = self.findChild(QComboBox, "upload_segmentation_combo")
         self.upload_label_combo = self.findChild(QComboBox, "upload_label_combo")
@@ -1169,7 +1170,7 @@ class BacSeg(QWidget, _picasso_utils):
                         self._upload_bacseg_database = self.wrapper(_upload_bacseg_database)
 
                         worker = Worker(self._upload_bacseg_database, mode=mode)
-                        worker.signals.progress.connect(partial(self._Progresbar, progressbar="database"))
+                        worker.signals.progress.connect(partial(self._Progresbar, progressbar="database_upload"))
                         self.threadpool.start(worker)
             except:
                 pass
@@ -1202,7 +1203,7 @@ class BacSeg(QWidget, _picasso_utils):
                     else:
                         worker = Worker(self.read_bacseg_images, measurements=measurements, channels=channels, )
                         worker.signals.result.connect(self._process_import)
-                        worker.signals.progress.connect(partial(self._Progresbar, progressbar="database"))
+                        worker.signals.progress.connect(partial(self._Progresbar, progressbar="database_download"))
                         self.threadpool.start(worker)
 
         except:
@@ -1225,8 +1226,10 @@ class BacSeg(QWidget, _picasso_utils):
             self.export_progressbar.setValue(progress)
         if progressbar == "cellpose":
             self.cellpose_progressbar.setValue(progress)
-        if progressbar == "database":
+        if progressbar == "database_upload":
             self.upload_progressbar.setValue(progress)
+        if progressbar == "database_download":
+            self.download_progressbar.setValue(progress)
         if progressbar == "modify":
             self.modify_progressbar.setValue(progress)
         if progressbar == "undrift":
@@ -1237,9 +1240,11 @@ class BacSeg(QWidget, _picasso_utils):
             self.import_progressbar.setValue(0)
             self.export_progressbar.setValue(0)
             self.cellpose_progressbar.setValue(0)
-            self.upload_progressbar.setValue(0)
             self.modify_progressbar.setValue(0)
             self.undrift_progressbar.setValue(0)
+            self.download_progressbar.setValue(0)
+            self.upload_progressbar.setValue(0)
+
             # self.picasso_progressbar.setValue(0)
 
     def _importDialog(self, paths=None):
