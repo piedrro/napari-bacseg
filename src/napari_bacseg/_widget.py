@@ -81,7 +81,7 @@ class BacSeg(QWidget, _picasso_utils):
         from napari_bacseg._utils_database import (_create_bacseg_database, _load_bacseg_database, _show_database_controls, populate_upload_combos, update_database_metadata, update_upload_combos, )
         from napari_bacseg._utils_interface_events import (_copymasktoall, _delete_active_image, _deleteallmasks, _doubeClickEvents, _imageControls, _modify_channel_changed, _modifyMode, _segmentationEvents, _viewerControls, )
         from napari_bacseg._utils_oufti import (_update_active_midlines, centre_oufti_midlines, generate_midlines, midline_edit_toggle, update_midlines, )
-        from napari_bacseg._utils_statistics import _compute_simple_cell_stats
+        from napari_bacseg._utils_statistics import _compute_simple_cell_stats, _filter_cells
         from napari_bacseg._utils_tiler import (fold_images, unfold_images, update_image_folds, )
         from napari_bacseg.bacseg_ui import Ui_tab_widget
 
@@ -116,6 +116,7 @@ class BacSeg(QWidget, _picasso_utils):
         self._show_database_controls = self.wrapper(_show_database_controls)
         self._doubeClickEvents = self.wrapper(_doubeClickEvents)
         self._compute_simple_cell_stats = self.wrapper(_compute_simple_cell_stats)
+        self._filter_cells = self.wrapper(_filter_cells)
 
         application_path = os.path.dirname(sys.executable)
         self.viewer = viewer
@@ -156,11 +157,13 @@ class BacSeg(QWidget, _picasso_utils):
         self.channel_mode = self.findChild(QComboBox, "nim_channel_mode")
         self.import_progressbar = self.findChild(QProgressBar, "import_progressbar")
         self.import_align = self.findChild(QCheckBox, "import_align")
-        self.label_modality = self.findChild(QComboBox, "label_modality")
-        self.label_stain = self.findChild(QComboBox, "label_stain")
-        self.label_stain_target = self.findChild(QComboBox, "label_stain_target")
+
+        self.img_modality = self.findChild(QComboBox, "img_modality")
+        self.img_light_source = self.findChild(QComboBox, "img_light_source")
+        self.img_stain = self.findChild(QComboBox, "img_stain")
+        self.img_stain_target = self.findChild(QComboBox, "img_stain_target")
+
         self.label_overwrite = self.findChild(QPushButton, "label_overwrite")
-        self.label_light_source = self.findChild(QComboBox, "label_light_source")
 
         # view tab controls + variables from Qt Desinger References
         self.unfold_tile_size = self.findChild(QComboBox, "unfold_tile_size")
@@ -265,6 +268,14 @@ class BacSeg(QWidget, _picasso_utils):
         self.modify_deleteotherimages = self.findChild(QPushButton, "modify_deleteotherimages")
         self.modify_progressbar = self.findChild(QProgressBar, "modify_progressbar")
         self.modify_channel = self.findChild(QComboBox, "modify_channel")
+
+        self.filter_metric = self.findChild(QComboBox, "filter_metric")
+        self.filter_criteria = self.findChild(QComboBox, "filter_criteria")
+        self.filter_threshold = self.findChild(QLineEdit, "filter_threshold")
+        self.filter_mode = self.findChild(QComboBox, "filter_mode")
+        self.filter_report = self.findChild(QPushButton, "filter_report")
+        self.filter_remove = self.findChild(QPushButton, "filter_remove")
+        self.filter_ignore_edge = self.findChild(QCheckBox, "filter_ignore_edge")
 
         self.modify_auto_panzoom = self.findChild(QCheckBox, "modify_auto_panzoom")
         self.modify_add = self.findChild(QPushButton, "modify_add")
@@ -514,6 +525,9 @@ class BacSeg(QWidget, _picasso_utils):
         self.find_previous.clicked.connect(self._sort_cells("previous"))
         self.modify_channel.currentTextChanged.connect(self._modify_channel_changed)
 
+        self.filter_report.clicked.connect(partial(self._filter_segmentations, remove=False))
+        self.filter_remove.clicked.connect(partial(self._filter_segmentations, remove=True))
+
         # export events
         self.export_active.clicked.connect(self._export("active"))
         self.export_all.clicked.connect(self._export("all"))
@@ -634,6 +648,41 @@ class BacSeg(QWidget, _picasso_utils):
 
         self.widget_notifications = True
 
+
+
+    def _check_number_string(self, string):
+
+        try:
+            float(string)
+            return True
+        except:
+            return False
+
+    def _filter_segmentations(self,viewer = None, remove = True):
+
+        try:
+
+            metric = self.filter_metric.currentText()
+            criteria = self.filter_criteria.currentText()
+            threshold = self.filter_threshold.text()
+            fov_mode = self.filter_mode.currentText()
+            ignore_edge = self.filter_ignore_edge.isChecked()
+
+            if self._check_number_string(threshold):
+
+                threshold = float(threshold)
+
+                if hasattr(self, "segLayer"):
+
+                    self._filter_cells(remove=remove, fov_mode=fov_mode, metric=metric,
+                        criteria=criteria, threshold=threshold, ignore_edge=ignore_edge)
+
+            else:
+                show_info("Thereshold must be a number")
+
+        except:
+            print(traceback.format_exc())
+            pass
 
 
     def _undrift_images(self):
@@ -901,15 +950,15 @@ class BacSeg(QWidget, _picasso_utils):
             if selected_layer not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations", ]:
                 metadata = self.viewer.layers[selected_layer].metadata.copy()
 
-                label_modality = self.label_modality.currentText()
-                label_light_source = self.label_light_source.currentText()
-                label_stain = self.label_stain.currentText()
-                label_stain_target = self.label_stain_target.currentText()
+                img_modality = self.img_modality.currentText()
+                img_light_source = self.img_light_source.currentText()
+                img_stain = self.img_stain.currentText()
+                img_stain_target = self.img_stain_target.currentText()
 
-                if label_stain != "":
-                    channel = label_stain
+                if img_stain != "":
+                    channel = img_stain
                 else:
-                    channel = label_modality
+                    channel = img_modality
 
                 if channel in ["", None]:
                     channel = selected_layer
@@ -918,10 +967,10 @@ class BacSeg(QWidget, _picasso_utils):
 
                 for i in range(len(metadata)):
                     metadata[i]["channel"] = channel
-                    metadata[i]["modality"] = label_modality
-                    metadata[i]["light_source"] = label_light_source
-                    metadata[i]["stain"] = label_stain
-                    metadata[i]["stain_target"] = label_stain_target
+                    metadata[i]["modality"] = img_modality
+                    metadata[i]["light_source"] = img_light_source
+                    metadata[i]["stain"] = img_stain
+                    metadata[i]["stain_target"] = img_stain_target
 
                 self.viewer.layers[channel].metadata = metadata
 

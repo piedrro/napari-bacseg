@@ -10,10 +10,11 @@ import tempfile
 import traceback
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from skimage import exposure
-
+from napari.utils.notifications import show_info
 
 def normalize99(X):
     """normalize image so 0.0 is 0.01st percentile and 1.0 is 99.99th percentile"""
@@ -549,6 +550,209 @@ def process_cell_statistics(self, cell_statistics, path):
         return
 
     return _event(self.viewer, cell_statistics)
+
+def check_edge_cell(cell_mask, mask, buffer=1):
+
+    edge = False
+
+    try:
+
+        cell_mask_bbox = cv2.boundingRect(cell_mask)
+        [x, y, w, h] = cell_mask_bbox
+        [x1, y1, x2, y2] = [x, y, x + w, y + h]
+        bx1, by1, bx2, by2 = [x1 - buffer, y1 - buffer, x2 + buffer, y2 + buffer]
+
+        if bx1 < 0:
+            edge = True
+        if by1 < 0:
+            edge = True
+        if bx2 > mask.shape[1]:
+            edge = True
+        if by2 > mask.shape[0]:
+            edge = True
+
+    except:
+        print(traceback.format_exc())
+
+    return edge
+
+def compute_cell_contrast(image, cell_mask, global_background, buffer=10, erode=True, contrast_mode="mean"):
+
+    contrast = None
+
+    try:
+
+        cell_mask_bbox = cv2.boundingRect(cell_mask)
+        [x, y, w, h] = cell_mask_bbox
+        [x1, y1, x2, y2] = [x, y, x + w, y + h]
+        bx1, by1, bx2, by2 = [x1 - buffer, y1 - buffer, x2 + buffer, y2 + buffer]
+
+        if bx1 < 0:
+            bx1 = 0
+        if by1 < 0:
+            by1 = 0
+        if bx2 > image.shape[1]:
+            bx2 = image.shape[1]
+        if by2 > image.shape[0]:
+            by2 = image.shape[0]
+
+        local_background = np.zeros_like(image)
+        local_background[by1:by2, bx1:bx2] = 1
+
+        background_mask = local_background - cell_mask
+        background_mask[global_background == 1] = 0
+
+        cell_mask_size = len(cell_mask[cell_mask == 1])
+        background_mask_size = len(background_mask[background_mask == 1])
+
+        if cell_mask_size > 0 and background_mask_size > 0:
+
+            if contrast_mode == "mean":
+                cell_mean = np.mean(image[cell_mask == 1])
+                background_mean = np.mean(image[background_mask == 1])
+            elif contrast_mode == "median":
+                cell_mean = np.median(image[cell_mask == 1])
+                background_mean = np.median(image[background_mask == 1])
+            elif contrast_mode == "max":
+                cell_mean = np.max(image[cell_mask == 1])
+                background_mean = np.max(image[background_mask == 1])
+            elif contrast_mode == "min":
+                cell_mean = np.min(image[cell_mask == 1])
+                background_mean = np.min(image[background_mask == 1])
+
+            contrast = cell_mean - background_mean
+
+    except:
+        print(traceback.format_exc())
+        contrast = None
+        pass
+
+    return contrast
+
+
+def _filter_cells(self, remove=True, fov_mode ="", metric ="", criteria ="", threshold = "", ignore_edge=True):
+
+    try:
+
+        n_unfiltered = 0
+        n_filtered = 0
+        n_removed = 0
+        n_fov = 0
+
+        if metric == "":
+            metric = self.filter_metric.currentText()
+        if criteria == "":
+            criteria = self.filter_criteria.currentText()
+        if threshold == "":
+            threshold = self.filter_threshold.value()
+        if fov_mode == "":
+            fov_mode = self.filter_mode.currentText()
+
+        if "active " in fov_mode.lower():
+            fov_list = [self.viewer.dims.current_step[0]]
+        elif "all " in fov_mode.lower():
+            N_fov = int(self.viewer.dims.range[0][1])
+            fov_list = range(N_fov)
+        else:
+            fov_list = []
+
+        contrast_mode = "mean"
+        if "contrast" in metric.lower():
+            if "mean" in metric.lower():
+                contrast_mode = "mean"
+            elif "median" in metric.lower():
+                contrast_mode = "median"
+            elif "min" in metric.lower():
+                contrast_mode = "min"
+            elif "max" in metric.lower():
+                contrast_mode = "max"
+
+
+        image_layers = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid",
+                                                                                         "Classes", "center_lines"]]
+        selected_layer = self.viewer.layers.selection.active
+
+        for fov in fov_list:
+
+            try:
+
+                n_fov += 1
+
+                mask = self.segLayer.data[fov].copy()
+                background_mask = np.zeros_like(mask)
+                background_mask[mask == 0] = 0
+                background_mask[mask != 0] = 1
+                filtered_mask = np.zeros_like(mask)
+
+                if selected_layer.name in image_layers:
+                    image = selected_layer.data[fov].copy()
+                else:
+                    image = None
+
+                mask_ids = np.unique(mask)
+
+                filtered_mask_id = 1
+
+                for mask_id in mask_ids:
+                    if mask_id != 0:
+
+                        cell_mask = np.zeros(mask.shape, dtype=np.uint8)
+                        cell_mask[mask == mask_id] = 1
+
+                        edge = check_edge_cell(cell_mask, mask)
+
+                        cnt, _ = cv2.findContours(cell_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+                        value = None
+                        if "area" in metric.lower():
+                            value = cv2.contourArea(cnt[0])
+                        if "contrast" in metric.lower():
+                            if image is not None:
+                                contast = compute_cell_contrast(image, cell_mask,
+                                    background_mask, contrast_mode=contrast_mode)
+                                if contast is not None:
+                                    value = contast
+
+
+                        if ignore_edge == True and edge == True:
+                            filtered_mask[mask == mask_id] = filtered_mask_id
+                            filtered_mask_id += 1
+                        if value != None:
+                            if criteria == ">":
+                                if value < threshold:
+                                    filtered_mask[mask == mask_id] = filtered_mask_id
+                                    filtered_mask_id += 1
+                            if criteria == "<":
+                                if value > threshold:
+                                    filtered_mask[mask == mask_id] = filtered_mask_id
+                                    filtered_mask_id += 1
+
+                n_unfiltered += (len(np.unique(mask)) - 1)
+                n_filtered += (len(np.unique(filtered_mask)) - 1)
+
+                if remove == True:
+                    self.segLayer.data[fov] = filtered_mask.copy()
+                    self.segLayer.refresh()
+
+            except:
+                print(traceback.format_exc())
+                pass
+
+        n_removed = n_unfiltered - n_filtered
+
+        if remove == True:
+            show_info(f"Removed {n_removed} cells from {n_fov} FOV(s)")
+        else:
+            print_metric = metric.replace("(Selected Channel)", "")
+            show_info(f"Found {n_removed} cells in {n_fov} FOV(s) with {print_metric} {criteria} {threshold}")
+
+    except:
+        print(traceback.format_exc())
+        pass
+
+
+
+
 
 
 def _compute_simple_cell_stats(self):
