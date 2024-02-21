@@ -25,7 +25,7 @@ from napari.utils.notifications import show_info
 # from napari_bacseg._utils_imagej import read_imagej_file
 from skimage import exposure
 from skimage.registration import phase_cross_correlation
-
+import matplotlib.pyplot as plt
 
 def normalize99(X):
     """normalize image so 0.0 is 0.01st percentile and 1.0 is 99.99th percentile"""
@@ -1977,6 +1977,7 @@ def get_export_labels(self):
 
 
 def get_contours_from_mask(mask, label, export_labels):
+
     export_mask = np.zeros(mask.shape, dtype=np.uint16)
     export_label = np.zeros(mask.shape, dtype=np.uint16)
 
@@ -1984,16 +1985,22 @@ def get_contours_from_mask(mask, label, export_labels):
 
     mask_ids = np.unique(mask)
 
+    export_labels = [int(label) for label in export_labels]
+
+    new_mask = np.zeros(mask.shape, dtype=np.uint16)
+
+    new_mask_id = 1
+
     for mask_id in mask_ids:
         try:
             if mask_id != 0:
                 cnt_mask = np.zeros(mask.shape, dtype=np.uint8)
 
                 cnt_mask[mask == mask_id] = 255
-                label_id = np.unique(label[cnt_mask == 255])[0]
+                label_id = int(np.unique(label[cnt_mask == 255])[0])
 
                 if label_id in export_labels:
-                    new_mask_id = np.max(np.unique(export_mask)) + 1
+
                     export_mask[cnt_mask == 255] = new_mask_id
                     export_label[cnt_mask == 255] = label_id
 
@@ -2001,10 +2008,12 @@ def get_contours_from_mask(mask, label, export_labels):
 
                     contours.append(cnt[0])
 
+                    new_mask_id += 1
+
         except:
             pass
 
-    return contours
+    return contours, export_mask, export_label
 
 
 def automatic_brightness_and_contrast(image, clip_hist_percent=0.1):
@@ -2334,9 +2343,11 @@ def export_files(self, progress_callback, mode):
                 dim_list.append((image_index,))
 
     for i, dim in enumerate(dim_list):
-        image, mask, nmask, label, meta, mode = generate_export_image(self, export_channel, dim, normalise, invert, autocontrast, scalebar, cropzoom, mask_background, )
 
-        contours = get_contours_from_mask(mask, label, export_labels)
+        image, mask, nmask, label, meta, mode = generate_export_image(self, export_channel, dim, normalise, invert,
+            autocontrast, scalebar, cropzoom, mask_background, )
+
+        contours, mask, label = get_contours_from_mask(mask, label, export_labels)
 
         if "midlines" in meta.keys():
             midlines = meta["midlines"].copy()

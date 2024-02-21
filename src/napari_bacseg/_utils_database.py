@@ -104,7 +104,9 @@ def _load_bacseg_database(self, path=""):
 
 
 def _show_database_controls(self, visible=True):
-    all_database_controls = self.upload_tab.findChildren((QCheckBox, QComboBox, QLabel, QPushButton, QProgressBar, QTabWidget))
+
+    all_database_controls = self.upload_tab.findChildren((QCheckBox, QComboBox,
+                                                          QLabel, QPushButton, QProgressBar, QTabWidget))
 
     load_database_controls = ["create_database", "load_database", "display_database_path", "display_database_label", "database_io_title", ]
 
@@ -114,6 +116,7 @@ def _show_database_controls(self, visible=True):
 
 
 def generate_txt_metadata(self, database_directory):
+
     database_name = (pathlib.Path(database_directory).parts[-1].replace("_Database", ""))
 
     path = pathlib.PurePath(database_directory, "Metadata", f"{database_name} Metadata.xlsx")
@@ -565,9 +568,13 @@ def update_upload_combos(self, control_name = ""):
                                         combo_box_items[index] = ""
 
                             combo_box_items = ["", combo_box_current] + combo_box_items
-
                             combo_box_items = list(set(combo_box_items))
-                            combo_box_items = sorted(combo_box_items)
+
+                            if len(combo_box_items) > 1:
+                                try:
+                                    combo_box_items = sorted(combo_box_items)
+                                except:
+                                    pass
 
                             if combo_box_items != []:
                                 num_filtered += 1

@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from napari.utils.notifications import show_info
 from PyQt5.QtWidgets import QFileDialog
-
+from torch.cuda import empty_cache
 
 def export_cellpose(file_path, image, mask):
     flow = np.zeros(mask.shape, dtype=np.uint16)
@@ -76,7 +76,6 @@ def get_gpu_free_memory():
 
 
 def _run_cellpose(self, progress_callback, images):
-
 
     mask_stack = []
 
@@ -162,43 +161,45 @@ def _run_cellpose(self, progress_callback, images):
             mask_stack = np.stack(mask_stack, axis=0)
 
         if gpu:
-            import torch
-            torch.cuda.empty_cache()
+            empty_cache()
 
     return mask_stack
 
 def _process_cellpose(self, segmentation_data):
 
-    if len(segmentation_data) > 0:
-        masks = segmentation_data
+    try:
 
-        if self.cellpose_seg_mode.currentIndex() == 0:
-            output_layer = self.segLayer
-        else:
-            output_layer = self.nucLayer
+        if len(segmentation_data) > 0:
+            masks = segmentation_data
 
-        if output_layer.data.shape != masks.shape:
-            current_fov = self.viewer.dims.current_step[0]
-            output_layer.data[current_fov, :, :] = masks
+            if self.cellpose_seg_mode.currentIndex() == 0:
+                output_layer = self.segLayer
+            else:
+                output_layer = self.nucLayer
 
-        else:
-            output_layer.data = masks
+            if output_layer.data.shape != masks.shape:
+                current_fov = int(self.viewer.dims.current_step[0])
+                output_layer.data[current_fov, :, :] = masks
 
-        output_layer.contour = 1
-        output_layer.opacity = 1
+            else:
+                output_layer.data = masks
 
-        self.cellpose_segmentation = True
-        self.cellpose_progressbar.setValue(0)
+            output_layer.contour = 1
+            output_layer.opacity = 1
+            output_layer.refresh()
 
-        if self.cellpose_auto_classify.isChecked() == True:
-            self._autoClassify(reset=True)
+            self.cellpose_segmentation = True
+            self.cellpose_progressbar.setValue(0)
 
-        self._autoContrast()
+            if self.cellpose_auto_classify.isChecked() == True:
+                self._autoClassify(reset=True)
 
-        if self.cellpose_resetimage.isChecked() == True:
-            self.viewer.reset_view()
+            if self.cellpose_resetimage.isChecked() == True:
+                self.viewer.reset_view()
 
-        self._reorderLayers()
+    except:
+        pass
+
 
 
 def load_cellpose_dependencies(self):

@@ -679,9 +679,11 @@ def _filter_cells(self, remove=True, fov_mode ="", metric ="", criteria ="", thr
                 n_fov += 1
 
                 mask = self.segLayer.data[fov].copy()
+                class_mask = self.classLayer.data[fov].copy()
                 background_mask = np.zeros_like(mask)
                 background_mask[mask == 0] = 0
                 background_mask[mask != 0] = 1
+
                 filtered_mask = np.zeros_like(mask)
 
                 if selected_layer.name in image_layers:
@@ -690,8 +692,6 @@ def _filter_cells(self, remove=True, fov_mode ="", metric ="", criteria ="", thr
                     image = None
 
                 mask_ids = np.unique(mask)
-
-                filtered_mask_id = 1
 
                 for mask_id in mask_ids:
                     if mask_id != 0:
@@ -713,19 +713,15 @@ def _filter_cells(self, remove=True, fov_mode ="", metric ="", criteria ="", thr
                                 if contast is not None:
                                     value = contast
 
-
                         if ignore_edge == True and edge == True:
-                            filtered_mask[mask == mask_id] = filtered_mask_id
-                            filtered_mask_id += 1
+                            filtered_mask[mask == mask_id] = mask_id
                         if value != None:
                             if criteria == ">":
                                 if value < threshold:
-                                    filtered_mask[mask == mask_id] = filtered_mask_id
-                                    filtered_mask_id += 1
+                                    filtered_mask[mask == mask_id] = mask_id
                             if criteria == "<":
                                 if value > threshold:
-                                    filtered_mask[mask == mask_id] = filtered_mask_id
-                                    filtered_mask_id += 1
+                                    filtered_mask[mask == mask_id] = mask_id
 
                 n_unfiltered += (len(np.unique(mask)) - 1)
                 n_filtered += (len(np.unique(filtered_mask)) - 1)
@@ -733,6 +729,10 @@ def _filter_cells(self, remove=True, fov_mode ="", metric ="", criteria ="", thr
                 if remove == True:
                     self.segLayer.data[fov] = filtered_mask.copy()
                     self.segLayer.refresh()
+
+                    class_mask[filtered_mask == 0] = 0
+                    self.classLayer.data[fov] = class_mask.copy()
+                    self.classLayer.refresh()
 
             except:
                 print(traceback.format_exc())

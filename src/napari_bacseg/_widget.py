@@ -1214,9 +1214,13 @@ class BacSeg(QWidget, _picasso_utils):
                     if self.upload_initial.currentText() in ["", "Required for upload", ]:
                         show_info("Please select the user initial.")
                     else:
-                        from napari_bacseg._utils_database_IO import (_upload_bacseg_database, )
+                        from napari_bacseg._utils_database_IO import (_upload_bacseg_database, backup_user_metadata)
 
                         self._upload_bacseg_database = self.wrapper(_upload_bacseg_database)
+                        self.backup_user_metadata = self.wrapper(backup_user_metadata)
+
+                        worker = Worker(self.backup_user_metadata)
+                        self.threadpool.start(worker)
 
                         worker = Worker(self._upload_bacseg_database, mode=mode)
                         worker.signals.progress.connect(partial(self._Progresbar, progressbar="database_upload"))
@@ -1236,10 +1240,11 @@ class BacSeg(QWidget, _picasso_utils):
                     show_info("Please select the user initial.")
 
                 else:
-                    from napari_bacseg._utils_database_IO import (get_filtered_database_metadata, read_bacseg_images, )
+                    from napari_bacseg._utils_database_IO import (get_filtered_database_metadata, read_bacseg_images, backup_user_metadata)
 
                     self.get_filtered_database_metadata = self.wrapper(get_filtered_database_metadata)
                     self.read_bacseg_images = self.wrapper(read_bacseg_images)
+                    self.backup_user_metadata = self.wrapper(backup_user_metadata)
 
                     self.active_import_mode = "BacSeg"
 
@@ -1250,6 +1255,7 @@ class BacSeg(QWidget, _picasso_utils):
                             show_info("no matching database files found")
 
                     else:
+
                         worker = Worker(self.read_bacseg_images, measurements=measurements, channels=channels, )
                         worker.signals.result.connect(self._process_import)
                         worker.signals.progress.connect(partial(self._Progresbar, progressbar="database_download"))
@@ -1472,8 +1478,8 @@ class BacSeg(QWidget, _picasso_utils):
         self._run_cellpose = self.wrapper(_run_cellpose)
         self._process_cellpose = self.wrapper(_process_cellpose)
 
-        current_fov = self.viewer.dims.current_step[0]
-        chanel = self.cellpose_segchannel.currentText()
+        current_fov = int(self.viewer.dims.current_step[0])
+        chanel = str(self.cellpose_segchannel.currentText())
 
         images = self.viewer.layers[chanel].data.copy()
 
@@ -1493,8 +1499,7 @@ class BacSeg(QWidget, _picasso_utils):
         self._run_cellpose = self.wrapper(_run_cellpose)
         self._process_cellpose = self.wrapper(_process_cellpose)
 
-        channel = self.cellpose_segchannel.currentText()
-
+        channel = str(self.cellpose_segchannel.currentText())
         images = self.viewer.layers[channel].data.copy()
 
         images = unstack_images(images)

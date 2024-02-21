@@ -104,6 +104,8 @@ def get_zeiss_measurements(self, paths):
 
     czi_measurements = pd.concat(czi_measurements)
 
+    print(czi_measurements.columns)
+
     groupby_columns = czi_measurements.drop(["C"], axis=1).columns.tolist()
 
     if len(groupby_columns) == 1:
