@@ -58,13 +58,13 @@ Once you have installed the plugin, you can update the plugin by running the fol
 ## GPU Installation
  Once you have installed the plugin, you can install the GPU version of the plugin by running the following commands:
 
-    pip uninstall torch
-    conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
+    pip uninstall torch torchvision torchaudio -y
+    pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 
 If the latest CUDA versions don't work, try an older version like cuda 11.3:
 
-    pip uninstall torch
-    conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch -c nvidia
+    pip uninstall torch torchvision torchaudio -y
+    pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu113
 
 
 

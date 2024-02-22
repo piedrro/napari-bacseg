@@ -30,16 +30,16 @@ classifiers = [
 ]
 
 dependencies = [
-    "napari >= 0.4.17",
+    "napari[all] >= 0.4.19",
+    "torch",
+    "cellpose >= 3.0.1",
     "opencv-python",
     "picassosr == 0.6.5",
     "numpy",
     "pyqt5",
     "pyqt6",
     "qtpy",
-    "cellpose[all] >= 2.1.1",
     "scipy",
-    "torch",
     "natsort",
     "tqdm",
     "imagecodecs",

@@ -290,8 +290,13 @@ def _initialise_cellpose_model(self, model_type="custom", model_path=None, diame
                     if self.widget_notifications:
                         show_info(f"Loading Cellpose Model: {os.path.basename(model_path)}")
 
-                    model = models.CellposeModel(pretrained_model=str(model_path),
-                        diam_mean=int(diameter), model_type=None, gpu=bool(gpu), net_avg=False, )
+                    model = models.CellposeModel(
+                        pretrained_model=str(model_path),
+                        diam_mean=int(diameter),
+                        model_type=None,
+                        gpu=bool(gpu),
+                        # net_avg=False,
+                    )
 
                 else:
                     model, gpu, omnipose_model, labels_to_flows = (None, None, True, None,)
@@ -317,8 +322,12 @@ def _initialise_cellpose_model(self, model_type="custom", model_path=None, diame
                 if self.widget_notifications:
                     show_info(f"Loading Cellpose Model: {model_type}")
 
-                model = models.CellposeModel(diam_mean=int(diameter),
-                    model_type=str(model_type), gpu=bool(gpu), net_avg=False, )
+                model = models.CellposeModel(
+                    diam_mean=int(diameter),
+                    model_type=str(model_type),
+                    gpu=bool(gpu),
+                    # net_avg=False,
+                )
 
             else:
                 if self.widget_notifications:
