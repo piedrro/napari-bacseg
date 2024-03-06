@@ -137,6 +137,7 @@ def read_bacseg_images(self, progress_callback, measurements, channels):
 
 
 def generate_multichannel_stack(self):
+
     segChannel = self.cellpose_segchannel.currentText()
     user_initial = self.upload_initial.currentText()
     content = self.upload_content.currentText()
@@ -170,7 +171,12 @@ def generate_multichannel_stack(self):
         labelled = True
         labelled_curated = True
 
-    metadata = dict(user_initial=user_initial, content=content, microscope=microscope, antibiotic=antibiotic, abxconcentration=abxconcentration, treatmenttime=treatmenttime, mount=mount, protocol=protocol, strain=strain, phenotype=phenotype, )
+    metadata = dict(user_initial=user_initial, content=content,
+        microscope=microscope, antibiotic=antibiotic,
+        abxconcentration=abxconcentration,
+        treatmenttime=treatmenttime,
+        mount=mount, protocol=protocol,
+        strain=strain, phenotype=phenotype, )
 
     num_user_keys = self.user_metadata_keys
 
@@ -178,7 +184,7 @@ def generate_multichannel_stack(self):
         control_name = f"upload_usermeta{key}"
         combo_box = getattr(self, control_name)
         combo_box_value = combo_box.currentText()
-        metadata[f"usermeta{key}"] = combo_box_value
+        metadata[f"user_meta{key}"] = combo_box_value
 
     layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
@@ -232,10 +238,10 @@ def generate_multichannel_stack(self):
                         meta["segmentation_file"] = segmentation_file
 
                         for key in range(1, num_user_keys + 1):
-                            if f"usermeta{key}" in metadata.keys():
-                                meta[f"usermeta{key}"] = metadata[f"usermeta{key}"]
+                            if f"user_meta{key}" in metadata.keys():
+                                meta[f"user_meta{key}"] = metadata[f"user_meta{key}"]
                             else:
-                                meta[f"usermeta{key}"] = ""
+                                meta[f"user_meta{key}"] = ""
 
                     if (meta["import_mode"] == "BacSeg" and overwrite_all_metadata is True):
                         metadata = {key: val for key, val in metadata.items() if val != "Required for upload"}
@@ -620,7 +626,13 @@ def generate_upload_tempfiles(user_metadata, image_stack, meta_stack, mask_stack
             if os.path.exists(class_dir) == False:
                 os.makedirs(class_dir)
 
-            upload_data = dict(user_metadata=user_metadata, image=image, image_meta=image_meta, mask=mask, nmask=nmask, class_mask=class_mask, save_dir=save_dir, overwrite_images=overwrite_images, overwrite_masks=overwrite_masks, overwrite_metadata=overwrite_metadata, overwrite_selected_metadata=overwrite_selected_metadata, overwrite_all_metadata=overwrite_all_metadata, image_dir=image_dir, mask_dir=mask_dir, json_dir=json_dir, class_dir=class_dir, upload_images=upload_images, upload_segmentations=upload_segmentations, upload_metadata=upload_metadata, )
+            upload_data = dict(user_metadata=user_metadata, image=image,
+                image_meta=image_meta, mask=mask, nmask=nmask, class_mask=class_mask,
+                save_dir=save_dir, overwrite_images=overwrite_images, overwrite_masks=overwrite_masks,
+                overwrite_metadata=overwrite_metadata, overwrite_selected_metadata=overwrite_selected_metadata,
+                overwrite_all_metadata=overwrite_all_metadata, image_dir=image_dir, mask_dir=mask_dir,
+                json_dir=json_dir, class_dir=class_dir, upload_images=upload_images,
+                upload_segmentations=upload_segmentations, upload_metadata=upload_metadata, )
 
             if os.path.isdir(upload_dir) is False:
                 os.mkdir(upload_dir)

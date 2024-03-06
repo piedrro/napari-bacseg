@@ -221,7 +221,10 @@ def read_txt_metadata(self, database_directory, user_initial=""):
                 line = line.lstrip().rstrip().replace("\n", "")
 
                 if "User Meta" in line and i != 0:
-                    metakey = f"user_meta{strip_brackets(line)}"
+                    metakey_index = strip_brackets(line)
+                    metakey_index = "".join([i for i in metakey_index if i.isdigit()])
+
+                    metakey = f"user_meta{metakey_index}"
 
                     if metakey not in user_dict.keys():
                         user_dict[metakey] = []
@@ -262,12 +265,16 @@ def update_database_metadata(self, control=None):
 
         dbmeta, usermeta = read_txt_metadata(self, self.database_path)
 
-        control_dict = {"abxconcentration": "upload_abxconcentration", "antibiotic": "upload_antibiotic", "content": "upload_content", "microscope": "upload_microscope", "modality": "label_modality", "mount": "upload_mount", "strain": "upload_strain", "phenotype": "upload_phenotype", "protocol": "upload_protocol", "source": "label_light_source", "stain": "label_stain", "stain_target": "label_stain_target", "treatment_time": "upload_treatmenttime", "user_initial": "upload_initial"}
+        control_dict = {"abxconcentration": "upload_abxconcentration", "antibiotic": "upload_antibiotic", "content": "upload_content",
+                        "microscope": "upload_microscope", "modality": "img_modality", "mount": "upload_mount",
+                        "strain": "upload_strain", "phenotype": "upload_phenotype", "protocol":
+                            "upload_protocol", "source": "img_light_source", "stain": "img_stain",
+                        "stain_target": "img_stain_target", "treatment_time": "upload_treatmenttime", "user_initial": "upload_initial"}
 
         num_keys = self.user_metadata_keys
 
         for i in range(1, num_keys + 1):
-            control_dict[f"meta{i}"] = f"upload_usermeta{i}"
+            control_dict[f"user_meta{i}"] = f"upload_usermeta{i}"
 
         upload_control_dict = {}
 
@@ -320,12 +327,17 @@ def update_database_metadata(self, control=None):
 
         user_initial = self.upload_initial.currentText()
 
+
         if user_initial in usermeta.keys():
+
             txt_meta = f"# {database_name} User Metadata: {user_initial}\n"
 
             txt_meta_path = pathlib.PurePath(database_directory, "Metadata", f"{database_name} User Metadata [{user_initial}].txt", )
 
             for meta_key, meta_values in usermeta[user_initial].items():
+
+                pass
+
                 try:
                     if meta_key != "User Initial":
                         control_name = control_dict[meta_key]
@@ -360,6 +372,7 @@ def update_database_metadata(self, control=None):
                         if (len(combo_box_items) > 0 and combo_box_items != meta_values):
                             show_info(f"Updated {meta_key.upper()} metadata items in {database_name} database")
                 except:
+                    print(traceback.format_exc())
                     pass
 
         if new_user:
