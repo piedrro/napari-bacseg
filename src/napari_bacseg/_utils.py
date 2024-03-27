@@ -503,12 +503,18 @@ def read_nim_directory(self, path):
                     laserpowers = np.array(laserpowers, dtype=float)
                     laserwavelength_nm = np.array(laserwavelength_nm, dtype=str)
 
-                    # finds maximum active power
-                    power = laserpowers[laseractive == True].max()
+                    laser_index = np.where(laseractive == True)
 
-                    laser_index = np.where(laserpowers == power)
+                    n_active_lasers = len(laseractive[laseractive == True])
 
-                    laser = laserwavelength_nm[laser_index][0]
+                    if n_active_lasers == 1:
+                        laser = laserwavelength_nm[laser_index][0]
+
+                    else:
+                        max_power = laserpowers[laseractive == True].max()
+                        laser_index = np.where(laserpowers == max_power)
+                        laser = laserwavelength_nm[laser_index][0]
+
                 else:
                     laser = "White Light"
 

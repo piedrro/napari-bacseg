@@ -319,6 +319,7 @@ def get_boundary_lines(mid_line, cnt, smooth=True, n_segments=100):
 
 
 def fit_polyline(x, y, polys=[2, 3], margin=50, poly_limits=None):
+    
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore')
 
@@ -396,6 +397,7 @@ def compute_line_metrics(mesh):
 
 
 def get_mesh(oufti_dict, bisector_length=100, n_segments=100):
+    
     left_line = oufti_dict["left_line"]
     right_line = oufti_dict["right_line"]
     mid_line = oufti_dict["mid_line"]
@@ -646,6 +648,7 @@ def find_closest_point(point, line):
 
 
 def rotate_contour(cnt, angle=90, units="DEGREES"):
+    
     cnt = cnt.copy()
 
     x = cnt[:, :, 1]
@@ -674,6 +677,7 @@ def rotate_contour(cnt, angle=90, units="DEGREES"):
 
 
 def rotate_image(image, shift_xy, angle=90):
+    
     x_shift, y_shift = shift_xy
 
     (h, w) = image.shape[:2]
@@ -822,7 +826,8 @@ def get_oufti_data(self, image, mask, midlines=None):
 
                     _, end_intersections = trim_midline(left_line, right_line, midline, margin=10)
 
-                    oufti_dict = {"cnt": cnt, "end_intersections": end_intersections, "cnt_array": cnt_array, "mid_line": midline, "left_line": left_line, "right_line": right_line, "mask_shape": mask.shape, "mesh_length": mesh_length}
+                    oufti_dict = {"cnt": cnt, "end_intersections": end_intersections, "cnt_array": cnt_array, "mid_line": midline, 
+                                  "left_line": left_line, "right_line": right_line, "mask_shape": mask.shape, "mesh_length": mesh_length}
 
                     oufti_data.append(oufti_dict)
 
