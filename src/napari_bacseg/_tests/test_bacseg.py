@@ -86,7 +86,7 @@ class test_bacseg(unittest.TestCase):
             target_num_images = len(paths)
             target_channels = ["Image"]
 
-            from napari_bacseg._utils import import_images
+            from napari_bacseg.funcs.utils import import_images
 
             self.BacSeg.import_images = self.BacSeg.wrapper(import_images)
 
@@ -98,7 +98,7 @@ class test_bacseg(unittest.TestCase):
 
             assert len(paths) > 0
 
-            from napari_bacseg._utils import (read_scanr_directory, read_scanr_images, )
+            from napari_bacseg.funcs.utils import (read_scanr_directory, read_scanr_images, )
 
             self.BacSeg.read_scanr_directory = self.BacSeg.wrapper(read_scanr_directory)
             self.BacSeg.read_scanr_images = self.BacSeg.wrapper(read_scanr_images)
@@ -115,7 +115,7 @@ class test_bacseg(unittest.TestCase):
 
             assert len(paths) > 0
 
-            from napari_bacseg._utils import (read_nim_directory, read_nim_images, )
+            from napari_bacseg.funcs.utils import (read_nim_directory, read_nim_images, )
 
             self.BacSeg.read_nim_directory = self.BacSeg.wrapper(read_nim_directory)
             self.BacSeg.read_nim_images = self.BacSeg.wrapper(read_nim_images)
@@ -165,7 +165,7 @@ class test_bacseg(unittest.TestCase):
         if randomise:
             image_paths = random.sample(image_paths, random.randint(1, len(image_paths)))
 
-        from napari_bacseg._utils import (get_hash, import_imagej, import_images, import_masks, )
+        from napari_bacseg.funcs.utils import (get_hash, import_imagej, import_images, import_masks, )
 
         self.BacSeg.import_masks = self.BacSeg.wrapper(import_masks)
         self.BacSeg.import_images = self.BacSeg.wrapper(import_images)
@@ -284,7 +284,7 @@ class test_bacseg(unittest.TestCase):
         self.BacSeg.export_channel.setCurrentText(layer_names[0])
         self.BacSeg.export_modifier.setText(export_modifier)
 
-        from napari_bacseg._utils import export_files
+        from napari_bacseg.funcs.utils import export_files
 
         self.BacSeg.export_files = self.BacSeg.wrapper(export_files)
 
@@ -307,7 +307,7 @@ class test_bacseg(unittest.TestCase):
         assert num_exported_files == targeted_image_num
 
     def load_custom_cellpose_model(self):
-        from napari_bacseg._utils_cellpose import _select_custom_cellpose_model
+        from napari_bacseg.funcs.cellpose_utils import _select_custom_cellpose_model
 
         self.BacSeg._select_custom_cellpose_model = self.BacSeg.wrapper(_select_custom_cellpose_model)
 
@@ -328,8 +328,8 @@ class test_bacseg(unittest.TestCase):
 
         self.import_images(mode="images", import_limit=str(import_limit))
 
-        from napari_bacseg._utils import unstack_images
-        from napari_bacseg._utils_cellpose import (_process_cellpose, _run_cellpose, )
+        from napari_bacseg.funcs.utils import unstack_images
+        from napari_bacseg.funcs.cellpose_utils import (_process_cellpose, _run_cellpose, )
 
         self.BacSeg._run_cellpose = self.BacSeg.wrapper(_run_cellpose)
         self.BacSeg._process_cellpose = self.BacSeg.wrapper(_process_cellpose)
@@ -362,7 +362,7 @@ class test_bacseg(unittest.TestCase):
             else:
                 path = r"\\physics\dfs\DAQ\CondensedMatterGroups\AKGroup\Piers\AKSEG"
 
-        from napari_bacseg._utils_database import _load_bacseg_database
+        from napari_bacseg.funcs.database_utils import _load_bacseg_database
 
         self.BacSeg._load_bacseg_database = self.BacSeg.wrapper(_load_bacseg_database)
 
@@ -382,7 +382,7 @@ class test_bacseg(unittest.TestCase):
             shutil.rmtree(path)
             os.mkdir(path)
 
-        from napari_bacseg._utils_database import _create_bacseg_database
+        from napari_bacseg.funcs.database_utils import _create_bacseg_database
 
         self.BacSeg._create_bacseg_database = self.BacSeg.wrapper(_create_bacseg_database)
 
@@ -440,7 +440,7 @@ class test_bacseg(unittest.TestCase):
                 except:
                     print(traceback.format_exc())
 
-        from napari_bacseg._utils_database import update_database_metadata
+        from napari_bacseg.funcs.database_utils import update_database_metadata
 
         self.BacSeg.update_database_metadata = self.BacSeg.wrapper(update_database_metadata)
 
