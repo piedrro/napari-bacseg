@@ -416,9 +416,8 @@ class _export_utils:
                         tifffile.imwrite(mask_path, mask, metadata=meta)
 
                     if self.export_mode.currentText() == "Export Cellpose":
-                        from napari_bacseg.funcs.cellpose_utils import export_cellpose
 
-                        export_cellpose(file_path, image, mask)
+                        self.export_cellpose(file_path, image, mask)
 
                         if export_images:
                             tifffile.imwrite(file_path, image, metadata=meta)

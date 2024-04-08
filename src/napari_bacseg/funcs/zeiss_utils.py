@@ -9,6 +9,7 @@ from aicspylibczi import CziFile
 class _zeiss_utils:
 
     def get_ziess_channel_dict(self, path):
+
         import xmltodict
         from czifile import CziFile
 

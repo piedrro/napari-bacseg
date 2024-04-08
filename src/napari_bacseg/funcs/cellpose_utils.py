@@ -12,8 +12,9 @@ from torch.cuda import empty_cache
 
 class _cellpose_utils:
 
-    @staticmethod
-    def export_cellpose(file_path, image, mask):
+
+    def export_cellpose(self, file_path, image, mask):
+
         flow = np.zeros(mask.shape, dtype=np.uint16)
         outlines = np.zeros(mask.shape, dtype=np.uint16)
         mask_ids = np.unique(mask)
