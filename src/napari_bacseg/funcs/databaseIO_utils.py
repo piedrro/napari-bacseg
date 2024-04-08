@@ -12,7 +12,7 @@ import pandas as pd
 import tifffile
 from napari.utils.notifications import show_info
 from ast import literal_eval
-from napari_bacseg.funcs.json_utils import import_coco_json
+from napari_bacseg.funcs.IO.json_utils import import_coco_json
 
 
 class _databaseIO:
@@ -442,7 +442,7 @@ class _databaseIO:
                         if (os.path.isfile(mask_path) is False or import_mode == "BacSeg" or overwrite_masks is True or overwrite_metadata is True):
                             if file_name == segmentation_file:
 
-                                from napari_bacseg.funcs.json_utils import export_coco_json
+                                from napari_bacseg.funcs.IO.json_utils import export_coco_json
 
                                 export_coco_json(file_name, img, mask, nmask, class_mask, json_path, )
 

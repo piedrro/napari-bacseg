@@ -1,7 +1,6 @@
 import os
 import pathlib
 
-from napari_bacseg.funcs.json_utils import import_coco_json, export_coco_json
 import traceback
 import math
 import numpy as np

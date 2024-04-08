@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import scipy
 import tifffile
-import xmltodict
+
 from astropy.io import fits
 from glob2 import glob
 from napari.utils.notifications import show_info
@@ -39,91 +39,8 @@ class _utils:
     
         return x
 
-    def read_xml(self, paths):
-        try:
-            files = {}
-    
-            for path in paths:
-                with open(path) as fd:
-                    dat = xmltodict.parse(fd.read())["OME"]
-    
-                    image_list = dat["Image"]
-    
-                    if type(image_list) == dict:
-                        image_list = [image_list]
-    
-                    for i in range(len(image_list)):
-                        img = image_list[i]
-    
-                        objective_id = int(img["ObjectiveSettings"]["@ID"].split(":")[-1])
-                        objective_dat = dat["Instrument"]["Objective"][objective_id]
-                        objective_mag = float(objective_dat["@NominalMagnification"])
-                        objective_na = float(objective_dat["@LensNA"])
-    
-                        pixel_size = float(img["Pixels"]["@PhysicalSizeX"])
-    
-                        # print(pixel_size)
-    
-                        position_index = i
-                        microscope = "ScanR"
-                        light_source = "LED"
-    
-                        channel_dict = {}
-    
-                        for j in range(len(img["Pixels"]["Channel"])):
-                            channel_data = img["Pixels"]["Channel"][j]
-    
-                            channel_dict[j] = dict(modality=channel_data["@IlluminationType"], channel=channel_data["@Name"], mode=channel_data["@AcquisitionMode"], well=
-                            channel_data["@ID"].split("W")[1].split("P")[0], )
-    
-                        primary_channel = ""
-    
-                        for j in range(len(img["Pixels"]["TiffData"])):
-                            num_channels = img["Pixels"]["@SizeC"]
-                            num_zstack = img["Pixels"]["@SizeZ"]
-    
-                            tiff_data = img["Pixels"]["TiffData"][j]
-    
-                            file_name = tiff_data["UUID"]["@FileName"]
-                            file_path = os.path.abspath(path.replace(os.path.basename(path), file_name))
-    
-                            try:
-                                plane_data = img["Pixels"]["Plane"][j]
-                                exposure_time = plane_data["@ExposureTime"]
-                                posX = float(plane_data["@PositionX"])
-                                posY = float(plane_data["@PositionY"])
-                                posZ = float(plane_data["@PositionZ"])
-                            except:
-                                exposure_time = None
-                                posX = None
-                                posY = None
-                                posZ = None
-    
-                            try:
-                                channel_index = int(tiff_data["@FirstC"])
-                                time_index = int(tiff_data["@FirstT"])
-                                z_index = int(tiff_data["@FirstZ"])
-                                channel_dat = channel_dict[channel_index]
-                                modality = channel_dat["modality"]
-                                channel = channel_dat["channel"]
-                                well_index = int(channel_dat["well"])
-                            except:
-                                channel_index = None
-                                time_index = None
-                                z_index = None
-                                channel_dat = None
-                                modality = None
-                                channel = None
-                                well_index = None
-    
-                            files[
-                                file_path] = dict(file_name=file_name, well_index=well_index, position_index=position_index, channel_index=channel_index, time_index=time_index, z_index=z_index, microscope=microscope, light_source=light_source, channel=channel, modality=modality, pixel_size=pixel_size, objective_magnification=objective_mag, objective_na=objective_na, exposure_time=exposure_time, posX=posX, posY=posY, posZ=posZ, )
-        except:
-            print(traceback.format_exc())
-    
-        return files
-
     def import_imagej(self, progress_callback, paths):
+
         if isinstance(paths, list) == False:
             paths = [paths]
     
@@ -219,6 +136,7 @@ class _utils:
         return imported_data
 
     def get_folder(self, files):
+
         folder = ""
         parent_folder = ""
 
@@ -243,6 +161,7 @@ class _utils:
         return folder, parent_folder
 
     def read_image_file(self, path, precision="native", multiframe_mode=0, crop_mode=0):
+
         path = os.path.abspath(path)
         path = os.path.normpath(path)
 
@@ -304,6 +223,7 @@ class _utils:
         return image, metadata
 
     def get_frame(self, img, multiframe_mode):
+
         if len(img.shape) > 2:
             if multiframe_mode == 0:
                 img = img[0, :, :]
@@ -326,6 +246,7 @@ class _utils:
         return img
 
     def crop_image(self, img, crop_mode=0):
+
         if crop_mode != 0:
             if len(img.shape) > 2:
                 imgL = img[:, :, : img.shape[-1] // 2]
@@ -348,6 +269,7 @@ class _utils:
         return img
 
     def rescale_image(self, image, precision="int16"):
+
         precision_dict = {"int8": np.uint8, "int16": np.uint16, "int32": np.uint32, "native": image[0].dtype, }
 
         dtype = precision_dict[precision]

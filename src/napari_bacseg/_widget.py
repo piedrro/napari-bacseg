@@ -21,30 +21,37 @@ import numpy as np
 from napari.utils.notifications import show_info
 from qtpy.QtCore import QThreadPool
 from PyQt5.QtGui import QFont
-from qtpy.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QFormLayout, QLabel, QLineEdit, QProgressBar, QPushButton, QRadioButton, QSlider, QTabWidget, QVBoxLayout, QWidget, )
+
+from qtpy.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QFormLayout,
+    QLabel, QLineEdit, QProgressBar, QPushButton, QRadioButton, QSlider,
+    QTabWidget, QVBoxLayout, QWidget, )
+
+from napari_bacseg.GUI.bacseg_ui import Ui_tab_widget
 
 from napari_bacseg.funcs.utils import _utils
-from napari_bacseg.funcs.import_utils import _import_utils
-from napari_bacseg.funcs.export_utils import _export_utils
+from napari_bacseg.funcs.IO.import_utils import _import_utils
+from napari_bacseg.funcs.IO.oni_utils import _oni_utils
+from napari_bacseg.funcs.IO.olympus_utils import _olympus_utils
+from napari_bacseg.funcs.IO.export_utils import _export_utils
 from napari_bacseg.funcs.database_utils import _database_utils
 from napari_bacseg.funcs.databaseIO_utils import _databaseIO
 from napari_bacseg.funcs.cellpose_utils import _cellpose_utils
 from napari_bacseg.funcs.tiler_utils import _tiler_utils
-from napari_bacseg.funcs.zeiss_utils import _zeiss_utils
+from napari_bacseg.funcs.IO.zeiss_utils import _zeiss_utils
 from napari_bacseg.funcs.events_utils import _events_utils
 from napari_bacseg.funcs.statistics_utils import _stats_utils
-from napari_bacseg.funcs.oufti_utils import _oufti_utils
-from napari_bacseg.funcs.imagej_utils import _imagej_utils
+from napari_bacseg.funcs.IO.oufti_utils import _oufti_utils
+from napari_bacseg.funcs.IO.imagej_utils import _imagej_utils
 from napari_bacseg.funcs.threading_utils import Worker
 from napari_bacseg.funcs.picasso_utils import _picasso_utils
 
 # os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 
-
 class BacSeg(QWidget, _picasso_utils,
     _utils, _import_utils, _export_utils,
     _database_utils, _databaseIO, _cellpose_utils, _events_utils,
-    _tiler_utils, _zeiss_utils, _stats_utils, _oufti_utils, _imagej_utils):
+    _tiler_utils, _zeiss_utils, _stats_utils, _oufti_utils, _imagej_utils,
+    _oni_utils, _olympus_utils):
 
     """Widget allows selection of two labels layers and returns a new layer
     highlighing pixels whose values differ between the two layers."""
@@ -54,23 +61,14 @@ class BacSeg(QWidget, _picasso_utils,
 
         super().__init__()
 
-        # import functions
-        from napari_bacseg.GUI.bacseg_ui import Ui_tab_widget
 
         application_path = os.path.dirname(sys.executable)
         self.viewer = viewer
         self.setLayout(QVBoxLayout())
 
-        # ui_path = os.path.abspath(r"C:\napari-bacseg\src\napari_bacseg\bacseg_ui.ui")
-        # self.bacseg_ui = uic.loadUi(ui_path)
-        # command to refresh ui file: pyuic5 bacseg_ui.ui -o bacseg_ui.py
-
         self.form = Ui_tab_widget()
         self.bacseg_ui = QTabWidget()
         self.form.setupUi(self.bacseg_ui)
-
-        for child in self.bacseg_ui.findChildren(QWidget):
-            child.setFont(QFont("Arial", 10))
 
         # add widget_gui layout to main layout
         self.layout().addWidget(self.bacseg_ui)
