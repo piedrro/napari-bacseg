@@ -304,6 +304,8 @@ class BacSeg(QWidget, _picasso_utils,
 
         # export tab controls from Qt Desinger References
         self.export_channel = self.findChild(QComboBox, "export_channel")
+        self.export_multi_channel_mode = self.findChild(QComboBox, "export_multi_channel_mode")
+        self.export_multi_channel_mode_label = self.findChild(QLabel, "export_multi_channel_mode_label")
         self.export_mode = self.findChild(QComboBox, "export_mode")
         self.export_location = self.findChild(QComboBox, "export_location")
         self.export_modifier = self.findChild(QLineEdit, "export_modifier")
@@ -346,6 +348,8 @@ class BacSeg(QWidget, _picasso_utils,
         self.export_image_setting = self.findChild(QCheckBox, "export_image_setting")
         self.export_overwrite_setting = self.findChild(QCheckBox, "export_overwrite_setting")
         self.export_directory = ""
+
+
     def initialise_pyqt_events(self):
 
         # import events
@@ -484,6 +488,8 @@ class BacSeg(QWidget, _picasso_utils,
         self.import_filemode.currentIndexChanged.connect(self.update_import_limit)
         self.import_mode.currentIndexChanged.connect(self.update_import_limit)
 
+        self.export_channel.currentIndexChanged.connect(self.update_export_options)
+
     def initialise_keybindings(self):
 
         self.viewer.bind_key(key="a", func=self._modifyMode(mode="add"), overwrite=True)
@@ -600,6 +606,30 @@ class BacSeg(QWidget, _picasso_utils,
         self.segLayer.mouse_double_click_callbacks.append(self._doubeClickEvents)
 
         self.segLayer.contour = 1
+
+    def update_export_options(self):
+
+        try:
+
+            export_channel = self.export_channel.currentText()
+
+            if export_channel == "Multi Channel":
+                self.export_multi_channel_mode.setEnabled(True)
+                self.export_multi_channel_mode_label.setEnabled(True)
+
+                self.export_multi_channel_mode.setVisible(True)
+                self.export_multi_channel_mode_label.setVisible(True)
+
+                self.export_multi_channel_mode
+            else:
+                self.export_multi_channel_mode.setEnabled(False)
+                self.export_multi_channel_mode_label.setEnabled(False)
+
+                self.export_multi_channel_mode.setVisible(False)
+                self.export_multi_channel_mode_label.setVisible(False)
+
+        except:
+            print(traceback.format_exc())
 
 
     def _check_number_string(self, string):
@@ -1332,7 +1362,7 @@ class BacSeg(QWidget, _picasso_utils,
 
         self.export_channel.clear()
         export_layers = layer_names
-        export_layers.extend(["All Channels (Stack)", "All Channels (Horizontal Stack)", "All Channels (Vertical Stack)", "First Three Channels (RGB)", ])
+        export_layers.extend(["Multi Channel", ])
         self.export_channel.addItems(export_layers)
 
         self.refine_channel.clear()

@@ -4326,14 +4326,14 @@
                </widget>
               </item>
               <item row="2" column="0">
-               <widget class="QLabel" name="label_60">
+               <widget class="QLabel" name="export_multi_channel_mode_label">
                 <property name="text">
                  <string>Multi Channel Mode</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QComboBox" name="export_channel_settings">
+               <widget class="QComboBox" name="export_multi_channel_mode">
                 <item>
                  <property name="text">
                   <string>All Channels (Stack)</string>
@@ -4357,18 +4357,7 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QComboBox" name="export_channel">
-                <item>
-                 <property name="text">
-                  <string/>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Multi Channel</string>
-                 </property>
-                </item>
-               </widget>
+               <widget class="QComboBox" name="export_channel"/>
               </item>
              </layout>
             </item>

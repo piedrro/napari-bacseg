@@ -85,24 +85,27 @@ class _export_utils:
 
     def generate_export_image(self, export_channel, dim, normalize=False, invert=False,
             autocontrast=False, scalebar=False, cropzoom=False, mask_background=False, ):
+
         layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
         layer_names.reverse()
 
-        if export_channel == "All Channels (Stack)":
-            mode = "stack"
-        if export_channel == "All Channels (Horizontal Stack)":
-            mode = "hstack"
-        elif export_channel == "All Channels (Vertical Stack)":
-            mode = "vstack"
-        elif export_channel == "First Three Channels (RGB)":
-            mode = "rgb"
+        if export_channel == "Multi Channel":
+
+            multi_channel_mode = self.export_multi_channel_mode.currentText()
+
+            if multi_channel_mode == "All Channels (Stack)":
+                mode = "stack"
+            if multi_channel_mode == "All Channels (Horizontal Stack)":
+                mode = "hstack"
+            elif multi_channel_mode == "All Channels (Vertical Stack)":
+                mode = "vstack"
+            elif multi_channel_mode == "First Three Channels (RGB)":
+                mode = "rgb"
+                layer_names = layer_names[:3]
         else:
             mode = "single"
             layer_names = [export_channel]
-
-        if mode == "rgb":
-            layer_names = layer_names[:3]
 
         mask = self.segLayer.data
         nmask = self.nucLayer.data
@@ -112,6 +115,7 @@ class _export_utils:
         mask = mask[dim]
         nmask = nmask[dim]
         label = label[dim]
+
         try:
             metadata = metadata[dim[0]]
         except:
@@ -329,7 +333,9 @@ class _export_utils:
                     dim_list.append((image_index,))
 
         for i, dim in enumerate(dim_list):
-            image, mask, nmask, label, meta, mode = self.generate_export_image(export_channel, dim, normalise, invert, autocontrast, scalebar, cropzoom, mask_background, )
+
+            image, mask, nmask, label, meta, mode = self.generate_export_image(export_channel, dim,
+                normalise, invert, autocontrast, scalebar, cropzoom, mask_background, )
 
             contours, mask, label = self.get_contours_from_mask(mask, label, export_labels)
 
@@ -373,15 +379,18 @@ class _export_utils:
                     show_info("Directory does not exist, try selecting a directory instead!")
 
             else:
-                y1, y2, x1, x2 = meta["crop"]
 
-                if len(image.shape) > 2:
-                    image = image[:, y1:y2, x1:x2]
-                else:
-                    image = image[y1:y2, x1:x2]
+                if export_channel != "Multi Channel":
 
-                mask = mask[y1:y2, x1:x2]
-                label = label[y1:y2, x1:x2]
+                    y1, y2, x1, x2 = meta["crop"]
+
+                    if len(image.shape) > 2:
+                        image = image[:, y1:y2, x1:x2]
+                    else:
+                        image = image[y1:y2, x1:x2]
+
+                    mask = mask[y1:y2, x1:x2]
+                    label = label[y1:y2, x1:x2]
 
                 if os.path.isdir(export_path) == False:
                     os.makedirs(file_path)
@@ -393,6 +402,7 @@ class _export_utils:
                         show_info(file_name + " already exists, BacSeg will not overwrite files!")
 
                 else:
+
                     if self.export_mode.currentText() == "Export .tif Images":
                         tifffile.imwrite(file_path, image, metadata=meta)
 
