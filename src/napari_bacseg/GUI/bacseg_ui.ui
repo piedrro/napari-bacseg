@@ -2441,8 +2441,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>464</width>
-         <height>478</height>
+         <width>324</width>
+         <height>463</height>
         </rect>
        </property>
        <attribute name="label">
@@ -3000,6 +3000,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_14">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>257</width>
+         <height>170</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Channel Metadata</string>
        </attribute>
@@ -3719,8 +3727,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>464</width>
-         <height>508</height>
+         <width>386</width>
+         <height>184</height>
         </rect>
        </property>
        <attribute name="label">
@@ -4009,8 +4017,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>464</width>
-         <height>508</height>
+         <width>369</width>
+         <height>252</height>
         </rect>
        </property>
        <attribute name="label">
@@ -4235,7 +4243,45 @@
            <layout class="QVBoxLayout" name="verticalLayout_26">
             <item>
              <layout class="QFormLayout" name="formLayout_6">
-              <item row="1" column="1">
+              <item row="3" column="1">
+               <widget class="QComboBox" name="export_location">
+                <property name="currentIndex">
+                 <number>1</number>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Import Directory</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Select Directory</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_44">
+                <property name="text">
+                 <string>Export Location</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_45">
+                <property name="text">
+                 <string>Image Channel(s)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_19">
+                <property name="text">
+                 <string>Export Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
                <widget class="QComboBox" name="export_mode">
                 <item>
                  <property name="text">
@@ -4279,39 +4325,15 @@
                 </item>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_19">
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_60">
                 <property name="text">
-                 <string>Export Mode</string>
+                 <string>Multi Channel Mode</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QComboBox" name="export_location">
-                <property name="currentIndex">
-                 <number>1</number>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>Import Directory</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Select Directory</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_44">
-                <property name="text">
-                 <string>Export Location</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QComboBox" name="export_channel">
+               <widget class="QComboBox" name="export_channel_settings">
                 <item>
                  <property name="text">
                   <string>All Channels (Stack)</string>
@@ -4334,11 +4356,18 @@
                 </item>
                </widget>
               </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_45">
-                <property name="text">
-                 <string>Image Channel</string>
-                </property>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="export_channel">
+                <item>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Multi Channel</string>
+                 </property>
+                </item>
                </widget>
               </item>
              </layout>
@@ -5172,6 +5201,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_7">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>476</width>
+         <height>183</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>View Settings</string>
        </attribute>
@@ -5578,6 +5615,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_8">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>331</width>
+         <height>136</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Fold/Unfold Images</string>
        </attribute>
@@ -5729,8 +5774,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>464</width>
-         <height>358</height>
+         <width>264</width>
+         <height>110</height>
         </rect>
        </property>
        <attribute name="label">
@@ -5801,6 +5846,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_3">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>236</width>
+         <height>78</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Find/Sort Cells</string>
        </attribute>
@@ -5872,6 +5925,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_6">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>351</width>
+         <height>202</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Filter/Remove Segmentations</string>
        </attribute>
@@ -6053,6 +6114,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_4">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>243</width>
+         <height>80</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Automatic Channel Alignment/Registration</string>
        </attribute>
@@ -6105,6 +6174,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_5">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>201</width>
+         <height>110</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Undrift Images</string>
        </attribute>
@@ -6167,6 +6244,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_9">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>413</width>
+         <height>288</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Oufti/MicrobeTracker</string>
        </attribute>
