@@ -516,7 +516,7 @@ class BacSeg(QWidget, _picasso_utils,
         self.viewer.bind_key(key="Control-i", func=self._delete_active_image(mode="active"), overwrite=True, )
         self.viewer.bind_key(key="Control-Shift-i", func=self._delete_active_image(mode="other"), overwrite=True, )
 
-        self.viewer.bind_key(key="Control-l", func=self._downloadDatabase(), overwrite=True)
+        # self.viewer.bind_key(key="Control-l", func=self._downloadDatabase(), overwrite=True)
         self.viewer.bind_key(key="Control-u", func=self._uploadDatabase(mode="active"), overwrite=True, )
         self.viewer.bind_key(key="Control-Shift-u", func=self._uploadDatabase(mode="all"), overwrite=True, )
         #

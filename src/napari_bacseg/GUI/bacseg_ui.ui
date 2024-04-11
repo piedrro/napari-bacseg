@@ -1896,7 +1896,7 @@
       <item row="2" column="1">
        <widget class="QComboBox" name="picasso_box_size">
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <item>
          <property name="text">
@@ -1921,6 +1921,21 @@
         <item>
          <property name="text">
           <string>9</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>11</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>13</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>15</string>
          </property>
         </item>
        </widget>
@@ -2368,8 +2383,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>464</width>
-         <height>478</height>
+         <width>222</width>
+         <height>79</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2441,8 +2456,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>464</width>
-         <height>478</height>
+         <width>324</width>
+         <height>461</height>
         </rect>
        </property>
        <attribute name="label">
@@ -3000,6 +3015,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_14">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>257</width>
+         <height>170</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Channel Metadata</string>
        </attribute>
@@ -3719,8 +3742,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>464</width>
-         <height>508</height>
+         <width>386</width>
+         <height>181</height>
         </rect>
        </property>
        <attribute name="label">
@@ -4009,8 +4032,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>464</width>
-         <height>508</height>
+         <width>357</width>
+         <height>252</height>
         </rect>
        </property>
        <attribute name="label">
@@ -5069,8 +5092,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>464</width>
-         <height>385</height>
+         <width>344</width>
+         <height>228</height>
         </rect>
        </property>
        <attribute name="label">
@@ -5172,6 +5195,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_7">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>452</width>
+         <height>183</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>View Settings</string>
        </attribute>
@@ -5578,6 +5609,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_8">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>331</width>
+         <height>133</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Fold/Unfold Images</string>
        </attribute>
@@ -5729,8 +5768,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>464</width>
-         <height>358</height>
+         <width>264</width>
+         <height>109</height>
         </rect>
        </property>
        <attribute name="label">
@@ -5801,6 +5840,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_3">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>236</width>
+         <height>77</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Find/Sort Cells</string>
        </attribute>
@@ -5872,6 +5919,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_6">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>349</width>
+         <height>200</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Filter/Remove Segmentations</string>
        </attribute>
@@ -6053,6 +6108,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_4">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>243</width>
+         <height>79</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Automatic Channel Alignment/Registration</string>
        </attribute>
@@ -6105,6 +6168,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_5">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>201</width>
+         <height>109</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Undrift Images</string>
        </attribute>
@@ -6167,6 +6238,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_9">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>413</width>
+         <height>285</height>
+        </rect>
+       </property>
        <attribute name="label">
         <string>Oufti/MicrobeTracker</string>
        </attribute>
