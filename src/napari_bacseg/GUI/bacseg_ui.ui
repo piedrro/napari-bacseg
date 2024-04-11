@@ -1896,7 +1896,7 @@
       <item row="2" column="1">
        <widget class="QComboBox" name="picasso_box_size">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <item>
          <property name="text">
@@ -1921,21 +1921,6 @@
         <item>
          <property name="text">
           <string>9</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>11</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>13</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>15</string>
          </property>
         </item>
        </widget>
@@ -2383,8 +2368,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>222</width>
-         <height>79</height>
+         <width>464</width>
+         <height>478</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2457,7 +2442,7 @@
          <x>0</x>
          <y>0</y>
          <width>324</width>
-         <height>461</height>
+         <height>463</height>
         </rect>
        </property>
        <attribute name="label">
@@ -3743,7 +3728,7 @@
          <x>0</x>
          <y>0</y>
          <width>386</width>
-         <height>181</height>
+         <height>184</height>
         </rect>
        </property>
        <attribute name="label">
@@ -4032,7 +4017,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>357</width>
+         <width>369</width>
          <height>252</height>
         </rect>
        </property>
@@ -4258,7 +4243,45 @@
            <layout class="QVBoxLayout" name="verticalLayout_26">
             <item>
              <layout class="QFormLayout" name="formLayout_6">
-              <item row="1" column="1">
+              <item row="3" column="1">
+               <widget class="QComboBox" name="export_location">
+                <property name="currentIndex">
+                 <number>1</number>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Import Directory</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Select Directory</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_44">
+                <property name="text">
+                 <string>Export Location</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_45">
+                <property name="text">
+                 <string>Image Channel(s)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_19">
+                <property name="text">
+                 <string>Export Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
                <widget class="QComboBox" name="export_mode">
                 <item>
                  <property name="text">
@@ -4302,39 +4325,15 @@
                 </item>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_19">
+              <item row="2" column="0">
+               <widget class="QLabel" name="export_multi_channel_mode_label">
                 <property name="text">
-                 <string>Export Mode</string>
+                 <string>Multi Channel Mode</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QComboBox" name="export_location">
-                <property name="currentIndex">
-                 <number>1</number>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>Import Directory</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Select Directory</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_44">
-                <property name="text">
-                 <string>Export Location</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QComboBox" name="export_channel">
+               <widget class="QComboBox" name="export_multi_channel_mode">
                 <item>
                  <property name="text">
                   <string>All Channels (Stack)</string>
@@ -4357,12 +4356,8 @@
                 </item>
                </widget>
               </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_45">
-                <property name="text">
-                 <string>Image Channel</string>
-                </property>
-               </widget>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="export_channel"/>
               </item>
              </layout>
             </item>
@@ -5092,8 +5087,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>344</width>
-         <height>228</height>
+         <width>464</width>
+         <height>385</height>
         </rect>
        </property>
        <attribute name="label">
@@ -5199,7 +5194,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>452</width>
+         <width>476</width>
          <height>183</height>
         </rect>
        </property>
@@ -5614,7 +5609,7 @@
          <x>0</x>
          <y>0</y>
          <width>331</width>
-         <height>133</height>
+         <height>136</height>
         </rect>
        </property>
        <attribute name="label">
@@ -5769,7 +5764,7 @@
          <x>0</x>
          <y>0</y>
          <width>264</width>
-         <height>109</height>
+         <height>110</height>
         </rect>
        </property>
        <attribute name="label">
@@ -5845,7 +5840,7 @@
          <x>0</x>
          <y>0</y>
          <width>236</width>
-         <height>77</height>
+         <height>78</height>
         </rect>
        </property>
        <attribute name="label">
@@ -5923,8 +5918,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>349</width>
-         <height>200</height>
+         <width>351</width>
+         <height>202</height>
         </rect>
        </property>
        <attribute name="label">
@@ -6113,7 +6108,7 @@
          <x>0</x>
          <y>0</y>
          <width>243</width>
-         <height>79</height>
+         <height>80</height>
         </rect>
        </property>
        <attribute name="label">
@@ -6173,7 +6168,7 @@
          <x>0</x>
          <y>0</y>
          <width>201</width>
-         <height>109</height>
+         <height>110</height>
         </rect>
        </property>
        <attribute name="label">
@@ -6243,7 +6238,7 @@
          <x>0</x>
          <y>0</y>
          <width>413</width>
-         <height>285</height>
+         <height>288</height>
         </rect>
        </property>
        <attribute name="label">
