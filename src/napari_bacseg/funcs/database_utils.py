@@ -184,8 +184,8 @@ class _database_utils:
             self.generate_txt_metadata(database_directory)
             metadata_files = glob(metadata_directory + r"\*.txt")
 
-        image_metadata_files = [path for path in metadata_files if f"{database_name} Database Metadata" in path]
-        user_metadata_fies = [path for path in metadata_files if f"{database_name} User Metadata" in path]
+        image_metadata_files = [path for path in metadata_files if f"Database Metadata" in path]
+        user_metadata_fies = [path for path in metadata_files if f"User Metadata" in path]
 
         image_metadata = {}
 
