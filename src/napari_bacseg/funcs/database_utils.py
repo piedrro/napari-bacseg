@@ -90,8 +90,6 @@ class _database_utils:
                     meta_options, user_meta_options = self.read_txt_metadata(self.database_path)
                     file_usermeta, self.user_metadata = self.read_file_metadata()
 
-                    print(meta_options)
-
                     self.upload_initial.clear()
                     self.upload_initial.addItems(["Required for upload"] + meta_options["user_initial"])
 
@@ -202,8 +200,6 @@ class _database_utils:
             image_metadata[key] = lines
 
         user_metadata = {}
-
-        print(image_metadata)
 
         for file in user_metadata_fies:
 
