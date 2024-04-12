@@ -90,6 +90,8 @@ class _database_utils:
                     meta_options, user_meta_options = self.read_txt_metadata(self.database_path)
                     file_usermeta, self.user_metadata = self.read_file_metadata()
 
+                    print(meta_options)
+
                     self.upload_initial.clear()
                     self.upload_initial.addItems(["Required for upload"] + meta_options["user_initial"])
 
@@ -171,7 +173,10 @@ class _database_utils:
 
     def read_txt_metadata(self, database_directory, user_initial=""):
 
-        database_name = (pathlib.Path(database_directory).parts[-1].replace("_Database", ""))
+        database_name = (pathlib.Path(database_directory).parts[-1])
+        database_name = database_name.replace("Database", "")
+        database_name = database_name.replace("_", "")
+        database_name = database_name.replace(" ", "")
 
         metadata_directory = str(pathlib.PurePath(database_directory, "Metadata"))
 
@@ -197,6 +202,8 @@ class _database_utils:
             image_metadata[key] = lines
 
         user_metadata = {}
+
+        print(image_metadata)
 
         for file in user_metadata_fies:
 
