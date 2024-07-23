@@ -936,7 +936,9 @@ class _oufti_utils:
             try:
                 mesh, model, steplength, steparea, stepvolume, boundingbox = _oufti_utils.get_mesh(oufti_data[i])
     
-                cell_struct = {'mesh': mesh, 'model': model, 'birthframe': 1, 'divisions': [], 'ancestors': [], 'descendants': [], 'timelapse': False, 'algorithm': 5, 'polarity': 0, 'stage': 1, 'box': boundingbox, 'steplength': steplength, 'length': np.sum(steplength), 'lengthvector': steplength, 'steparea': steparea, 'area': np.sum(steparea), 'stepvolume': stepvolume.T, 'volume': np.sum(stepvolume)}
+                cell_struct = {'mesh': mesh, 'model': model, 'birthframe': 1, 'divisions': [], 'ancestors': [], 'descendants': [],
+                               'timelapse': False, 'algorithm': 5, 'polarity': 0, 'stage': 1, 'box': boundingbox, 'steplength': steplength,
+                               'length': np.sum(steplength), 'lengthvector': steplength, 'steparea': steparea, 'area': np.sum(steparea), 'stepvolume': stepvolume.T, 'volume': np.sum(stepvolume)}
     
                 cell_data.append(cell_struct)
     

@@ -1649,7 +1649,8 @@ class BacSeg(QWidget, _picasso_utils,
         except:
             pass
 
-    def _autoClassify(self, reset=False):
+    def _autoClassify(self, reset=False, margin = 1):
+
         mask_stack = self.segLayer.data.copy()
         label_stack = self.classLayer.data.copy()
 
@@ -1673,12 +1674,28 @@ class BacSeg(QWidget, _picasso_utils,
                         x, y, w, h = cv2.boundingRect(cnt[0])
                         y1, y2, x1, x2 = y, (y + h), x, (x + w)
 
-                        # appends contour to list if the bounding coordinates are along the edge of the image
-                        if (y1 > 0 and y2 < cnt_mask.shape[0] and x1 > 0 and x2 < cnt_mask.shape[1]):
-                            label[mask == mask_id] = 1
+                        edge = False
 
-                        else:
+                        if x1 < margin:
+                            edge = True
+                        if y1 < margin:
+                            edge = True
+                        if x2 > cnt_mask.shape[1] - margin:
+                            edge = True
+                        if y2 > cnt_mask.shape[0] - margin:
+                            edge = True
+
+                        if edge == True:
                             label[mask == mask_id] = 6
+                        else:
+                            label[mask == mask_id] = 1
+                        #
+                        # # appends contour to list if the bounding coordinates are along the edge of the image
+                        # if (y1 > 0 and y2 < cnt_mask.shape[0] and x1 > 0 and x2 < cnt_mask.shape[1]):
+                        #     label[mask == mask_id] = 1
+                        #
+                        # else:
+                        #     label[mask == mask_id] = 6
 
             label_stack[i, :, :] = label
 
