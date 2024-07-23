@@ -1649,7 +1649,7 @@ class BacSeg(QWidget, _picasso_utils,
         except:
             pass
 
-    def _autoClassify(self, reset=False, margin = 1):
+    def _autoClassify(self, reset=False, margin = 3):
 
         mask_stack = self.segLayer.data.copy()
         label_stack = self.classLayer.data.copy()
