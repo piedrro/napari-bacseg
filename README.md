@@ -15,7 +15,7 @@ This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookie
 
 Create a new conda environment:
 
-    conda create –-name napari-bacseg python==3.9
+    conda create --name napari-bacseg python==3.9
     conda activate napari-bacseg
     conda install -c anaconda git
     conda update --all
