@@ -460,7 +460,7 @@ class _export_utils:
 
                     if self.gui.export_mode.currentText() == "Export JSON":
 
-                        from bacseg.funcs.IO.json_utils import export_coco_json
+                        from napari_bacseg.funcs.IO.json_utils import export_coco_json
 
                         export_coco_json(file_name, image, mask, nmask, label, file_path)
 

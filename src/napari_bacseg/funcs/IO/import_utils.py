@@ -149,7 +149,7 @@ class _import_utils:
                 image =self.crop_image(image, crop_mode)
 
                 if os.path.exists(json_path):
-                    from bacseg.funcs.IO.json_utils import import_coco_json
+                    from napari_bacseg.funcs.IO.json_utils import import_coco_json
 
                     mask, nmask, label = import_coco_json(json_path)
                     mask =self.crop_image(mask, crop_mode)
@@ -609,7 +609,7 @@ class _import_utils:
                 image_list, meta = self.read_image_file(image_path, import_precision, multiframe_mode)
                 image = image_list[0]
 
-                from bacseg.funcs.IO.json_utils import import_coco_json
+                from napari_bacseg.funcs.IO.json_utils import import_coco_json
 
                 mask, nmask, labels = import_coco_json(json_path)
 
@@ -711,7 +711,7 @@ class _import_utils:
                 self.segLayer.data = mask_stack.astype(np.uint16)
 
             if file_format == "txt":
-                from bacseg.funcs.IO.json_utils import import_coco_json
+                from napari_bacseg.funcs.IO.json_utils import import_coco_json
 
                 mask, nmask, label = import_coco_json(mask_path)
                 mask_stack[i, :, :][y1:y2, x1:x2] = mask

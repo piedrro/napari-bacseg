@@ -15,7 +15,7 @@ classifiers = [
 
 requires-python = ">=3.9"
 dependencies = [
-    "napari[all] >= 0.4.19",
+    "napari[all]==0.5.0",
     "torch",
     "cellpose >= 3.0.1",
     "opencv-python",
@@ -67,7 +67,7 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.dynamic]
-version = {attr = "bacseg.__init__.__version__"}
+version = {attr = "napari_bacseg.__init__.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -89,4 +89,4 @@ line_length = 79
 
 
 [project.entry-points."napari.manifest"]
-"napari-bacseg" = "bacseg:napari.yaml"
+"napari-bacseg" = "napari_bacseg:napari.yaml"

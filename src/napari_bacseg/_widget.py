@@ -17,32 +17,33 @@ from functools import partial
 import cv2
 import napari
 import numpy as np
+from napari.utils.colormaps import label_colormap
 from napari.utils.notifications import show_info
 from qtpy.QtCore import QThreadPool
 
 from qtpy.QtWidgets import (QComboBox, QFileDialog, QLabel, QSlider, QWidget, )
 
 
-from bacseg.GUI.gui import Ui_Form as gui
+from napari_bacseg.GUI.gui import Ui_Form as gui
 
-from bacseg.funcs.utils import _utils
-from bacseg.funcs.IO.import_utils import _import_utils
-from bacseg.funcs.IO.oni_utils import _oni_utils
-from bacseg.funcs.IO.olympus_utils import _olympus_utils
-from bacseg.funcs.IO.export_utils import _export_utils
-from bacseg.funcs.database_utils import _database_utils
-from bacseg.funcs.databaseIO_utils import _databaseIO
-from bacseg.funcs.cellpose_utils import _cellpose_utils
-from bacseg.funcs.tiler_utils import _tiler_utils
-from bacseg.funcs.undrift_utils import _undrift_utils
-from bacseg.funcs.IO.zeiss_utils import _zeiss_utils
-from bacseg.funcs.events_utils import _events_utils
-from bacseg.funcs.statistics_utils import _stats_utils
-from bacseg.funcs.IO.oufti_utils import _oufti_utils
-from bacseg.funcs.IO.imagej_utils import _imagej_utils
-from bacseg.funcs.picasso_utils import _picasso_utils
+from napari_bacseg.funcs.utils import _utils
+from napari_bacseg.funcs.IO.import_utils import _import_utils
+from napari_bacseg.funcs.IO.oni_utils import _oni_utils
+from napari_bacseg.funcs.IO.olympus_utils import _olympus_utils
+from napari_bacseg.funcs.IO.export_utils import _export_utils
+from napari_bacseg.funcs.database_utils import _database_utils
+from napari_bacseg.funcs.databaseIO_utils import _databaseIO
+from napari_bacseg.funcs.cellpose_utils import _cellpose_utils
+from napari_bacseg.funcs.tiler_utils import _tiler_utils
+from napari_bacseg.funcs.undrift_utils import _undrift_utils
+from napari_bacseg.funcs.IO.zeiss_utils import _zeiss_utils
+from napari_bacseg.funcs.events_utils import _events_utils
+from napari_bacseg.funcs.statistics_utils import _stats_utils
+from napari_bacseg.funcs.IO.oufti_utils import _oufti_utils
+from napari_bacseg.funcs.IO.imagej_utils import _imagej_utils
+from napari_bacseg.funcs.picasso_utils import _picasso_utils
 
-from bacseg.funcs.threading_utils import Worker
+from napari_bacseg.funcs.threading_utils import Worker
 
 sub_classes = [_picasso_utils, _utils, _import_utils, _export_utils,
     _database_utils, _databaseIO, _cellpose_utils, _events_utils,
@@ -57,8 +58,8 @@ class QWidget(QWidget, gui, *sub_classes):
 
         self.viewer = viewer
 
-        from bacseg.__init__ import __version__ as version
-        show_info(f"napari-bacseg version: {version}")
+        from napari_bacseg.__init__ import __version__ as version
+        show_info(f"napari-napari_bacseg version: {version}")
 
         self.initialise_widget_ui()
         self.initialise_controls()
@@ -407,13 +408,13 @@ class QWidget(QWidget, gui, *sub_classes):
         self.gui.classify_broken.clicked.connect(self._modifyMode(mode="broken"))
         self.gui.classify_edge.clicked.connect(self._modifyMode(mode="edge"))
 
-        self.viewer.bind_key(key="b", func=self.set_blurred, overwrite=True)
+        self.viewer.bind_key("b", func=self.set_blurred, overwrite=True)
         self.gui.set_focus_1.clicked.connect(partial(self.set_image_quality, mode="focus", value=1))
         self.gui.set_focus_2.clicked.connect(partial(self.set_image_quality, mode="focus", value=2))
         self.gui.set_focus_3.clicked.connect(partial(self.set_image_quality, mode="focus", value=3))
         self.gui.set_focus_4.clicked.connect(partial(self.set_image_quality, mode="focus", value=4))
         self.gui.set_focus_5.clicked.connect(partial(self.set_image_quality, mode="focus", value=5))
-        self.viewer.bind_key(key="f", func=self.set_focused, overwrite=True)
+        self.viewer.bind_key("f", func=self.set_focused, overwrite=True)
 
         self.gui.set_debris_1.clicked.connect(partial(self.set_image_quality, mode="debris", value=1))
         self.gui.set_debris_2.clicked.connect(partial(self.set_image_quality, mode="debris", value=2))
@@ -447,7 +448,7 @@ class QWidget(QWidget, gui, *sub_classes):
         # oufti events
         self.gui.oufti_generate_all_midlines.clicked.connect(self.generate_midlines(mode="all"))
         self.gui.oufti_generate_active_midlines.clicked.connect(self.generate_midlines(mode="active"))
-        self.viewer.bind_key(key="m", func=self.midline_edit_toggle, overwrite=True)
+        self.viewer.bind_key("m", func=self.midline_edit_toggle, overwrite=True)
         self.gui.oufti_edit_mode.clicked.connect(self.midline_edit_toggle)
         self.gui.oufti_panzoom_mode.clicked.connect(self.midline_edit_toggle)
         self.gui.oufti_centre_all_midlines.clicked.connect(self.centre_oufti_midlines(mode="all"))
@@ -483,49 +484,49 @@ class QWidget(QWidget, gui, *sub_classes):
 
     def initialise_keybindings(self):
 
-        self.viewer.bind_key(key="a", func=self._modifyMode(mode="add"), overwrite=True)
-        self.viewer.bind_key(key="e", func=self._modifyMode(mode="extend"), overwrite=True)
-        self.viewer.bind_key(key="j", func=self._modifyMode(mode="join"), overwrite=True)
-        self.viewer.bind_key(key="s", func=self._modifyMode(mode="split"), overwrite=True)
-        self.viewer.bind_key(key="d", func=self._modifyMode(mode="delete"), overwrite=True)
-        self.viewer.bind_key(key="r", func=self._modifyMode(mode="refine"), overwrite=True)
-        self.viewer.bind_key(key="k", func=self._modifyMode(mode="clicktozoom"), overwrite=True)
-        self.viewer.bind_key(key="Control-1", func=self._modifyMode(mode="single"), overwrite=True, )
-        self.viewer.bind_key(key="Control-2", func=self._modifyMode(mode="dividing"), overwrite=True, )
-        self.viewer.bind_key(key="Control-3", func=self._modifyMode(mode="divided"), overwrite=True, )
-        self.viewer.bind_key(key="Control-4", func=self._modifyMode(mode="vertical"), overwrite=True, )
-        self.viewer.bind_key(key="Control-5", func=self._modifyMode(mode="broken"), overwrite=True, )
-        self.viewer.bind_key(key="Control-6", func=self._modifyMode(mode="edge"), overwrite=True)
-        self.viewer.bind_key(key="F1", func=self._modifyMode(mode="panzoom"), overwrite=True)
-        self.viewer.bind_key(key="F2", func=self._modifyMode(mode="segment"), overwrite=True)
-        self.viewer.bind_key(key="F3", func=self._modifyMode(mode="classify"), overwrite=True)
-        self.viewer.bind_key(key="h", func=self._viewerControls("h"), overwrite=True)
-        self.viewer.bind_key(key="i", func=self._viewerControls("i"), overwrite=True)
-        self.viewer.bind_key(key="o", func=self._viewerControls("o"), overwrite=True)
-        self.viewer.bind_key(key="x", func=self._viewerControls("x"), overwrite=True)
-        self.viewer.bind_key(key="z", func=self._viewerControls("z"), overwrite=True)
-        self.viewer.bind_key(key="c", func=self._viewerControls("c"), overwrite=True)
-        self.viewer.bind_key(key="Right", func=self._imageControls("Right"), overwrite=True)
-        self.viewer.bind_key(key="Left", func=self._imageControls("Left"), overwrite=True)
-        self.viewer.bind_key(key="u", func=self._imageControls("Upload"), overwrite=True)
-        self.viewer.bind_key(key="Control-d", func=self._deleteallmasks(mode="active"), overwrite=True, )
-        self.viewer.bind_key(key="Control-Shift-d", func=self._deleteallmasks(mode="all"), overwrite=True, )
-        self.viewer.bind_key(key="Control-i", func=self._delete_active_image(mode="active"), overwrite=True, )
-        self.viewer.bind_key(key="Control-Shift-i", func=self._delete_active_image(mode="other"), overwrite=True, )
+        self.viewer.bind_key("a", func=self._modifyMode(mode="add"), overwrite=True)
+        self.viewer.bind_key("e", func=self._modifyMode(mode="extend"), overwrite=True)
+        self.viewer.bind_key("j", func=self._modifyMode(mode="join"), overwrite=True)
+        self.viewer.bind_key("s", func=self._modifyMode(mode="split"), overwrite=True)
+        self.viewer.bind_key("d", func=self._modifyMode(mode="delete"), overwrite=True)
+        self.viewer.bind_key("r", func=self._modifyMode(mode="refine"), overwrite=True)
+        self.viewer.bind_key("k", func=self._modifyMode(mode="clicktozoom"), overwrite=True)
+        self.viewer.bind_key("Control-1", func=self._modifyMode(mode="single"), overwrite=True, )
+        self.viewer.bind_key("Control-2", func=self._modifyMode(mode="dividing"), overwrite=True, )
+        self.viewer.bind_key("Control-3", func=self._modifyMode(mode="divided"), overwrite=True, )
+        self.viewer.bind_key("Control-4", func=self._modifyMode(mode="vertical"), overwrite=True, )
+        self.viewer.bind_key("Control-5", func=self._modifyMode(mode="broken"), overwrite=True, )
+        self.viewer.bind_key("Control-6", func=self._modifyMode(mode="edge"), overwrite=True)
+        self.viewer.bind_key("F1", func=self._modifyMode(mode="panzoom"), overwrite=True)
+        self.viewer.bind_key("F2", func=self._modifyMode(mode="segment"), overwrite=True)
+        self.viewer.bind_key("F3", func=self._modifyMode(mode="classify"), overwrite=True)
+        self.viewer.bind_key("h", func=self._viewerControls("h"), overwrite=True)
+        self.viewer.bind_key("i", func=self._viewerControls("i"), overwrite=True)
+        self.viewer.bind_key("o", func=self._viewerControls("o"), overwrite=True)
+        self.viewer.bind_key("x", func=self._viewerControls("x"), overwrite=True)
+        self.viewer.bind_key("z", func=self._viewerControls("z"), overwrite=True)
+        self.viewer.bind_key("c", func=self._viewerControls("c"), overwrite=True)
+        self.viewer.bind_key("Right", func=self._imageControls("Right"), overwrite=True)
+        self.viewer.bind_key("Left", func=self._imageControls("Left"), overwrite=True)
+        self.viewer.bind_key("u", func=self._imageControls("Upload"), overwrite=True)
+        self.viewer.bind_key("Control-d", func=self._deleteallmasks(mode="active"), overwrite=True, )
+        self.viewer.bind_key("Control-Shift-d", func=self._deleteallmasks(mode="all"), overwrite=True, )
+        self.viewer.bind_key("Control-i", func=self._delete_active_image(mode="active"), overwrite=True, )
+        self.viewer.bind_key("Control-Shift-i", func=self._delete_active_image(mode="other"), overwrite=True, )
 
-        # self.viewer.bind_key(key="Control-l", func=self._downloadDatabase(), overwrite=True)
-        self.viewer.bind_key(key="Control-u", func=self._uploadDatabase(mode="active"), overwrite=True, )
-        self.viewer.bind_key(key="Control-Shift-u", func=self._uploadDatabase(mode="all"), overwrite=True, )
+        # self.viewer.bind_key("Control-l", func=self._downloadDatabase(), overwrite=True)
+        self.viewer.bind_key("Control-u", func=self._uploadDatabase(mode="active"), overwrite=True, )
+        self.viewer.bind_key("Control-Shift-u", func=self._uploadDatabase(mode="all"), overwrite=True, )
         #
-        self.viewer.bind_key(key="Control-Left", func=self._manual_align_channels("left", mode="active"), overwrite=True, )
-        self.viewer.bind_key(key="Control-Right", func=self._manual_align_channels("right", mode="active"), overwrite=True, )
-        self.viewer.bind_key(key="Control-Up", func=self._manual_align_channels("up", mode="active"), overwrite=True, )
-        self.viewer.bind_key(key="Control-Down", func=self._manual_align_channels("down", mode="active"), overwrite=True, )
+        self.viewer.bind_key("Control-Left", func=self._manual_align_channels("left", mode="active"), overwrite=True, )
+        self.viewer.bind_key("Control-Right", func=self._manual_align_channels("right", mode="active"), overwrite=True, )
+        self.viewer.bind_key("Control-Up", func=self._manual_align_channels("up", mode="active"), overwrite=True, )
+        self.viewer.bind_key("Control-Down", func=self._manual_align_channels("down", mode="active"), overwrite=True, )
 
-        self.viewer.bind_key(key="Alt-Left", func=self._manual_align_channels("left", mode="all"), overwrite=True, )
-        self.viewer.bind_key(key="Alt-Right", func=self._manual_align_channels("right", mode="all"), overwrite=True, )
-        self.viewer.bind_key(key="Alt-Up", func=self._manual_align_channels("up", mode="all"), overwrite=True, )
-        self.viewer.bind_key(key="Alt-Down", func=self._manual_align_channels("down", mode="all"), overwrite=True, )
+        self.viewer.bind_key("Alt-Left", func=self._manual_align_channels("left", mode="all"), overwrite=True, )
+        self.viewer.bind_key("Alt-Right", func=self._manual_align_channels("right", mode="all"), overwrite=True, )
+        self.viewer.bind_key("Alt-Up", func=self._manual_align_channels("up", mode="all"), overwrite=True, )
+        self.viewer.bind_key("Alt-Down", func=self._manual_align_channels("down", mode="all"), overwrite=True, )
 
     def initialise_viewer_events(self):
 
@@ -579,18 +580,40 @@ class QWidget(QWidget, gui, *sub_classes):
         self.updating_combos = False
         self.contours = []
 
-        self.class_colours = {1: (255 / 255, 255 / 255, 255 / 255, 1), 2: (0 / 255, 255 / 255, 0 / 255, 1), 3: (0 / 255, 170 / 255, 255 / 255, 1), 4: (170 / 255, 0 / 255, 255 / 255, 1), 5: (
-        255 / 255, 170 / 255, 0 / 255, 1), 6: (255 / 255, 0 / 255, 0 / 255, 1), }
+        self.class_colours = {
+            0: (0 / 255, 0 / 255, 0 / 255, 1),
+            1: (255 / 255, 255 / 255, 255 / 255, 1),
+            2: (0 / 255, 255 / 255, 0 / 255, 1),
+            3: (0 / 255, 170 / 255, 255 / 255, 1),
+            4: (170 / 255, 0 / 255, 255 / 255, 1),
+            5: (255 / 255, 170 / 255, 0 / 255, 1),
+            6: (255 / 255, 0 / 255, 0 / 255, 1),
+            None: (255 / 255, 255 / 255, 255 / 255, 1),
+        }
+
+        for key,value in self.class_colours.items():
+            self.class_colours[key] = np.array(value).astype(np.float32)
+
+        self.class_cmap = napari.utils.colormaps.DirectLabelColormap(
+            color_dict=self.class_colours)
 
         self.widget_notifications = True
-
         self._show_database_controls(False)
 
     def initialise_label_layers(self):
 
-        self.classLayer = self.viewer.add_labels(np.zeros((1, 100, 100), dtype=np.uint16), opacity=0.25, name="Classes", color=self.class_colours, metadata={0: {"image_name": ""}}, visible=False, )
-        self.nucLayer = self.viewer.add_labels(np.zeros((1, 100, 100), dtype=np.uint16), opacity=1, name="Nucleoid", metadata={0: {"image_name": ""}}, )
-        self.segLayer = self.viewer.add_labels(np.zeros((1, 100, 100), dtype=np.uint16), opacity=1, name="Segmentations", metadata={0: {"image_name": ""}}, )
+        self.classLayer = self.viewer.add_labels(np.zeros((1, 100, 100),
+            dtype=np.uint16), opacity=0.25, name="Classes",
+            colormap =self.class_cmap,
+            metadata={0: {"image_name": ""}}, visible=False, )
+
+        self.nucLayer = self.viewer.add_labels(np.zeros((1, 100, 100),
+            dtype=np.uint16), opacity=1, name="Nucleoid",
+            metadata={0: {"image_name": ""}}, )
+
+        self.segLayer = self.viewer.add_labels(np.zeros((1, 100, 100),
+            dtype=np.uint16), opacity=1, name="Segmentations",
+            metadata={0: {"image_name": ""}}, )
 
         self.segLayer.mouse_drag_callbacks.append(self._segmentationEvents)
         self.nucLayer.mouse_drag_callbacks.append(self._segmentationEvents)
@@ -868,7 +891,7 @@ class QWidget(QWidget, gui, *sub_classes):
 
                 if self.gui.export_colicoords_mode.currentIndex() != 0:
 
-                    from bacseg.funcs.colicoords_utils import run_colicoords
+                    from napari_bacseg.funcs.colicoords_utils import run_colicoords
                     self.run_colicoords = self.wrapper(run_colicoords)
 
                     worker = Worker(self.run_colicoords, cell_data=cell_data, colicoords_channel=colicoords_channel, pixel_size=pixel_size, statistics=True, multithreaded=multithreaded, )

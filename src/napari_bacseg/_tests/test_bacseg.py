@@ -21,7 +21,7 @@ class test_bacseg(unittest.TestCase):
 
             from napari import Viewer
 
-            from bacseg._widget import QWidget
+            from napari_bacseg._widget import QWidget
 
             viewer = Viewer()
 
@@ -86,7 +86,7 @@ class test_bacseg(unittest.TestCase):
             target_num_images = len(paths)
             target_channels = ["Image"]
 
-            from bacseg.funcs.utils import import_images
+            from napari_bacseg.funcs.utils import import_images
 
             self.BacSeg.import_images = self.BacSeg.wrapper(import_images)
 
@@ -98,7 +98,7 @@ class test_bacseg(unittest.TestCase):
 
             assert len(paths) > 0
 
-            from bacseg.funcs.utils import (read_scanr_directory, read_scanr_images, )
+            from napari_bacseg.funcs.utils import (read_scanr_directory, read_scanr_images, )
 
             self.BacSeg.read_scanr_directory = self.BacSeg.wrapper(read_scanr_directory)
             self.BacSeg.read_scanr_images = self.BacSeg.wrapper(read_scanr_images)
@@ -115,7 +115,7 @@ class test_bacseg(unittest.TestCase):
 
             assert len(paths) > 0
 
-            from bacseg.funcs.utils import (read_nim_directory, read_nim_images, )
+            from napari_bacseg.funcs.utils import (read_nim_directory, read_nim_images, )
 
             self.BacSeg.read_nim_directory = self.BacSeg.wrapper(read_nim_directory)
             self.BacSeg.read_nim_images = self.BacSeg.wrapper(read_nim_images)
@@ -165,7 +165,7 @@ class test_bacseg(unittest.TestCase):
         if randomise:
             image_paths = random.sample(image_paths, random.randint(1, len(image_paths)))
 
-        from bacseg.funcs.utils import (get_hash, import_imagej, import_images, import_masks, )
+        from napari_bacseg.funcs.utils import (get_hash, import_imagej, import_images, import_masks, )
 
         self.BacSeg.import_masks = self.BacSeg.wrapper(import_masks)
         self.BacSeg.import_images = self.BacSeg.wrapper(import_images)
@@ -284,7 +284,7 @@ class test_bacseg(unittest.TestCase):
         self.BacSeg.export_channel.setCurrentText(layer_names[0])
         self.BacSeg.export_modifier.setText(export_modifier)
 
-        from bacseg.funcs.utils import export_files
+        from napari_bacseg.funcs.utils import export_files
 
         self.BacSeg.export_files = self.BacSeg.wrapper(export_files)
 
@@ -307,7 +307,7 @@ class test_bacseg(unittest.TestCase):
         assert num_exported_files == targeted_image_num
 
     def load_custom_cellpose_model(self):
-        from bacseg.funcs.cellpose_utils import _select_custom_cellpose_model
+        from napari_bacseg.funcs.cellpose_utils import _select_custom_cellpose_model
 
         self.BacSeg._select_custom_cellpose_model = self.BacSeg.wrapper(_select_custom_cellpose_model)
 
@@ -328,8 +328,8 @@ class test_bacseg(unittest.TestCase):
 
         self.import_images(mode="images", import_limit=str(import_limit))
 
-        from bacseg.funcs.utils import unstack_images
-        from bacseg.funcs.cellpose_utils import (_process_cellpose, _run_cellpose, )
+        from napari_bacseg.funcs.utils import unstack_images
+        from napari_bacseg.funcs.cellpose_utils import (_process_cellpose, _run_cellpose, )
 
         self.BacSeg._run_cellpose = self.BacSeg.wrapper(_run_cellpose)
         self.BacSeg._process_cellpose = self.BacSeg.wrapper(_process_cellpose)
@@ -362,7 +362,7 @@ class test_bacseg(unittest.TestCase):
             else:
                 path = r"\\physics\dfs\DAQ\CondensedMatterGroups\AKGroup\Piers\AKSEG"
 
-        from bacseg.funcs.database_utils import _load_bacseg_database
+        from napari_bacseg.funcs.database_utils import _load_bacseg_database
 
         self.BacSeg._load_bacseg_database = self.BacSeg.wrapper(_load_bacseg_database)
 
@@ -382,7 +382,7 @@ class test_bacseg(unittest.TestCase):
             shutil.rmtree(path)
             os.mkdir(path)
 
-        from bacseg.funcs.database_utils import _create_bacseg_database
+        from napari_bacseg.funcs.database_utils import _create_bacseg_database
 
         self.BacSeg._create_bacseg_database = self.BacSeg.wrapper(_create_bacseg_database)
 
@@ -440,7 +440,7 @@ class test_bacseg(unittest.TestCase):
                 except:
                     print(traceback.format_exc())
 
-        from bacseg.funcs.database_utils import update_database_metadata
+        from napari_bacseg.funcs.database_utils import update_database_metadata
 
         self.BacSeg.update_database_metadata = self.BacSeg.wrapper(update_database_metadata)
 
@@ -458,7 +458,7 @@ class test_bacseg(unittest.TestCase):
 
     #         self.BacSeg.upload_initial.setCurrentText(user_initial)  #         self.BacSeg.upload_content.setCurrentText(content)  #         self.BacSeg.upload_microscope.setCurrentText(microscope)  #         self.BacSeg.label_modality.setCurrentText(modalilty)  #         self.BacSeg.label_light_source.setCurrentText(source)  #         self.BacSeg.label_stain.setCurrentText(stain)  #         self.BacSeg.label_stain_target.setCurrentText(stain_target)  #         self.BacSeg.upload_overwrite_images.setChecked(overwrite_images)  #         self.BacSeg.upload_overwrite_masks.setChecked(overwrite_masks)  #         self.BacSeg.overwrite_all_metadata.setChecked(overwrite_all_metadata)  #         self.BacSeg.overwrite_selected_metadata.setChecked(overwrite_selected_metadata)
 
-    #         from bacseg._utils_database_IO import (_upload_bacseg_database, )
+    #         from napari_bacseg._utils_database_IO import (_upload_bacseg_database, )
 
     #         self.BacSeg._upload_bacseg_database = self.BacSeg.wrapper(_upload_bacseg_database)
 
@@ -496,7 +496,7 @@ class test_bacseg(unittest.TestCase):
 
     #     # if "content" in meta_options:  #     #     self.BacSeg.upload_content.setCurrentText(meta_options["content"])  #     # if "microscope" in meta_options:  #     #     self.BacSeg.upload_microscope.setCurrentText(meta_options["microscope"])  #     # if "antibiotic" in meta_options:  #     #     self.BacSeg.upload_antibiotic.setCurrentText(meta_options["antibiotic"])  #     # if "treatment time (mins)" in meta_options:  #     #     self.BacSeg.upload_treatment_time.setCurrentText(meta_options["treatment time (mins)"])  #     # if "antibiotic concentration" in meta_options:  #     #     self.BacSeg.upload_abxconcentration.setCurrentText(meta_options["antibiotic concentration"])  #     # if "mounting method" in meta_options:  #     #     self.BacSeg.upload_mount.setCurrentText(meta_options["mounting method"])  #     # if "protocol" in meta_options:  #     #     self.BacSeg.upload_protocol.setCurrentText(meta_options["protocol"])  #     #  #     # if "segmentation_curated" in meta_options:  #     #     if meta_options["segmentation_curated"] == True:  #     #         self.BacSeg.upload_segmentation_combo.setCurrentIndex(3)  #     #     else:  #     #         self.BacSeg.upload_segmentation_combo.setCurrentIndex(2)  #     # elif "segmented" in meta_options:  #     #     if meta_options["segmented"] == True:  #     #         self.BacSeg.upload_segmentation_combo.setCurrentIndex(2)  #     #     else:  #     #         self.BacSeg.upload_segmentation_combo.setCurrentIndex(1)  #     # else:  #     #     self.BacSeg.upload_segmentation_combo.setCurrentIndex(0)  #     #  #     # if "label_curated" in meta_options:  #     #     if meta_options["label_curated"] == True:  #     #         self.BacSeg.upload_label_combo.setCurrentIndex(3)  #     #     else:  #     #         self.BacSeg.upload_label_combo.setCurrentIndex(2)  #     # elif "labelled" in meta_options:  #     #     if meta_options["labelled"] == True:  #     #         self.BacSeg.upload_label_combo.setCurrentIndex(2)  #     #     else:  #     #         self.BacSeg.upload_label_combo.setCurrentIndex(1)  #     # else:  #     #     self.BacSeg.upload_label_combo.setCurrentIndex(0)
 
-    #     from bacseg._utils_database_IO import (get_filtered_database_metadata, read_bacseg_images, )
+    #     from napari_bacseg._utils_database_IO import (get_filtered_database_metadata, read_bacseg_images, )
 
     #     self.BacSeg.get_filtered_database_metadata = self.BacSeg.wrapper(get_filtered_database_metadata)  #     self.BacSeg.read_bacseg_images = self.BacSeg.wrapper(read_bacseg_images)
 
