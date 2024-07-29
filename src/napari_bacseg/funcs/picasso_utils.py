@@ -21,7 +21,7 @@ class _picasso_utils:
             elif (hasattr(self, "detected_locs") == True and hasattr(self, "fitted_locs") == True):
                 desktop = os.path.expanduser("~/Desktop")
 
-                export_mode = self.picasso_export_mode.currentText()
+                export_mode = self.gui.picasso_export_mode.currentText()
 
                 if export_mode == ".csv":
                     export_extension = "csv"
@@ -30,7 +30,7 @@ class _picasso_utils:
                 elif export_mode == ".pos.out":
                     export_extension = "pos.out"
 
-                import_path = self.viewer.layers[self.picasso_image_channel.currentText()].metadata[0]["image_path"]
+                import_path = self.viewer.layers[self.gui.picasso_image_channel.currentText()].metadata[0]["image_path"]
                 # replace extension with export extension
                 import_path = os.path.splitext(import_path)[0] + "." + export_extension
 
@@ -40,7 +40,7 @@ class _picasso_utils:
 
                 if os.path.isdir(export_directory):
                     image_layers = [layer.name for layer in self.viewer.layers]
-                    image_channel = self.picasso_image_channel.currentText()
+                    image_channel = self.gui.picasso_image_channel.currentText()
 
                     if image_channel in image_layers:
 
@@ -119,10 +119,10 @@ class _picasso_utils:
                                 # Create a dataset within the file, named 'locs'.
                                 dataset = hdf_file.create_dataset("locs", data=structured_arr)
 
-                            picasso_channel = (self.picasso_image_channel.currentText())
+                            picasso_channel = (self.gui.picasso_image_channel.currentText())
                             image_shape = self.viewer.layers[picasso_channel].data.shape
-                            min_net_gradient = int(self.picasso_min_net_gradient.text())
-                            box_size = int(self.picasso_box_size.currentText())
+                            min_net_gradient = int(self.gui.picasso_min_net_gradient.text())
+                            box_size = int(self.gui.picasso_box_size.currentText())
 
                             data = {"Byte Order": "<", "Data Type": "uint16", "File": image_path, "Frames": image_shape[0], "Height": image_shape[1], "Micro-Manager Acquisiton Comments": "", "Width":
                                 image_shape[2], }
@@ -192,7 +192,7 @@ class _picasso_utils:
 
             # select picasso channel
 
-            picasso_channel = self.picasso_image_channel.currentText()
+            picasso_channel = self.gui.picasso_image_channel.currentText()
             self.viewer.layers.selection.active = self.viewer.layers[picasso_channel]
 
             num_frames = len(np.unique([loc[0] for loc in self.localisation_centres]))
@@ -207,7 +207,7 @@ class _picasso_utils:
         try:
             from picasso import gausslq, lib, localize
 
-            image_frames = self.picasso_image_frames.currentText()
+            image_frames = self.gui.picasso_image_frames.currentText()
             n_detected_frames = len(np.unique([loc[0] for loc in self.localisation_centres]))
 
             if image_frames.lower() == "active":
@@ -257,7 +257,7 @@ class _picasso_utils:
 
             min_net_gradient = int(min_net_gradient)
 
-            image_frames = self.picasso_image_frames.currentText()
+            image_frames = self.gui.picasso_image_frames.currentText()
 
             if image_frames.lower() == "active":
                 image_data = self.viewer.layers[image_channel].data[self.viewer.dims.current_step[0]]
@@ -280,7 +280,7 @@ class _picasso_utils:
         return self.detected_locs
 
     def process_localisations(self, locs):
-        filter = self.picasso_filter_localisations.isChecked()
+        filter = self.gui.picasso_filter_localisations.isChecked()
 
         processed_locs = []
 
@@ -356,7 +356,7 @@ class _picasso_utils:
 
             show_info(f"Picasso Detected {num_locs} localisations in {num_frames} frame(s)")
 
-            picasso_channel = self.picasso_image_channel.currentText()
+            picasso_channel = self.gui.picasso_image_channel.currentText()
 
             self._reorderLayers()
             self.viewer.layers.selection.active = self.viewer.layers[picasso_channel]
@@ -366,7 +366,7 @@ class _picasso_utils:
 
     def update_localisation_visualisation(self):
         try:
-            if self.picasso_show_vis.isChecked():
+            if self.gui.picasso_show_vis.isChecked():
                 self.display_localisations()
             else:
                 if "Localisations" in [layer.name for layer in self.viewer.layers]:
@@ -375,14 +375,14 @@ class _picasso_utils:
             print(traceback.format_exc())
 
     def display_localisations(self):
-        if (hasattr(self, "localisation_centres") and self.picasso_show_vis.isChecked()):
+        if (hasattr(self, "localisation_centres") and self.gui.picasso_show_vis.isChecked()):
             try:
                 layer_names = [layer.name for layer in self.viewer.layers]
 
-                vis_mode = self.picasso_vis_mode.currentText()
-                vis_size = float(self.picasso_vis_size.currentText())
-                vis_opacity = float(self.picasso_vis_opacity.currentText())
-                vis_edge_width = float(self.picasso_vis_edge_width.currentText())
+                vis_mode = self.gui.picasso_vis_mode.currentText()
+                vis_size = float(self.gui.picasso_vis_size.currentText())
+                vis_opacity = float(self.gui.picasso_vis_opacity.currentText())
+                vis_edge_width = float(self.gui.picasso_vis_edge_width.currentText())
 
                 if vis_mode.lower() == "square":
                     symbol = "square"
@@ -416,9 +416,9 @@ class _picasso_utils:
 
     def detect_picasso_localisations(self):
         try:
-            image_channel = self.picasso_image_channel.currentText()
-            box_size = int(self.picasso_box_size.currentText())
-            min_net_gradient = self.picasso_min_net_gradient.text()
+            image_channel = self.gui.picasso_image_channel.currentText()
+            box_size = int(self.gui.picasso_box_size.currentText())
+            min_net_gradient = self.gui.picasso_min_net_gradient.text()
 
             camera_info = {"baseline": 100.0, "gain": 1, "sensitivity": 1.0, "qe": 0.9, }
 
@@ -435,9 +435,9 @@ class _picasso_utils:
         if hasattr(self, "localisation_centres") == False:
             show_info("No localisations detected, please detect localisations first")
         else:
-            image_channel = self.picasso_image_channel.currentText()
-            box_size = int(self.picasso_box_size.currentText())
-            min_net_gradient = self.picasso_min_net_gradient.text()
+            image_channel = self.gui.picasso_image_channel.currentText()
+            box_size = int(self.gui.picasso_box_size.currentText())
+            min_net_gradient = self.gui.picasso_min_net_gradient.text()
 
             camera_info = {"baseline": 100.0, "gain": 1, "sensitivity": 1.0, "qe": 0.9, }
 

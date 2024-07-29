@@ -33,7 +33,7 @@ class _import_utils:
             metadata = {}
             imported_images = {}
 
-            import_limit = self.import_limit.currentText()
+            import_limit = self.gui.import_limit.currentText()
 
             if import_limit != "None" and len(image_paths) > int(import_limit):
                 image_paths = image_paths[: int(import_limit)]
@@ -52,14 +52,14 @@ class _import_utils:
                 image_name = image_path.split(os.sep)[-1]
                 mask_name = mask_path.split(os.sep)[-1]
 
-                import_precision = self.import_precision.currentText()
-                multiframe_mode = self.import_multiframe_mode.currentIndex()
-                crop_mode = self.import_crop_mode.currentIndex()
+                import_precision = self.gui.import_precision.currentText()
+                multiframe_mode = self.gui.import_multiframe_mode.currentIndex()
+                crop_mode = self.gui.import_crop_mode.currentIndex()
 
                 image_list, meta = self.read_image_file(path, import_precision, multiframe_mode)
                 image = image_list[0]
 
-                crop_mode = self.import_crop_mode.currentIndex()
+                crop_mode = self.gui.import_crop_mode.currentIndex()
                 image =self.crop_image(image, crop_mode)
 
                 if os.path.exists(mask_path):
@@ -126,7 +126,7 @@ class _import_utils:
             imported_images = {}
             akmeta = {}
 
-            import_limit = self.import_limit.currentText()
+            import_limit = self.gui.import_limit.currentText()
 
             if import_limit != "None" and len(image_paths) > int(import_limit):
                 image_paths = image_paths[: int(import_limit)]
@@ -141,11 +141,11 @@ class _import_utils:
                 image_path = os.path.abspath(image_paths[i])
                 json_path = image_path.replace("\\images\\", "\\json\\").replace(".tif", ".txt")
 
-                import_precision = self.import_precision.currentText()
+                import_precision = self.gui.import_precision.currentText()
                 image_list, meta_stack = self.read_image_file(path, import_precision, multiframe_mode=0)
                 image = image_list[0]
 
-                crop_mode = self.import_crop_mode.currentIndex()
+                crop_mode = self.gui.import_crop_mode.currentIndex()
                 image =self.crop_image(image, crop_mode)
 
                 if os.path.exists(json_path):
@@ -200,7 +200,7 @@ class _import_utils:
 
         file_paths = [path for path in file_paths if path.split(".")[-1] in image_formats]
 
-        import_limit = self.import_limit.currentText()
+        import_limit = self.gui.import_limit.currentText()
 
         if import_limit != "None" and len(file_paths) > int(import_limit):
             file_paths = file_paths[: int(import_limit)]
@@ -225,9 +225,9 @@ class _import_utils:
             file_path = os.path.abspath(file_paths[i])
             file_name = os.path.basename(file_path)
 
-            import_precision = self.import_precision.currentText()
-            multiframe_mode = self.import_multiframe_mode.currentIndex()
-            crop_mode = self.import_crop_mode.currentIndex()
+            import_precision = self.gui.import_precision.currentText()
+            multiframe_mode = self.gui.import_multiframe_mode.currentIndex()
+            crop_mode = self.gui.import_crop_mode.currentIndex()
 
             image_list, meta = self.read_image_file(file_path, import_precision, multiframe_mode, crop_mode)
 
@@ -286,7 +286,7 @@ class _import_utils:
 
         file_paths = [path for path in file_paths if path.split(".")[-1] in image_formats]
 
-        import_limit = self.import_limit.currentText()
+        import_limit = self.gui.import_limit.currentText()
 
         if import_limit != "None" and len(file_paths) > int(import_limit):
             file_paths = file_paths[: int(import_limit)]
@@ -314,12 +314,12 @@ class _import_utils:
             if os.path.exists(image_path):
                 image_name = image_path.split(os.sep)[-1]
 
-                import_precision = self.import_precision.currentText()
-                multiframe_mode = self.import_multiframe_mode.currentIndex()
+                import_precision = self.gui.import_precision.currentText()
+                multiframe_mode = self.gui.import_multiframe_mode.currentIndex()
                 image_list, meta = self.read_image_file(image_path, import_precision, multiframe_mode)
                 img = image_list[0]
 
-                crop_mode = self.import_crop_mode.currentIndex()
+                crop_mode = self.gui.import_crop_mode.currentIndex()
                 img =self.crop_image(img, crop_mode)
                 mask =self.crop_image(mask, crop_mode)
 
@@ -404,7 +404,7 @@ class _import_utils:
                 matching_mat_paths.append(mat_path)
                 matching_image_paths.append(image_path)
 
-        if self.import_limit.currentText() == "1":
+        if self.gui.import_limit.currentText() == "1":
             if file_path in matching_image_paths:
                 index = matching_image_paths.index(file_path)
                 image_files = [matching_image_paths[index]]
@@ -425,7 +425,7 @@ class _import_utils:
             image_files = matching_image_paths
             mat_files = matching_mat_paths
 
-        import_limit = self.import_limit.currentText()
+        import_limit = self.gui.import_limit.currentText()
 
         if import_limit != "None" and len(mat_files) > int(import_limit):
             mat_files = mat_files[: int(import_limit)]
@@ -451,7 +451,7 @@ class _import_utils:
 
                 image, mask, meta = self.import_mat_data(self, image_path, mat_path)
 
-                crop_mode = self.import_crop_mode.currentIndex()
+                crop_mode = self.gui.import_crop_mode.currentIndex()
                 image =self.crop_image(image, crop_mode)
                 mask =self.crop_image(mask, crop_mode)
 
@@ -490,9 +490,9 @@ class _import_utils:
 
     def import_mat_data(self, image_path, mat_path):
 
-        import_precision = self.import_precision.currentText()
-        multiframe_mode = self.import_multiframe_mode.currentIndex()
-        crop_mode = self.import_crop_mode.currentIndex()
+        import_precision = self.gui.import_precision.currentText()
+        multiframe_mode = self.gui.import_multiframe_mode.currentIndex()
+        crop_mode = self.gui.import_crop_mode.currentIndex()
         image_list, meta = self.read_image_file(image_path, import_precision, multiframe_mode)
         image = image_list[0]
 
@@ -545,7 +545,7 @@ class _import_utils:
         masks = []
         metadata = {}
 
-        import_limit = self.import_limit.currentText()
+        import_limit = self.gui.import_limit.currentText()
 
         for i in range(len(image_files)):
             image_file = image_files[i].replace(".tif", "")
@@ -559,7 +559,7 @@ class _import_utils:
                 matching_json_paths.append(json_path)
                 matching_image_paths.append(image_path)
 
-        if self.import_limit.currentText() == "1":
+        if self.gui.import_limit.currentText() == "1":
             if file_path in matching_image_paths:
                 index = matching_image_paths.index(file_path)
                 image_files = [matching_image_paths[index]]
@@ -603,9 +603,9 @@ class _import_utils:
                 image_name = image_path.split(os.sep)[-1]
                 json_name = json_path.split(os.sep)[-1]
 
-                import_precision = self.import_precision.currentText()
-                multiframe_mode = self.import_multiframe_mode.currentIndex()
-                crop_mode = self.import_crop_mode.currentIndex()
+                import_precision = self.gui.import_precision.currentText()
+                multiframe_mode = self.gui.import_multiframe_mode.currentIndex()
+                crop_mode = self.gui.import_crop_mode.currentIndex()
                 image_list, meta = self.read_image_file(image_path, import_precision, multiframe_mode)
                 image = image_list[0]
 
@@ -613,7 +613,7 @@ class _import_utils:
 
                 mask, nmask, labels = import_coco_json(json_path)
 
-                crop_mode = self.import_crop_mode.currentIndex()
+                crop_mode = self.gui.import_crop_mode.currentIndex()
                 image = self.crop_image(image, crop_mode)
                 mask = self.crop_image(mask, crop_mode)
                 nmask = self.crop_image(nmask, crop_mode)

@@ -18,9 +18,9 @@ class _tiler_utils:
 
                 layer_names = [layer.name for layer in self.viewer.layers]
 
-                tile_size = int(self.unfold_tile_size.currentText())
+                tile_size = int(self.gui.unfold_tile_size.currentText())
                 tile_shape = (tile_size, tile_size)
-                overlap = int(self.unfold_tile_overlap.currentText())
+                overlap = int(self.gui.unfold_tile_overlap.currentText())
 
                 for layer in layer_names:
 
@@ -29,7 +29,7 @@ class _tiler_utils:
 
                     self.tiler_object = Tiler(data_shape=image[0].shape, tile_shape=tile_shape, overlap=overlap, )
 
-                    if self.unfold_mode.currentIndex() == 0:
+                    if self.gui.unfold_mode.currentIndex() == 0:
                         tiled_image = []
 
                         for i in range(image.shape[0]):
@@ -50,7 +50,7 @@ class _tiler_utils:
                         self.unfolded = True
                         self._autoContrast()
 
-                    if self.unfold_mode.currentIndex() == 1:
+                    if self.gui.unfold_mode.currentIndex() == 1:
 
                         tiled_images = []
                         tiled_metadata = {}

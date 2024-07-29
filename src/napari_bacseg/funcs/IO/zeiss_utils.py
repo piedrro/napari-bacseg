@@ -70,7 +70,7 @@ class _zeiss_utils:
 
 
     def get_zeiss_measurements(self, paths):
-        import_limit = self.import_limit.currentText()
+        import_limit = self.gui.import_limit.currentText()
 
         czi_measurements = []
 
@@ -122,7 +122,7 @@ class _zeiss_utils:
 
         zeiss_images = {}
 
-        import_limit = self.import_limit.currentText()
+        import_limit = self.gui.import_limit.currentText()
 
         num_loaded = 0
         img_index = {}

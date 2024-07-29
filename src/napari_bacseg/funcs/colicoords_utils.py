@@ -513,7 +513,7 @@ def process_colicoords(self, colicoords_data):
     colicoords_data = colicoords_data["cell_statistics"]
 
     current_fov = self.viewer.dims.current_step[0]
-    colicoords_channel = self.cellpose_segchannel.currentText()
+    colicoords_channel = self.gui.cellpose_segchannel.currentText()
 
     image_stack = self.viewer.layers[colicoords_channel].data
     label_stack = self.classLayer.data

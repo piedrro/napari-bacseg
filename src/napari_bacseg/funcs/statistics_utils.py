@@ -642,13 +642,13 @@ class _stats_utils:
             n_fov = 0
 
             if metric == "":
-                metric = self.filter_metric.currentText()
+                metric = self.gui.filter_metric.currentText()
             if criteria == "":
-                criteria = self.filter_criteria.currentText()
+                criteria = self.gui.filter_criteria.currentText()
             if threshold == "":
-                threshold = self.filter_threshold.value()
+                threshold = self.gui.filter_threshold.value()
             if fov_mode == "":
-                fov_mode = self.filter_mode.currentText()
+                fov_mode = self.gui.filter_mode.currentText()
 
             if "active " in fov_mode.lower():
                 fov_list = [self.viewer.dims.current_step[0]]

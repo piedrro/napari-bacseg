@@ -96,19 +96,19 @@ class _oufti_utils:
                 self.shapeLayer.mode = "select"
                 self.shapeLayer.selected_data = set(np.arange(len(self.shapeLayer.data)))
                 self.shapeLayer.mode = "direct"
-                self.oufti_panzoom_mode.setChecked(False)
-                self.oufti_edit_mode.setChecked(True)
+                self.gui.oufti_panzoom_mode.setChecked(False)
+                self.gui.oufti_edit_mode.setChecked(True)
     
             else:
                 self.shapeLayer.mode = "pan_zoom"
-                self.oufti_panzoom_mode.setChecked(True)
-                self.oufti_edit_mode.setChecked(False)
+                self.gui.oufti_panzoom_mode.setChecked(True)
+                self.gui.oufti_edit_mode.setChecked(False)
     
     def generate_midlines(self, mode="all", viewer=None):
 
         def _event(viewer):
 
-            vertexes = int(self.oufti_midline_vertexes.currentText())
+            vertexes = int(self.gui.oufti_midline_vertexes.currentText())
     
             layer_names = [layer.name for layer in self.viewer.layers]
     
@@ -746,8 +746,8 @@ class _oufti_utils:
 
     def get_oufti_data(self, image, mask, midlines=None):
     
-        mesh_length = int(self.oufti_mesh_length.currentText())
-        mesh_dilation = float(self.oufti_mesh_dilation.currentText())
+        mesh_length = int(self.gui.oufti_mesh_length.currentText())
+        mesh_dilation = float(self.gui.oufti_mesh_dilation.currentText())
     
         mask_ids = np.unique(mask)
     

@@ -119,7 +119,7 @@ class _oni_utils:
 
         num_measurements = len(files.aquisition.unique())
 
-        import_limit = self.import_limit.currentText()
+        import_limit = self.gui.import_limit.currentText()
 
         if import_limit == "None":
             import_limit = num_measurements
@@ -185,9 +185,9 @@ class _oni_utils:
                     folder = dat["folder"].item()
                     parent_folder = dat["parent_folder"].item()
 
-                    import_precision = self.import_precision.currentText()
-                    multiframe_mode = self.import_multiframe_mode.currentIndex()
-                    crop_mode = self.import_crop_mode.currentIndex()
+                    import_precision = self.gui.import_precision.currentText()
+                    multiframe_mode = self.gui.import_multiframe_mode.currentIndex()
+                    crop_mode = self.gui.import_crop_mode.currentIndex()
 
                     image_list, meta = self.read_image_file(path, import_precision, multiframe_mode, crop_mode)
 

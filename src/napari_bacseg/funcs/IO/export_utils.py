@@ -13,17 +13,17 @@ class _export_utils:
     def get_export_data(self, mask_stack, label_stack, meta_stack):
         export_labels = []
 
-        if self.export_single.isChecked():
+        if self.gui.export_single.isChecked():
             export_labels.append(1)
-        if self.export_dividing.isChecked():
+        if self.gui.export_dividing.isChecked():
             export_labels.append(2)
-        if self.export_divided.isChecked():
+        if self.gui.export_divided.isChecked():
             export_labels.append(3)
-        if self.export_vertical.isChecked():
+        if self.gui.export_vertical.isChecked():
             export_labels.append(4)
-        if self.export_broken.isChecked():
+        if self.gui.export_broken.isChecked():
             export_labels.append(5)
-        if self.export_edge.isChecked():
+        if self.gui.export_edge.isChecked():
             export_labels.append(6)
 
         export_mask_stack = np.zeros(mask_stack.shape, dtype=np.uint16)
@@ -68,17 +68,17 @@ class _export_utils:
     def get_export_labels(self):
         export_labels = []
 
-        if self.export_single.isChecked():
+        if self.gui.export_single.isChecked():
             export_labels.append(1)
-        if self.export_dividing.isChecked():
+        if self.gui.export_dividing.isChecked():
             export_labels.append(2)
-        if self.export_divided.isChecked():
+        if self.gui.export_divided.isChecked():
             export_labels.append(3)
-        if self.export_vertical.isChecked():
+        if self.gui.export_vertical.isChecked():
             export_labels.append(4)
-        if self.export_broken.isChecked():
+        if self.gui.export_broken.isChecked():
             export_labels.append(5)
-        if self.export_edge.isChecked():
+        if self.gui.export_edge.isChecked():
             export_labels.append(6)
 
         return export_labels
@@ -92,7 +92,7 @@ class _export_utils:
 
         if export_channel == "Multi Channel":
 
-            multi_channel_mode = self.export_multi_channel_mode.currentText()
+            multi_channel_mode = self.gui.export_multi_channel_mode.currentText()
 
             if multi_channel_mode == "All Channels (Stack)":
                 mode = "stack"
@@ -153,12 +153,12 @@ class _export_utils:
                 img = self.automatic_brightness_and_contrast(img)
 
             if scalebar:
-                pixel_resolution = self.export_scalebar_resolution.text()
-                pixel_resolution_units = (self.export_scalebar_resolution_units.currentText())
-                scalebar_size = self.export_scalebar_size.text()
-                scalebar_size_units = self.export_scalebar_size_units.currentText()
-                scalebar_colour = self.export_scalebar_colour.currentText()
-                scalebar_thickness = self.export_scalebar_thickness.currentText()
+                pixel_resolution = self.gui.export_scalebar_resolution.text()
+                pixel_resolution_units = (self.gui.export_scalebar_resolution_units.currentText())
+                scalebar_size = self.gui.export_scalebar_size.text()
+                scalebar_size_units = self.gui.export_scalebar_size_units.currentText()
+                scalebar_colour = self.gui.export_scalebar_colour.currentText()
+                scalebar_thickness = self.gui.export_scalebar_thickness.currentText()
 
                 img = self.add_scale_bar(img, pixel_resolution=pixel_resolution, pixel_resolution_units=pixel_resolution_units, scalebar_size=scalebar_size, scalebar_size_units=scalebar_size_units, scalebar_colour=scalebar_colour, scalebar_thickness=scalebar_thickness, )
 
@@ -195,12 +195,12 @@ class _export_utils:
         try:
             layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
-            export_stack_channel = self.export_stack_channel.currentText()
-            export_stack_mode = self.export_stack_mode.currentText()
-            export_stack_modifier = self.export_stack_modifier.text()
+            export_stack_channel = self.gui.export_stack_channel.currentText()
+            export_stack_mode = self.gui.export_stack_mode.currentText()
+            export_stack_modifier = self.gui.export_stack_modifier.text()
 
             if mode == "active":
-                export_channels = [self.export_stack_channel.currentText()]
+                export_channels = [self.gui.export_stack_channel.currentText()]
             else:
                 export_channels = [layer.name for layer in self.viewer.layers]
 
@@ -209,15 +209,15 @@ class _export_utils:
             if len(export_channels) == 0:
                 show_info("No image layers to export")
             else:
-                overwrite = self.export_stack_overwrite_setting.isChecked()
-                export_images = self.export_stack_image_setting.isChecked()
+                overwrite = self.gui.export_stack_overwrite_setting.isChecked()
+                export_images = self.gui.export_stack_image_setting.isChecked()
 
-                normalise = self.export_normalise.isChecked()
-                invert = self.export_invert.isChecked()
-                autocontrast = self.export_autocontrast.isChecked()
-                scalebar = self.export_scalebar.isChecked()
-                cropzoom = self.export_cropzoom.isChecked()
-                mask_background = self.export_mask_background.isChecked()
+                normalise = self.gui.export_normalise.isChecked()
+                invert = self.gui.export_invert.isChecked()
+                autocontrast = self.gui.export_autocontrast.isChecked()
+                scalebar = self.gui.export_scalebar.isChecked()
+                cropzoom = self.gui.export_cropzoom.isChecked()
+                mask_background = self.gui.export_mask_background.isChecked()
 
                 for channel in export_channels:
                     image_stack = []
@@ -253,10 +253,10 @@ class _export_utils:
                     file_name = file_name + export_stack_modifier + ".tif"
                     image_path = image_path.replace(image_path.split(os.sep)[-1], file_name)
 
-                    if (self.export_stack_location.currentText() == "Import Directory" and file_name != None and image_path != None):
+                    if (self.gui.export_stack_location.currentText() == "Import Directory" and file_name != None and image_path != None):
                         export_path = os.path.abspath(image_path.replace(file_name, ""))
 
-                    elif (self.export_stack_location.currentText() == "Select Directory"):
+                    elif (self.gui.export_stack_location.currentText() == "Select Directory"):
                         export_path = os.path.abspath(self.export_directory)
 
                     else:
@@ -298,18 +298,18 @@ class _export_utils:
     def export_files(self, progress_callback, mode):
         desktop = os.path.expanduser("~/Desktop")
 
-        overwrite = self.export_overwrite_setting.isChecked()
-        export_images = self.export_image_setting.isChecked()
+        overwrite = self.gui.export_overwrite_setting.isChecked()
+        export_images = self.gui.export_image_setting.isChecked()
 
-        normalise = self.export_normalise.isChecked()
-        invert = self.export_invert.isChecked()
-        autocontrast = self.export_autocontrast.isChecked()
-        scalebar = self.export_scalebar.isChecked()
-        cropzoom = self.export_cropzoom.isChecked()
-        mask_background = self.export_mask_background.isChecked()
+        normalise = self.gui.export_normalise.isChecked()
+        invert = self.gui.export_invert.isChecked()
+        autocontrast = self.gui.export_autocontrast.isChecked()
+        scalebar = self.gui.export_scalebar.isChecked()
+        cropzoom = self.gui.export_cropzoom.isChecked()
+        mask_background = self.gui.export_mask_background.isChecked()
 
-        export_channel = self.export_channel.currentText()
-        export_modifier = self.export_modifier.text()
+        export_channel = self.gui.export_channel.currentText()
+        export_modifier = self.gui.export_modifier.text()
         export_labels = self.get_export_labels()
 
         data_shape = self.viewer.layers[0].data.shape
@@ -364,11 +364,11 @@ class _export_utils:
             file_name = file_name + export_modifier + ".tif"
             image_path = image_path.replace(image_path.split(os.sep)[-1], file_name)
 
-            if (self.export_location.currentText() == "Import Directory" and file_name != None and image_path != None):
+            if (self.gui.export_location.currentText() == "Import Directory" and file_name != None and image_path != None):
                 export_path = os.path.abspath(image_path.replace(file_name, ""))
                 export_path = os.path.normpath(export_path)
 
-            elif self.export_location.currentText() == "Select Directory":
+            elif self.gui.export_location.currentText() == "Select Directory":
                 export_path = os.path.abspath(self.export_directory)
 
             else:
@@ -403,13 +403,13 @@ class _export_utils:
 
                 else:
 
-                    if self.export_mode.currentText() == "Export .tif Images":
+                    if self.gui.export_mode.currentText() == "Export .tif Images":
                         tifffile.imwrite(file_path, image, metadata=meta)
 
-                    if self.export_mode.currentText() == "Export .tif Masks":
+                    if self.gui.export_mode.currentText() == "Export .tif Masks":
                         tifffile.imwrite(file_path, mask, metadata=meta)
 
-                    if (self.export_mode.currentText() == "Export .tif Images and Masks"):
+                    if (self.gui.export_mode.currentText() == "Export .tif Images and Masks"):
                         image_path = os.path.abspath(export_path + "\\images")
                         mask_path = os.path.abspath(export_path + "\\masks")
 
@@ -425,14 +425,14 @@ class _export_utils:
                         tifffile.imwrite(image_path, image, metadata=meta)
                         tifffile.imwrite(mask_path, mask, metadata=meta)
 
-                    if self.export_mode.currentText() == "Export Cellpose":
+                    if self.gui.export_mode.currentText() == "Export Cellpose":
 
                         self.export_cellpose(file_path, image, mask)
 
                         if export_images:
                             tifffile.imwrite(file_path, image, metadata=meta)
 
-                    if self.export_mode.currentText() == "Export Oufti":
+                    if self.gui.export_mode.currentText() == "Export Oufti":
                         try:
                             with warnings.catch_warnings():
                                 warnings.filterwarnings("ignore")
@@ -450,7 +450,7 @@ class _export_utils:
                         except:
                             raise Exception("BacSeg can't load Cellpose and OUFTI dependencies simultaneously. Restart BacSeg, reload images/masks, then export Oufti")
 
-                    if self.export_mode.currentText() == "Export ImageJ":
+                    if self.gui.export_mode.currentText() == "Export ImageJ":
 
                         if mode == "rgb":
                             if self.widget_notifications:
@@ -458,7 +458,7 @@ class _export_utils:
 
                         self.export_imagej(image, contours, meta, file_path)
 
-                    if self.export_mode.currentText() == "Export JSON":
+                    if self.gui.export_mode.currentText() == "Export JSON":
 
                         from napari_bacseg.funcs.IO.json_utils import export_coco_json
 
@@ -467,7 +467,7 @@ class _export_utils:
                         if export_images:
                             tifffile.imwrite(file_path, image, metadata=meta)
 
-                    if self.export_mode.currentText() == "Export CSV":
+                    if self.gui.export_mode.currentText() == "Export CSV":
                         self.export_csv(image, contours, meta, file_path)
 
                         if export_images:

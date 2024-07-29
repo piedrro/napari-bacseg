@@ -61,7 +61,7 @@ class _databaseIO:
         imported_images = {}
         iter = 1
     
-        import_limit = self.database_download_limit.currentText()
+        import_limit = self.gui.database_download_limit.currentText()
     
         if import_limit == "All":
             import_limit = len(measurements)
@@ -140,36 +140,36 @@ class _databaseIO:
     
     def generate_multichannel_stack(self):
     
-        segChannel = self.cellpose_segchannel.currentText()
-        user_initial = self.upload_initial.currentText()
-        content = self.upload_content.currentText()
-        microscope = self.upload_microscope.currentText()
-        antibiotic = self.upload_antibiotic.currentText()
-        abxconcentration = self.upload_abxconcentration.currentText()
-        treatmenttime = self.upload_treatmenttime.currentText()
-        mount = self.upload_mount.currentText()
-        protocol = self.upload_protocol.currentText()
-        overwrite_all_metadata = self.overwrite_all_metadata.isChecked()
-        overwrite_selected_metadata = self.overwrite_selected_metadata.isChecked()
+        segChannel = self.gui.cellpose_segchannel.currentText()
+        user_initial = self.gui.upload_initial.currentText()
+        content = self.gui.upload_content.currentText()
+        microscope = self.gui.upload_microscope.currentText()
+        antibiotic = self.gui.upload_antibiotic.currentText()
+        abxconcentration = self.gui.upload_abxconcentration.currentText()
+        treatmenttime = self.gui.upload_treatmenttime.currentText()
+        mount = self.gui.upload_mount.currentText()
+        protocol = self.gui.upload_protocol.currentText()
+        overwrite_all_metadata = self.gui.overwrite_all_metadata.isChecked()
+        overwrite_selected_metadata = self.gui.overwrite_selected_metadata.isChecked()
         date_uploaded = str(datetime.datetime.now())
-        strain = self.upload_strain.currentText()
-        phenotype = self.upload_phenotype.currentText()
+        strain = self.gui.upload_strain.currentText()
+        phenotype = self.gui.upload_phenotype.currentText()
     
         segmented = False
         segmented_curated = False
         labelled = False
         labelled_curated = False
     
-        if self.upload_segmentation_combo.currentIndex() == 2:
+        if self.gui.upload_segmentation_combo.currentIndex() == 2:
             segmented = True
             segmented_curated = False
-        if self.upload_segmentation_combo.currentIndex() == 3:
+        if self.gui.upload_segmentation_combo.currentIndex() == 3:
             segmented = True
             segmented_curated = True
-        if self.upload_label_combo.currentIndex() == 2:
+        if self.gui.upload_label_combo.currentIndex() == 2:
             labelled = True
             labelled_curated = False
-        if self.upload_label_combo.currentIndex() == 3:
+        if self.gui.upload_label_combo.currentIndex() == 3:
             labelled = True
             labelled_curated = True
     
@@ -193,7 +193,7 @@ class _databaseIO:
         layer_names.reverse()
     
         # put segmentation channel as first channel in stack
-        segChannel = self.cellpose_segchannel.currentText()
+        segChannel = self.gui.cellpose_segchannel.currentText()
         layer_names.remove(segChannel)
         layer_names.insert(0, segChannel)
     
@@ -264,11 +264,11 @@ class _databaseIO:
     
                         if self.cellpose_segmentation == True:
                             meta["cellpose_segmentation"] = self.cellpose_segmentation
-                            meta["flow_threshold"] = float(self.cellpose_flowthresh_label.text())
-                            meta["mask_threshold"] = float(self.cellpose_maskthresh_label.text())
-                            meta["min_size"] = int(self.cellpose_minsize_label.text())
-                            meta["diameter"] = int(self.cellpose_diameter_label.text())
-                            meta["cellpose_model"] = self.cellpose_segmodel.currentText()
+                            meta["flow_threshold"] = float(self.gui.cellpose_flowthresh_label.text())
+                            meta["mask_threshold"] = float(self.gui.cellpose_maskthresh_label.text())
+                            meta["min_size"] = int(self.gui.cellpose_minsize_label.text())
+                            meta["diameter"] = int(self.gui.cellpose_diameter_label.text())
+                            meta["cellpose_model"] = self.gui.cellpose_segmodel.currentText()
                             meta["custom_model"] = os.path.abspath(self.cellpose_custom_model_path)
     
                         rgb_images.append(img)
@@ -660,23 +660,23 @@ class _databaseIO:
                     show_info("Could not find BacSeg Database")
     
             else:
-                user_initial = self.upload_initial.currentText()
-                content = self.upload_content.currentText()
-                microscope = self.upload_microscope.currentText()
-                modalilty = self.img_modality.currentText()
-                source = self.img_light_source.currentText()
-                stain = self.img_stain.currentText()
-                stain_target = self.img_stain_target.currentText()
+                user_initial = self.gui.upload_initial.currentText()
+                content = self.gui.upload_content.currentText()
+                microscope = self.gui.upload_microscope.currentText()
+                modalilty = self.gui.img_modality.currentText()
+                source = self.gui.img_light_source.currentText()
+                stain = self.gui.img_stain.currentText()
+                stain_target = self.gui.img_stain_target.currentText()
                 date_modified = str(datetime.datetime.now())
-                overwrite_images = self.upload_overwrite_images.isChecked()
-                overwrite_masks = self.upload_overwrite_masks.isChecked()
-                overwrite_all_metadata = self.overwrite_all_metadata.isChecked()
-                overwrite_selected_metadata = (self.overwrite_selected_metadata.isChecked())
-                upload_images = self.upload_images_setting.isChecked()
-                upload_segmentations = (self.upload_segmentations_setting.isChecked())
-                upload_metadata = self.upload_metadata_setting.isChecked()
-                strain = self.upload_strain.currentText()
-                phenotype = self.upload_phenotype.currentText()
+                overwrite_images = self.gui.upload_overwrite_images.isChecked()
+                overwrite_masks = self.gui.upload_overwrite_masks.isChecked()
+                overwrite_all_metadata = self.gui.overwrite_all_metadata.isChecked()
+                overwrite_selected_metadata = (self.gui.overwrite_selected_metadata.isChecked())
+                upload_images = self.gui.upload_images_setting.isChecked()
+                upload_segmentations = (self.gui.upload_segmentations_setting.isChecked())
+                upload_metadata = self.gui.upload_metadata_setting.isChecked()
+                strain = self.gui.upload_strain.currentText()
+                phenotype = self.gui.upload_phenotype.currentText()
     
                 num_user_keys = self.user_metadata_keys
     
@@ -729,7 +729,7 @@ class _databaseIO:
                         show_info(f"Missing metadata for {missing_metalabel_layers}")
     
                 else:
-                    segChannel = self.cellpose_segchannel.currentText()
+                    segChannel = self.gui.cellpose_segchannel.currentText()
                     channel_list = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
     
                     if segChannel == "":
@@ -853,7 +853,7 @@ class _databaseIO:
         try:
             if user_metadata_path == "":
                 database_path = self.database_path
-                user_initial = self.upload_initial.currentText()
+                user_initial = self.gui.upload_initial.currentText()
     
                 user_metadata_path = os.path.join(database_path, "Images", user_initial, f"{user_initial}_file_metadata.txt", )
     
@@ -937,7 +937,7 @@ class _databaseIO:
     
             database_path = self.database_path
     
-            user_initial = self.upload_initial.currentText()
+            user_initial = self.gui.upload_initial.currentText()
     
             todays_date = str(datetime.datetime.now().strftime("%y%m%d-%H%M"))
     
@@ -961,16 +961,16 @@ class _databaseIO:
     def get_filtered_database_metadata(self):
     
         try:
-            database_metadata = {"user_initial": self.upload_initial.currentText(),
-                                 "content": self.upload_content.currentText(),
-                                 "microscope": self.upload_microscope.currentText(),
-                                 "phenotype": self.upload_phenotype.currentText(),
-                                 "strain": self.upload_strain.currentText(),
-                                 "antibiotic": self.upload_antibiotic.currentText(),
-                                 "antibiotic concentration": self.upload_abxconcentration.currentText(),
-                                 "treatment time (mins)": self.upload_treatmenttime.currentText(),
-                                 "mounting method": self.upload_mount.currentText(),
-                                 "protocol": self.upload_protocol.currentText(), }
+            database_metadata = {"user_initial": self.gui.upload_initial.currentText(),
+                                 "content": self.gui.upload_content.currentText(),
+                                 "microscope": self.gui.upload_microscope.currentText(),
+                                 "phenotype": self.gui.upload_phenotype.currentText(),
+                                 "strain": self.gui.upload_strain.currentText(),
+                                 "antibiotic": self.gui.upload_antibiotic.currentText(),
+                                 "antibiotic concentration": self.gui.upload_abxconcentration.currentText(),
+                                 "treatment time (mins)": self.gui.upload_treatmenttime.currentText(),
+                                 "mounting method": self.gui.upload_mount.currentText(),
+                                 "protocol": self.gui.upload_protocol.currentText(), }
     
             num_user_keys = self.user_metadata_keys
     
@@ -1007,17 +1007,17 @@ class _databaseIO:
                     if key in user_metadata.columns:
                         user_metadata = user_metadata[user_metadata[key] == value]
     
-                if self.upload_segmentation_combo.currentIndex() == 1:
+                if self.gui.upload_segmentation_combo.currentIndex() == 1:
                     user_metadata = user_metadata[user_metadata["segmented"] == False]
-                if self.upload_segmentation_combo.currentIndex() == 2:
+                if self.gui.upload_segmentation_combo.currentIndex() == 2:
                     user_metadata = user_metadata[user_metadata["segmented"] == True & (user_metadata["segmentation_curated"] == False)]
-                if self.upload_segmentation_combo.currentIndex() == 3:
+                if self.gui.upload_segmentation_combo.currentIndex() == 3:
                     user_metadata = user_metadata[(user_metadata["segmented"] == True) & (user_metadata["segmentation_curated"] == True)]
-                if self.upload_label_combo.currentIndex() == 1:
+                if self.gui.upload_label_combo.currentIndex() == 1:
                     user_metadata = user_metadata[user_metadata["labelled"] == False]
-                if self.upload_label_combo.currentIndex() == 2:
+                if self.gui.upload_label_combo.currentIndex() == 2:
                     user_metadata = user_metadata[user_metadata["labelled"] == True & (user_metadata["label_curated"] == False)]
-                if self.upload_label_combo.currentIndex() == 3:
+                if self.gui.upload_label_combo.currentIndex() == 3:
                     user_metadata = user_metadata[(user_metadata["labelled"] == True) & (user_metadata["label_curated"] == True)]
     
                 user_metadata.sort_values(by=["posX", "posY", "posZ"], ascending=True)
@@ -1025,53 +1025,53 @@ class _databaseIO:
                 sort_names = []
                 sort_directions = []
     
-                if self.download_sort_order_1.currentIndex() > 1:
-                    if self.download_sort_direction_1.currentIndex() == 1:
+                if self.gui.download_sort_order_1.currentIndex() > 1:
+                    if self.gui.download_sort_direction_1.currentIndex() == 1:
                         sort_directions.append(True)
-                    if self.download_sort_direction_1.currentIndex() == 2:
+                    if self.gui.download_sort_direction_1.currentIndex() == 2:
                         sort_directions.append(False)
     
-                if self.download_sort_order_2.currentIndex() > 1:
+                if self.gui.download_sort_order_2.currentIndex() > 1:
                     if self.download_sort_direction_2.currentIndex() == 1:
                         sort_directions.append(True)
                     if self.download_sort_direction_2.currentIndex() == 2:
                         sort_directions.append(False)
     
-                if self.download_sort_order_1.currentIndex() == 1:
+                if self.gui.download_sort_order_1.currentIndex() == 1:
                     user_metadata = user_metadata.sample(frac=1).reset_index(drop=True)
-                if self.download_sort_order_1.currentIndex() == 2:
+                if self.gui.download_sort_order_1.currentIndex() == 2:
                     sort_names.append("date_uploaded")
-                if self.download_sort_order_1.currentIndex() == 3:
+                if self.gui.download_sort_order_1.currentIndex() == 3:
                     sort_names.append("date_modified")
-                if self.download_sort_order_1.currentIndex() == 4:
+                if self.gui.download_sort_order_1.currentIndex() == 4:
                     if "image_laplacian" in user_metadata.columns:
                         sort_names.append("image_laplacian")
-                if self.download_sort_order_1.currentIndex() == 5:
+                if self.gui.download_sort_order_1.currentIndex() == 5:
                     if "num_segmentations" in user_metadata.columns:
                         sort_names.append("num_segmentations")
-                if self.download_sort_order_1.currentIndex() == 6:
+                if self.gui.download_sort_order_1.currentIndex() == 6:
                     if "image_focus" in user_metadata.columns:
                         sort_names.append("image_focus")
-                if self.download_sort_order_1.currentIndex() == 7:
+                if self.gui.download_sort_order_1.currentIndex() == 7:
                     if "image_debris" in user_metadata.columns:
                         sort_names.append("image_debris")
     
-                if self.download_sort_order_2.currentIndex() == 1:
+                if self.gui.download_sort_order_2.currentIndex() == 1:
                     user_metadata = user_metadata.sample(frac=1).reset_index(drop=True)
-                if self.download_sort_order_2.currentIndex() == 2:
+                if self.gui.download_sort_order_2.currentIndex() == 2:
                     sort_names.append("date_uploaded")
-                if self.download_sort_order_2.currentIndex() == 3:
+                if self.gui.download_sort_order_2.currentIndex() == 3:
                     sort_names.append("date_modified")
-                if self.download_sort_order_2.currentIndex() == 4:
+                if self.gui.download_sort_order_2.currentIndex() == 4:
                     if "image_laplacian" in user_metadata.columns:
                         sort_names.append("image_laplacian")
-                if self.download_sort_order_2.currentIndex() == 5:
+                if self.gui.download_sort_order_2.currentIndex() == 5:
                     if "num_segmentations" in user_metadata.columns:
                         sort_names.append("num_segmentations")
-                if self.download_sort_order_2.currentIndex() == 6:
+                if self.gui.download_sort_order_2.currentIndex() == 6:
                     if "image_focus" in user_metadata.columns:
                         sort_names.append("image_focus")
-                if self.download_sort_order_2.currentIndex() == 7:
+                if self.gui.download_sort_order_2.currentIndex() == 7:
                     if "image_debris" in user_metadata.columns:
                         sort_names.append("image_debris")
     
@@ -1105,7 +1105,7 @@ class _databaseIO:
                     user_metadata['posZ'] = user_metadata['posZ'].fillna(0, inplace=True)
                     user_metadata.loc[user_metadata["posZ"].isna(), "posZ"] = 0
     
-                import_limit = self.database_download_limit.currentText()
+                import_limit = self.gui.database_download_limit.currentText()
     
                 segmentation_files = user_metadata["segmentation_file"].unique()
                 num_measurements = len(segmentation_files)

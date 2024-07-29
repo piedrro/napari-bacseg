@@ -90,20 +90,20 @@ class _database_utils:
                     meta_options, user_meta_options = self.read_txt_metadata(self.database_path)
                     file_usermeta, self.user_metadata = self.read_file_metadata()
 
-                    self.upload_initial.clear()
-                    self.upload_initial.addItems(["Required for upload"] + meta_options["user_initial"])
+                    self.gui.upload_initial.clear()
+                    self.gui.upload_initial.addItems(["Required for upload"] + meta_options["user_initial"])
 
                     self.populate_upload_combos(meta_options, user_meta_options, file_usermeta)
                     self.update_upload_combos()
 
-                    self.display_database_path.setText(path)
+                    self.gui.display_database_path.setText(path)
                     self._show_database_controls(True)
 
                     show_info(f"Loaded BacSeg Database: {self.database_path}")
 
     def _show_database_controls(self, visible=True):
 
-        all_database_controls = self.upload_tab.findChildren((QCheckBox, QComboBox,
+        all_database_controls = self.gui.tab_5.findChildren((QCheckBox, QComboBox,
                                                               QLabel, QPushButton, QProgressBar, QTabWidget))
 
         load_database_controls = ["create_database", "load_database", "display_database_path", "display_database_label", "database_io_title", ]
@@ -254,7 +254,7 @@ class _database_utils:
         database_directory = self.database_path
 
         if os.path.exists(database_directory):
-            user_intial_index = self.upload_initial.currentIndex()
+            user_intial_index = self.gui.upload_initial.currentIndex()
 
             database_name = (pathlib.Path(database_directory).parts[-1].replace("_Database", ""))
 
@@ -320,7 +320,7 @@ class _database_utils:
                     except:
                         print(traceback.format_exc())
 
-            user_initial = self.upload_initial.currentText()
+            user_initial = self.gui.upload_initial.currentText()
 
 
             if user_initial in usermeta.keys():
@@ -389,7 +389,7 @@ class _database_utils:
                 show_info(f"Added new user metadata files for {new_user_initial} in {database_name} database")
 
             self.populate_upload_combos()
-            self.upload_initial.setCurrentIndex(user_intial_index)
+            self.gui.upload_initial.setCurrentIndex(user_intial_index)
 
             for control_name, control_text in upload_control_dict.items():
                 combo_box = getattr(self, control_name)
@@ -412,7 +412,7 @@ class _database_utils:
             column_list.append(f"user_meta{i}")
 
         database_path = self.database_path
-        user_initial = self.upload_initial.currentText()
+        user_initial = self.gui.upload_initial.currentText()
 
         user_file_meta = {}
         user_metadata = ""
@@ -462,7 +462,7 @@ class _database_utils:
 
         try:
 
-            user_initial = self.upload_initial.currentText()
+            user_initial = self.gui.upload_initial.currentText()
 
             control_dict = self.generate_control_dict()
 
@@ -527,7 +527,7 @@ class _database_utils:
 
                 self.updating_combos = True
 
-                user_initial = self.upload_initial.currentText()
+                user_initial = self.gui.upload_initial.currentText()
 
                 control_dict = self.generate_control_dict()
 

@@ -26,7 +26,8 @@ from qtpy.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QFormLayout,
     QLabel, QLineEdit, QProgressBar, QPushButton, QRadioButton, QSlider,
     QTabWidget, QVBoxLayout, QWidget, )
 
-from GUI.bacseg_ui import Ui_tab_widget
+
+from GUI.widget_ui import Ui_Form as gui
 
 from napari_bacseg.funcs.utils import _utils
 from napari_bacseg.funcs.IO.import_utils import _import_utils
@@ -47,19 +48,14 @@ from napari_bacseg.funcs.picasso_utils import _picasso_utils
 
 from napari_bacseg.funcs.threading_utils import Worker
 
-# os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
-
-class BacSeg(QWidget, _picasso_utils,
-    _utils, _import_utils, _export_utils,
+sub_classes = [_picasso_utils, _utils, _import_utils, _export_utils,
     _database_utils, _databaseIO, _cellpose_utils, _events_utils,
     _tiler_utils, _zeiss_utils, _stats_utils, _oufti_utils, _imagej_utils,
-    _oni_utils, _olympus_utils, _undrift_utils):
+    _oni_utils, _olympus_utils, _undrift_utils]
 
-    """Widget allows selection of two labels layers and returns a new layer
-    highlighing pixels whose values differ between the two layers."""
+class BacSeg(QWidget, gui, *sub_classes):
 
     def __init__(self, viewer: napari.Viewer):
-        """Initialize widget with two layer combo boxes and a run button"""
 
         super().__init__()
 
@@ -82,416 +78,412 @@ class BacSeg(QWidget, _picasso_utils,
 
     def initialise_widget_ui(self):
 
-        application_path = os.path.dirname(sys.executable)
-        self.setLayout(QVBoxLayout())
-
-        self.form = Ui_tab_widget()
-        self.bacseg_ui = QTabWidget()
-        self.form.setupUi(self.bacseg_ui)
-
-        # add widget_gui layout to main layout
-        self.layout().addWidget(self.bacseg_ui)
+        # create UI
+        self.gui = gui()
+        self.gui.setupUi(self)
 
     def initialise_controls(self):
 
-        self.tab_widget = self.findChild(QTabWidget, "tab_widget")
+        pass
 
-        self.import_mode = self.findChild(QComboBox, "import_mode")
-        self.import_filemode = self.findChild(QComboBox, "import_filemode")
-        self.import_precision = self.findChild(QComboBox, "import_precision")
-        self.import_import = self.findChild(QPushButton, "import_import")
-        self.import_limit = self.findChild(QComboBox, "import_limit")
-        self.import_limit_label = self.findChild(QLabel, "import_limit_label")
-        self.import_append_mode = self.findChild(QComboBox, "import_append_mode")
-
-        self.autocontrast = self.findChild(QCheckBox, "import_auto_contrast")
-        self.import_multiframe_mode = self.findChild(QComboBox, "import_multiframe_mode")
-        self.import_crop_mode = self.findChild(QComboBox, "import_crop_mode")
-        self.channel_mode = self.findChild(QComboBox, "nim_channel_mode")
-        self.import_progressbar = self.findChild(QProgressBar, "import_progressbar")
-        self.import_align = self.findChild(QCheckBox, "import_align")
-
-        self.img_modality = self.findChild(QComboBox, "img_modality")
-        self.img_light_source = self.findChild(QComboBox, "img_light_source")
-        self.img_stain = self.findChild(QComboBox, "img_stain")
-        self.img_stain_target = self.findChild(QComboBox, "img_stain_target")
-
-        self.label_overwrite = self.findChild(QPushButton, "label_overwrite")
-
-        # view tab controls + variables from Qt Desinger References
-        self.unfold_tile_size = self.findChild(QComboBox, "unfold_tile_size")
-        self.unfold_tile_overlap = self.findChild(QComboBox, "unfold_tile_overlap")
-        self.unfold_mode = self.findChild(QComboBox, "unfold_mode")
-        self.fold = self.findChild(QPushButton, "fold")
-        self.unfold = self.findChild(QPushButton, "unfold")
-        self.unfold_progressbar = self.findChild(QPushButton, "unfold_progressbar")
-        self.alignment_channel = self.findChild(QComboBox, "alignment_channel")
-        self.align_active_image = self.findChild(QPushButton, "align_active_image")
-        self.align_all_images = self.findChild(QPushButton, "align_all_images")
-        self.undrift_channel = self.findChild(QComboBox, "undrift_channel")
-        self.undrift_images = self.findChild(QPushButton, "undrift_images")
-        self.undrift_progressbar = self.findChild(QProgressBar, "undrift_progressbar")
-
-        self.picasso_image_channel = self.findChild(QComboBox, "picasso_image_channel")
-        self.picasso_box_size = self.findChild(QComboBox, "picasso_box_size")
-        self.picasso_min_net_gradient = self.findChild(QLineEdit, "picasso_min_net_gradient")
-        self.picasso_detect = self.findChild(QPushButton, "picasso_detect")
-        self.picasso_fit = self.findChild(QPushButton, "picasso_fit")
-        self.picasso_vis_mode = self.findChild(QComboBox, "picasso_vis_mode")
-        self.picasso_vis_size = self.findChild(QComboBox, "picasso_vis_size")
-        self.picasso_vis_opacity = self.findChild(QComboBox, "picasso_vis_opacity")
-        self.picasso_vis_edge_width = self.findChild(QComboBox, "picasso_vis_edge_width")
-        self.picasso_show_vis = self.findChild(QCheckBox, "picasso_show_vis")
-        self.picasso_image_frames = self.findChild(QComboBox, "picasso_image_frames")
-        self.picasso_progressbar = self.findChild(QProgressBar, "picasso_progressbar")
-        self.picasso_export = self.findChild(QPushButton, "picasso_export")
-        self.picasso_export_mode = self.findChild(QComboBox, "picasso_export_mode")
-        self.picasso_filter_localisations = self.findChild(QCheckBox, "picasso_filter_localisations")
-
-        self.overlay_filename = self.findChild(QCheckBox, "overlay_filename")
-        self.overlay_folder = self.findChild(QCheckBox, "overlay_folder")
-        self.overlay_microscope = self.findChild(QCheckBox, "overlay_microscope")
-        self.overlay_datemodified = self.findChild(QCheckBox, "overlay_datemodified")
-        self.overlay_content = self.findChild(QCheckBox, "overlay_content")
-        self.overlay_phenotype = self.findChild(QCheckBox, "overlay_phenotype")
-        self.overlay_strain = self.findChild(QCheckBox, "overlay_strain")
-        self.overlay_staintarget = self.findChild(QCheckBox, "overlay_staintarget")
-        self.overlay_antibiotic = self.findChild(QCheckBox, "overlay_antibiotic")
-        self.overlay_stain = self.findChild(QCheckBox, "overlay_stain")
-        self.overlay_modality = self.findChild(QCheckBox, "overlay_modality")
-        self.overlay_lightsource = self.findChild(QCheckBox, "overlay_lightsource")
-        self.overlay_focus = self.findChild(QCheckBox, "overlay_focus")
-        self.overlay_debris = self.findChild(QCheckBox, "overlay_debris")
-        self.overlay_laplacian = self.findChild(QCheckBox, "overlay_laplacian")
-        self.overlay_range = self.findChild(QCheckBox, "overlay_range")
-
-        self.zoom_magnification = self.findChild(QComboBox, "zoom_magnification")
-        self.zoom_apply = self.findChild(QPushButton, "zoom_apply")
-
-        self.cellpose_select_custom_model = self.findChild(QPushButton, "cellpose_select_custom_model")
-        self.cellpose_segmodel = self.findChild(QComboBox, "cellpose_segmodel")
-        self.cellpose_trainmodel = self.findChild(QComboBox, "cellpose_trainmodel")
-        self.cellpose_segchannel = self.findChild(QComboBox, "cellpose_segchannel")
-        self.cellpose_flowthresh = self.findChild(QSlider, "cellpose_flowthresh")
-        self.cellpose_flowthresh_label = self.findChild(QLabel, "cellpose_flowthresh_label")
-        self.cellpose_maskthresh = self.findChild(QSlider, "cellpose_maskthresh")
-        self.cellpose_maskthresh_label = self.findChild(QLabel, "cellpose_maskthresh_label")
-        self.cellpose_minsize = self.findChild(QSlider, "cellpose_minsize")
-        self.cellpose_minsize_label = self.findChild(QLabel, "cellpose_minsize_label")
-        self.cellpose_diameter = self.findChild(QSlider, "cellpose_diameter")
-        self.cellpose_diameter_label = self.findChild(QLabel, "cellpose_diameter_label")
-        self.cellpose_segment_active = self.findChild(QPushButton, "cellpose_segment_active")
-        self.cellpose_segment_all = self.findChild(QPushButton, "cellpose_segment_all")
-        self.cellpose_clear_previous = self.findChild(QCheckBox, "cellpose_clear_previous")
-        self.cellpose_usegpu = self.findChild(QCheckBox, "cellpose_usegpu")
-        self.cellpose_resetimage = self.findChild(QCheckBox, "cellpose_resetimage")
-        self.cellpose_progressbar = self.findChild(QProgressBar, "cellpose_progressbar")
-        self.cellpose_train_model = self.findChild(QPushButton, "cellpose_train_model")
-        self.cellpose_save_dir = self.findChild(QPushButton, "cellpose_save_dir")
-        self.cellpose_trainchannel = self.findChild(QComboBox, "cellpose_trainchannel")
-        self.cellpose_nepochs = self.findChild(QComboBox, "cellpose_nepochs")
-        self.cellpose_batchsize = self.findChild(QComboBox, "cellpose_batchsize")
-        self.cellpose_seg_batchsize = self.findChild(QComboBox, "cellpose_seg_batchsize")
-        self.cellpose_min_seg_size = self.findChild(QComboBox, "cellpose_min_seg_size")
-        self.cellpose_seg_mode = self.findChild(QComboBox, "cellpose_seg_mode")
-        self.cellpose_invert_images = self.findChild(QCheckBox, "cellpose_invert_images")
-        self.cellpose_auto_classify = self.findChild(QCheckBox, "cellpose_auto_classify")
-
-        self.modify_panzoom = self.findChild(QPushButton, "modify_panzoom")
-        self.modify_segment = self.findChild(QPushButton, "modify_segment")
-        self.modify_classify = self.findChild(QPushButton, "modify_classify")
-        self.modify_refine = self.findChild(QPushButton, "modify_refine")
-        self.refine_channel = self.findChild(QComboBox, "refine_channel")
-        self.refine_all = self.findChild(QPushButton, "refine_all")
-        self.modify_copymasktoall = self.findChild(QPushButton, "modify_copymasktoall")
-        self.modify_deleteallmasks = self.findChild(QPushButton, "modify_deleteallmasks")
-        self.modify_deleteactivemasks = self.findChild(QPushButton, "modify_deleteactivemasks")
-        self.modify_deleteactiveimage = self.findChild(QPushButton, "modify_deleteactiveimage")
-        self.modify_deleteotherimages = self.findChild(QPushButton, "modify_deleteotherimages")
-        self.modify_progressbar = self.findChild(QProgressBar, "modify_progressbar")
-        self.modify_channel = self.findChild(QComboBox, "modify_channel")
-
-        self.filter_metric = self.findChild(QComboBox, "filter_metric")
-        self.filter_criteria = self.findChild(QComboBox, "filter_criteria")
-        self.filter_threshold = self.findChild(QLineEdit, "filter_threshold")
-        self.filter_mode = self.findChild(QComboBox, "filter_mode")
-        self.filter_report = self.findChild(QPushButton, "filter_report")
-        self.filter_remove = self.findChild(QPushButton, "filter_remove")
-        self.filter_ignore_edge = self.findChild(QCheckBox, "filter_ignore_edge")
-
-        self.modify_auto_panzoom = self.findChild(QCheckBox, "modify_auto_panzoom")
-        self.modify_add = self.findChild(QPushButton, "modify_add")
-        self.modify_extend = self.findChild(QPushButton, "modify_extend")
-        self.modify_split = self.findChild(QPushButton, "modify_split")
-        self.modify_join = self.findChild(QPushButton, "modify_join")
-        self.modify_delete = self.findChild(QPushButton, "modify_delete")
-        self.classify_single = self.findChild(QPushButton, "classify_single")
-        self.classify_dividing = self.findChild(QPushButton, "classify_dividing")
-        self.classify_divided = self.findChild(QPushButton, "classify_divided")
-        self.classify_vertical = self.findChild(QPushButton, "classify_vertical")
-        self.classify_broken = self.findChild(QPushButton, "classify_broken")
-        self.classify_edge = self.findChild(QPushButton, "classify_edge")
-        self.modify_viewmasks = self.findChild(QCheckBox, "modify_viewmasks")
-        self.modify_viewlabels = self.findChild(QCheckBox, "modify_viewlabels")
-        self.find_next = self.findChild(QPushButton, "find_next")
-        self.find_previous = self.findChild(QPushButton, "find_previous")
-        self.find_criterion = self.findChild(QComboBox, "find_criterion")
-        self.find_mode = self.findChild(QComboBox, "find_mode")
-        self.scalebar_show = self.findChild(QCheckBox, "scalebar_show")
-        self.scalebar_resolution = self.findChild(QLineEdit, "scalebar_resolution")
-        self.scalebar_units = self.findChild(QComboBox, "scalebar_units")
-
-        self.set_quality_mode = self.findChild(QComboBox, "set_quality_mode")
-        self.set_focus_0 = self.findChild(QPushButton, "set_focus_0")
-        self.set_focus_1 = self.findChild(QPushButton, "set_focus_1")
-        self.set_focus_2 = self.findChild(QPushButton, "set_focus_2")
-        self.set_focus_3 = self.findChild(QPushButton, "set_focus_3")
-        self.set_focus_4 = self.findChild(QPushButton, "set_focus_4")
-        self.set_focus_5 = self.findChild(QPushButton, "set_focus_5")
-
-        self.set_debris_1 = self.findChild(QPushButton, "set_debris_1")
-        self.set_debris_2 = self.findChild(QPushButton, "set_debris_2")
-        self.set_debris_3 = self.findChild(QPushButton, "set_debris_3")
-        self.set_debris_4 = self.findChild(QPushButton, "set_debris_4")
-        self.set_debris_5 = self.findChild(QPushButton, "set_debris_5")
-
-        self.upload_initial = self.findChild(QComboBox, "upload_initial")
-        self.upload_content = self.findChild(QComboBox, "upload_content")
-        self.upload_microscope = self.findChild(QComboBox, "upload_microscope")
-        self.upload_antibiotic = self.findChild(QComboBox, "upload_antibiotic")
-        self.upload_phenotype = self.findChild(QComboBox, "upload_phenotype")
-        self.upload_strain = self.findChild(QComboBox, "upload_strain")
-        self.upload_abxconcentration = self.findChild(QComboBox, "upload_abxconcentration")
-        self.upload_treatmenttime = self.findChild(QComboBox, "upload_treatmenttime")
-        self.upload_mount = self.findChild(QComboBox, "upload_mount")
-        self.upload_protocol = self.findChild(QComboBox, "upload_protocol")
-        self.upload_overwrite_images = self.findChild(QCheckBox, "upload_overwrite_images")
-        self.upload_overwrite_masks = self.findChild(QCheckBox, "upload_overwrite_masks")
-        self.overwrite_selected_metadata = self.findChild(QCheckBox, "overwrite_selected_metadata")
-        self.overwrite_all_metadata = self.findChild(QCheckBox, "overwrite_all_metadata")
-        self.upload_all = self.findChild(QPushButton, "upload_all")
-        self.upload_active = self.findChild(QPushButton, "upload_active")
-        self.database_download = self.findChild(QPushButton, "database_download")
-        self.database_download_limit = self.findChild(QComboBox, "database_download_limit")
-        self.create_database = self.findChild(QPushButton, "create_database")
-        self.load_database = self.findChild(QPushButton, "load_database")
-        self.display_database_path = self.findChild(QLineEdit, "display_database_path")
-        self.upload_progressbar = self.findChild(QProgressBar, "upload_progressbar")
-        self.download_progressbar = self.findChild(QProgressBar, "download_progressbar")
-        self.upload_tab = self.findChild(QWidget, "upload_tab")
-        self.upload_segmentation_combo = self.findChild(QComboBox, "upload_segmentation_combo")
-        self.upload_label_combo = self.findChild(QComboBox, "upload_label_combo")
-        self.download_sort_order_1 = self.findChild(QComboBox, "download_sort_order_1")
-        self.download_sort_order_2 = self.findChild(QComboBox, "download_sort_order_2")
-        self.download_sort_direction_1 = self.findChild(QComboBox, "download_sort_direction_1")
-        self.download_sort_direction_2 = self.findChild(QComboBox, "download_sort_direction_2")
-        self.store_metadata = self.findChild(QPushButton, "store_metadata")
-        self.filter_metadata = self.findChild(QPushButton, "filter_metadata")
-        self.reset_metadata = self.findChild(QPushButton, "reset_metadata")
-        self.upload_images_setting = self.findChild(QCheckBox, "upload_images_setting")
-        self.upload_segmentations_setting = self.findChild(QCheckBox, "upload_segmentations_setting")
-        self.upload_metadata_setting = self.findChild(QCheckBox, "upload_metadata_setting")
-
-        self.image_metadata_controls = self.findChild(QFormLayout, "image_metadata_controls")
-
-        # oufti tab controls
-        self.oufti_generate_all_midlines = self.findChild(QPushButton, "oufti_generate_all_midlines")
-        self.oufti_generate_active_midlines = self.findChild(QPushButton, "oufti_generate_active_midlines")
-        self.oufti_panzoom_mode = self.findChild(QRadioButton, "oufti_panzoom_mode")
-        self.oufti_edit_mode = self.findChild(QRadioButton, "oufti_edit_mode")
-        self.oufti_midline_vertexes = self.findChild(QComboBox, "oufti_midline_vertexes")
-        self.oufti_centre_all_midlines = self.findChild(QPushButton, "oufti_centre_all_midlines")
-        self.oufti_centre_active_midlines = self.findChild(QPushButton, "oufti_centre_active_midlines")
-        self.oufti_mesh_length = self.findChild(QComboBox, "oufti_mesh_length")
-        self.oufti_mesh_dilation = self.findChild(QComboBox, "oufti_mesh_dilation")
-
-        # export tab controls from Qt Desinger References
-        self.export_channel = self.findChild(QComboBox, "export_channel")
-        self.export_multi_channel_mode = self.findChild(QComboBox, "export_multi_channel_mode")
-        self.export_multi_channel_mode_label = self.findChild(QLabel, "export_multi_channel_mode_label")
-        self.export_mode = self.findChild(QComboBox, "export_mode")
-        self.export_location = self.findChild(QComboBox, "export_location")
-        self.export_modifier = self.findChild(QLineEdit, "export_modifier")
-        self.export_single = self.findChild(QCheckBox, "export_single")
-        self.export_dividing = self.findChild(QCheckBox, "export_dividing")
-        self.export_divided = self.findChild(QCheckBox, "export_divided")
-        self.export_vertical = self.findChild(QCheckBox, "export_vertical")
-        self.export_broken = self.findChild(QCheckBox, "export_broken")
-        self.export_edge = self.findChild(QCheckBox, "export_edge")
-        self.export_statistics_multithreaded = self.findChild(QCheckBox, "export_statistics_multithreaded")
-        self.export_active = self.findChild(QPushButton, "export_active")
-        self.export_all = self.findChild(QPushButton, "export_all")
-        self.export_normalise = self.findChild(QCheckBox, "export_normalise")
-        self.export_invert = self.findChild(QCheckBox, "export_invert")
-        self.export_scalebar = self.findChild(QCheckBox, "export_scalebar")
-        self.export_scalebar_resolution = self.findChild(QLineEdit, "export_scalebar_resolution")
-        self.export_scalebar_resolution_units = self.findChild(QComboBox, "export_scalebar_resolution_units")
-        self.export_scalebar_size = self.findChild(QLineEdit, "export_scalebar_size")
-        self.export_scalebar_size_units = self.findChild(QComboBox, "export_scalebar_size_units")
-        self.export_scalebar_colour = self.findChild(QComboBox, "export_scalebar_colour")
-        self.export_scalebar_thickness = self.findChild(QComboBox, "export_scalebar_thickness")
-        self.export_cropzoom = self.findChild(QCheckBox, "export_crop_zoom")
-        self.export_mask_background = self.findChild(QCheckBox, "export_mask_background")
-
-        self.export_stack_channel = self.findChild(QComboBox, "export_stack_channel")
-        self.export_stack_mode = self.findChild(QComboBox, "export_stack_mode")
-        self.export_stack_location = self.findChild(QComboBox, "export_stack_location")
-        self.export_stack_modifier = self.findChild(QLineEdit, "export_stack_modifier")
-        self.export_stack_image_setting = self.findChild(QCheckBox, "export_stack_image_setting")
-        self.export_stack_overwrite_setting = self.findChild(QCheckBox, "export_stack_overwrite_setting")
-        self.export_stack_active = self.findChild(QPushButton, "export_stack_active")
-        self.export_stack_all = self.findChild(QPushButton, "export_stack_all")
-
-        self.export_autocontrast = self.findChild(QCheckBox, "export_autocontrast")
-        self.export_statistics_pixelsize = self.findChild(QLineEdit, "export_statistics_pixelsize")
-        self.export_statistics_active = self.findChild(QPushButton, "export_statistics_active")
-        self.export_statistics_all = self.findChild(QPushButton, "export_statistics_all")
-        self.export_colicoords_mode = self.findChild(QComboBox, "export_colicoords_mode")
-        self.export_progressbar = self.findChild(QProgressBar, "export_progressbar")
-        self.export_image_setting = self.findChild(QCheckBox, "export_image_setting")
-        self.export_overwrite_setting = self.findChild(QCheckBox, "export_overwrite_setting")
-        self.export_directory = ""
+        # self.gui.tab_widget = self.findChild(QTabWidget, "tab_widget")
+        #
+        # self.gui.import_mode = self.findChild(QComboBox, "import_mode")
+        # self.gui.import_filemode = self.findChild(QComboBox, "import_filemode")
+        # self.gui.import_precision = self.findChild(QComboBox, "import_precision")
+        # self.gui.import_import = self.findChild(QPushButton, "import_import")
+        # self.gui.import_limit = self.findChild(QComboBox, "import_limit")
+        # self.gui.import_limit_label = self.findChild(QLabel, "import_limit_label")
+        # self.gui.import_append_mode = self.findChild(QComboBox, "import_append_mode")
+        #
+        # self.gui.autocontrast = self.findChild(QCheckBox, "import_auto_contrast")
+        # self.gui.import_multiframe_mode = self.findChild(QComboBox, "import_multiframe_mode")
+        # self.gui.import_crop_mode = self.findChild(QComboBox, "import_crop_mode")
+        # self.gui.channel_mode = self.findChild(QComboBox, "nim_channel_mode")
+        # self.gui.import_progressbar = self.findChild(QProgressBar, "import_progressbar")
+        # self.gui.import_align = self.findChild(QCheckBox, "import_align")
+        #
+        # self.gui.img_modality = self.findChild(QComboBox, "img_modality")
+        # self.gui.img_light_source = self.findChild(QComboBox, "img_light_source")
+        # self.gui.img_stain = self.findChild(QComboBox, "img_stain")
+        # self.gui.img_stain_target = self.findChild(QComboBox, "img_stain_target")
+        #
+        # self.gui.label_overwrite = self.findChild(QPushButton, "label_overwrite")
+        #
+        # # view tab controls + variables from Qt Desinger References
+        # self.gui.unfold_tile_size = self.findChild(QComboBox, "unfold_tile_size")
+        # self.gui.unfold_tile_overlap = self.findChild(QComboBox, "unfold_tile_overlap")
+        # self.gui.unfold_mode = self.findChild(QComboBox, "unfold_mode")
+        # self.gui.fold = self.findChild(QPushButton, "fold")
+        # self.gui.unfold = self.findChild(QPushButton, "unfold")
+        # self.gui.unfold_progressbar = self.findChild(QPushButton, "unfold_progressbar")
+        # self.gui.alignment_channel = self.findChild(QComboBox, "alignment_channel")
+        # self.gui.align_active_image = self.findChild(QPushButton, "align_active_image")
+        # self.gui.align_all_images = self.findChild(QPushButton, "align_all_images")
+        # self.gui.undrift_channel = self.findChild(QComboBox, "undrift_channel")
+        # self.gui.undrift_images = self.findChild(QPushButton, "undrift_images")
+        # self.gui.undrift_progressbar = self.findChild(QProgressBar, "undrift_progressbar")
+        #
+        # self.gui.picasso_image_channel = self.findChild(QComboBox, "picasso_image_channel")
+        # self.gui.picasso_box_size = self.findChild(QComboBox, "picasso_box_size")
+        # self.gui.picasso_min_net_gradient = self.findChild(QLineEdit, "picasso_min_net_gradient")
+        # self.gui.picasso_detect = self.findChild(QPushButton, "picasso_detect")
+        # self.gui.picasso_fit = self.findChild(QPushButton, "picasso_fit")
+        # self.gui.picasso_vis_mode = self.findChild(QComboBox, "picasso_vis_mode")
+        # self.gui.picasso_vis_size = self.findChild(QComboBox, "picasso_vis_size")
+        # self.gui.picasso_vis_opacity = self.findChild(QComboBox, "picasso_vis_opacity")
+        # self.gui.picasso_vis_edge_width = self.findChild(QComboBox, "picasso_vis_edge_width")
+        # self.gui.picasso_show_vis = self.findChild(QCheckBox, "picasso_show_vis")
+        # self.gui.picasso_image_frames = self.findChild(QComboBox, "picasso_image_frames")
+        # self.gui.picasso_progressbar = self.findChild(QProgressBar, "picasso_progressbar")
+        # self.gui.picasso_export = self.findChild(QPushButton, "picasso_export")
+        # self.gui.picasso_export_mode = self.findChild(QComboBox, "picasso_export_mode")
+        # self.gui.picasso_filter_localisations = self.findChild(QCheckBox, "picasso_filter_localisations")
+        #
+        # self.gui.overlay_filename = self.findChild(QCheckBox, "overlay_filename")
+        # self.gui.overlay_folder = self.findChild(QCheckBox, "overlay_folder")
+        # self.gui.overlay_microscope = self.findChild(QCheckBox, "overlay_microscope")
+        # self.gui.overlay_datemodified = self.findChild(QCheckBox, "overlay_datemodified")
+        # self.gui.overlay_content = self.findChild(QCheckBox, "overlay_content")
+        # self.gui.overlay_phenotype = self.findChild(QCheckBox, "overlay_phenotype")
+        # self.gui.overlay_strain = self.findChild(QCheckBox, "overlay_strain")
+        # self.gui.overlay_staintarget = self.findChild(QCheckBox, "overlay_staintarget")
+        # self.gui.overlay_antibiotic = self.findChild(QCheckBox, "overlay_antibiotic")
+        # self.gui.overlay_stain = self.findChild(QCheckBox, "overlay_stain")
+        # self.gui.overlay_modality = self.findChild(QCheckBox, "overlay_modality")
+        # self.gui.overlay_lightsource = self.findChild(QCheckBox, "overlay_lightsource")
+        # self.gui.overlay_focus = self.findChild(QCheckBox, "overlay_focus")
+        # self.gui.overlay_debris = self.findChild(QCheckBox, "overlay_debris")
+        # self.gui.overlay_laplacian = self.findChild(QCheckBox, "overlay_laplacian")
+        # self.gui.overlay_range = self.findChild(QCheckBox, "overlay_range")
+        #
+        # self.gui.zoom_magnification = self.findChild(QComboBox, "zoom_magnification")
+        # self.gui.zoom_apply = self.findChild(QPushButton, "zoom_apply")
+        #
+        # self.gui.cellpose_select_custom_model = self.findChild(QPushButton, "cellpose_select_custom_model")
+        # self.gui.cellpose_segmodel = self.findChild(QComboBox, "cellpose_segmodel")
+        # self.gui.cellpose_trainmodel = self.findChild(QComboBox, "cellpose_trainmodel")
+        # self.gui.cellpose_segchannel = self.findChild(QComboBox, "cellpose_segchannel")
+        # self.gui.cellpose_flowthresh = self.findChild(QSlider, "cellpose_flowthresh")
+        # self.gui.cellpose_flowthresh_label = self.findChild(QLabel, "cellpose_flowthresh_label")
+        # self.gui.cellpose_maskthresh = self.findChild(QSlider, "cellpose_maskthresh")
+        # self.gui.cellpose_maskthresh_label = self.findChild(QLabel, "cellpose_maskthresh_label")
+        # self.gui.cellpose_minsize = self.findChild(QSlider, "cellpose_minsize")
+        # self.gui.cellpose_minsize_label = self.findChild(QLabel, "cellpose_minsize_label")
+        # self.gui.cellpose_diameter = self.findChild(QSlider, "cellpose_diameter")
+        # self.gui.cellpose_diameter_label = self.findChild(QLabel, "cellpose_diameter_label")
+        # self.gui.cellpose_segment_active = self.findChild(QPushButton, "cellpose_segment_active")
+        # self.gui.cellpose_segment_all = self.findChild(QPushButton, "cellpose_segment_all")
+        # self.gui.cellpose_clear_previous = self.findChild(QCheckBox, "cellpose_clear_previous")
+        # self.gui.cellpose_usegpu = self.findChild(QCheckBox, "cellpose_usegpu")
+        # self.gui.cellpose_resetimage = self.findChild(QCheckBox, "cellpose_resetimage")
+        # self.gui.cellpose_progressbar = self.findChild(QProgressBar, "cellpose_progressbar")
+        # self.gui.cellpose_train_model = self.findChild(QPushButton, "cellpose_train_model")
+        # self.gui.cellpose_save_dir = self.findChild(QPushButton, "cellpose_save_dir")
+        # self.gui.cellpose_trainchannel = self.findChild(QComboBox, "cellpose_trainchannel")
+        # self.gui.cellpose_nepochs = self.findChild(QComboBox, "cellpose_nepochs")
+        # self.gui.cellpose_batchsize = self.findChild(QComboBox, "cellpose_batchsize")
+        # self.gui.cellpose_seg_batchsize = self.findChild(QComboBox, "cellpose_seg_batchsize")
+        # self.gui.cellpose_min_seg_size = self.findChild(QComboBox, "cellpose_min_seg_size")
+        # self.gui.cellpose_seg_mode = self.findChild(QComboBox, "cellpose_seg_mode")
+        # self.gui.cellpose_invert_images = self.findChild(QCheckBox, "cellpose_invert_images")
+        # self.gui.cellpose_auto_classify = self.findChild(QCheckBox, "cellpose_auto_classify")
+        #
+        # self.gui.modify_panzoom = self.findChild(QPushButton, "modify_panzoom")
+        # self.gui.modify_segment = self.findChild(QPushButton, "modify_segment")
+        # self.gui.modify_classify = self.findChild(QPushButton, "modify_classify")
+        # self.gui.modify_refine = self.findChild(QPushButton, "modify_refine")
+        # self.gui.refine_channel = self.findChild(QComboBox, "refine_channel")
+        # self.gui.refine_all = self.findChild(QPushButton, "refine_all")
+        # self.gui.modify_copymasktoall = self.findChild(QPushButton, "modify_copymasktoall")
+        # self.gui.modify_deleteallmasks = self.findChild(QPushButton, "modify_deleteallmasks")
+        # self.gui.modify_deleteactivemasks = self.findChild(QPushButton, "modify_deleteactivemasks")
+        # self.gui.modify_deleteactiveimage = self.findChild(QPushButton, "modify_deleteactiveimage")
+        # self.gui.modify_deleteotherimages = self.findChild(QPushButton, "modify_deleteotherimages")
+        # self.gui.modify_progressbar = self.findChild(QProgressBar, "modify_progressbar")
+        # self.gui.modify_channel = self.findChild(QComboBox, "modify_channel")
+        #
+        # self.gui.filter_metric = self.findChild(QComboBox, "filter_metric")
+        # self.gui.filter_criteria = self.findChild(QComboBox, "filter_criteria")
+        # self.gui.filter_threshold = self.findChild(QLineEdit, "filter_threshold")
+        # self.gui.filter_mode = self.findChild(QComboBox, "filter_mode")
+        # self.gui.filter_report = self.findChild(QPushButton, "filter_report")
+        # self.gui.filter_remove = self.findChild(QPushButton, "filter_remove")
+        # self.gui.filter_ignore_edge = self.findChild(QCheckBox, "filter_ignore_edge")
+        #
+        # self.gui.modify_auto_panzoom = self.findChild(QCheckBox, "modify_auto_panzoom")
+        # self.gui.modify_add = self.findChild(QPushButton, "modify_add")
+        # self.gui.modify_extend = self.findChild(QPushButton, "modify_extend")
+        # self.gui.modify_split = self.findChild(QPushButton, "modify_split")
+        # self.gui.modify_join = self.findChild(QPushButton, "modify_join")
+        # self.gui.modify_delete = self.findChild(QPushButton, "modify_delete")
+        # self.gui.classify_single = self.findChild(QPushButton, "classify_single")
+        # self.gui.classify_dividing = self.findChild(QPushButton, "classify_dividing")
+        # self.gui.classify_divided = self.findChild(QPushButton, "classify_divided")
+        # self.gui.classify_vertical = self.findChild(QPushButton, "classify_vertical")
+        # self.gui.classify_broken = self.findChild(QPushButton, "classify_broken")
+        # self.gui.classify_edge = self.findChild(QPushButton, "classify_edge")
+        # self.gui.modify_viewmasks = self.findChild(QCheckBox, "modify_viewmasks")
+        # self.gui.modify_viewlabels = self.findChild(QCheckBox, "modify_viewlabels")
+        # self.gui.find_next = self.findChild(QPushButton, "find_next")
+        # self.gui.find_previous = self.findChild(QPushButton, "find_previous")
+        # self.gui.find_criterion = self.findChild(QComboBox, "find_criterion")
+        # self.gui.find_mode = self.findChild(QComboBox, "find_mode")
+        # self.gui.scalebar_show = self.findChild(QCheckBox, "scalebar_show")
+        # self.gui.scalebar_resolution = self.findChild(QLineEdit, "scalebar_resolution")
+        # self.gui.scalebar_units = self.findChild(QComboBox, "scalebar_units")
+        #
+        # self.gui.set_quality_mode = self.findChild(QComboBox, "set_quality_mode")
+        # self.gui.set_focus_0 = self.findChild(QPushButton, "set_focus_0")
+        # self.gui.set_focus_1 = self.findChild(QPushButton, "set_focus_1")
+        # self.gui.set_focus_2 = self.findChild(QPushButton, "set_focus_2")
+        # self.gui.set_focus_3 = self.findChild(QPushButton, "set_focus_3")
+        # self.gui.set_focus_4 = self.findChild(QPushButton, "set_focus_4")
+        # self.gui.set_focus_5 = self.findChild(QPushButton, "set_focus_5")
+        #
+        # self.gui.set_debris_1 = self.findChild(QPushButton, "set_debris_1")
+        # self.gui.set_debris_2 = self.findChild(QPushButton, "set_debris_2")
+        # self.gui.set_debris_3 = self.findChild(QPushButton, "set_debris_3")
+        # self.gui.set_debris_4 = self.findChild(QPushButton, "set_debris_4")
+        # self.gui.set_debris_5 = self.findChild(QPushButton, "set_debris_5")
+        #
+        # self.gui.upload_initial = self.findChild(QComboBox, "upload_initial")
+        # self.gui.upload_content = self.findChild(QComboBox, "upload_content")
+        # self.gui.upload_microscope = self.findChild(QComboBox, "upload_microscope")
+        # self.gui.upload_antibiotic = self.findChild(QComboBox, "upload_antibiotic")
+        # self.gui.upload_phenotype = self.findChild(QComboBox, "upload_phenotype")
+        # self.gui.upload_strain = self.findChild(QComboBox, "upload_strain")
+        # self.gui.upload_abxconcentration = self.findChild(QComboBox, "upload_abxconcentration")
+        # self.gui.upload_treatmenttime = self.findChild(QComboBox, "upload_treatmenttime")
+        # self.gui.upload_mount = self.findChild(QComboBox, "upload_mount")
+        # self.gui.upload_protocol = self.findChild(QComboBox, "upload_protocol")
+        # self.gui.upload_overwrite_images = self.findChild(QCheckBox, "upload_overwrite_images")
+        # self.gui.upload_overwrite_masks = self.findChild(QCheckBox, "upload_overwrite_masks")
+        # self.gui.overwrite_selected_metadata = self.findChild(QCheckBox, "overwrite_selected_metadata")
+        # self.gui.overwrite_all_metadata = self.findChild(QCheckBox, "overwrite_all_metadata")
+        # self.gui.upload_all = self.findChild(QPushButton, "upload_all")
+        # self.gui.upload_active = self.findChild(QPushButton, "upload_active")
+        # self.gui.database_download = self.findChild(QPushButton, "database_download")
+        # self.gui.database_download_limit = self.findChild(QComboBox, "database_download_limit")
+        # self.gui.create_database = self.findChild(QPushButton, "create_database")
+        # self.gui.load_database = self.findChild(QPushButton, "load_database")
+        # self.gui.display_database_path = self.findChild(QLineEdit, "display_database_path")
+        # self.gui.upload_progressbar = self.findChild(QProgressBar, "upload_progressbar")
+        # self.gui.download_progressbar = self.findChild(QProgressBar, "download_progressbar")
+        # self.gui.upload_tab = self.findChild(QWidget, "upload_tab")
+        # self.gui.upload_segmentation_combo = self.findChild(QComboBox, "upload_segmentation_combo")
+        # self.gui.upload_label_combo = self.findChild(QComboBox, "upload_label_combo")
+        # self.gui.download_sort_order_1 = self.findChild(QComboBox, "download_sort_order_1")
+        # self.gui.download_sort_order_2 = self.findChild(QComboBox, "download_sort_order_2")
+        # self.gui.download_sort_direction_1 = self.findChild(QComboBox, "download_sort_direction_1")
+        # self.download_sort_direction_2 = self.findChild(QComboBox, "download_sort_direction_2")
+        # self.gui.store_metadata = self.findChild(QPushButton, "store_metadata")
+        # self.gui.filter_metadata = self.findChild(QPushButton, "filter_metadata")
+        # self.gui.reset_metadata = self.findChild(QPushButton, "reset_metadata")
+        # self.gui.upload_images_setting = self.findChild(QCheckBox, "upload_images_setting")
+        # self.gui.upload_segmentations_setting = self.findChild(QCheckBox, "upload_segmentations_setting")
+        # self.gui.upload_metadata_setting = self.findChild(QCheckBox, "upload_metadata_setting")
+        #
+        # self.gui.image_metadata_controls = self.findChild(QFormLayout, "image_metadata_controls")
+        #
+        # # oufti tab controls
+        # self.gui.oufti_generate_all_midlines = self.findChild(QPushButton, "oufti_generate_all_midlines")
+        # self.gui.oufti_generate_active_midlines = self.findChild(QPushButton, "oufti_generate_active_midlines")
+        # self.gui.oufti_panzoom_mode = self.findChild(QRadioButton, "oufti_panzoom_mode")
+        # self.gui.oufti_edit_mode = self.findChild(QRadioButton, "oufti_edit_mode")
+        # self.gui.oufti_midline_vertexes = self.findChild(QComboBox, "oufti_midline_vertexes")
+        # self.gui.oufti_centre_all_midlines = self.findChild(QPushButton, "oufti_centre_all_midlines")
+        # self.gui.oufti_centre_active_midlines = self.findChild(QPushButton, "oufti_centre_active_midlines")
+        # self.gui.oufti_mesh_length = self.findChild(QComboBox, "oufti_mesh_length")
+        # self.gui.oufti_mesh_dilation = self.findChild(QComboBox, "oufti_mesh_dilation")
+        #
+        # # export tab controls from Qt Desinger References
+        # self.gui.export_channel = self.findChild(QComboBox, "export_channel")
+        # self.gui.export_multi_channel_mode = self.findChild(QComboBox, "export_multi_channel_mode")
+        # self.gui.export_multi_channel_mode_label = self.findChild(QLabel, "export_multi_channel_mode_label")
+        # self.gui.export_mode = self.findChild(QComboBox, "export_mode")
+        # self.gui.export_location = self.findChild(QComboBox, "export_location")
+        # self.gui.export_modifier = self.findChild(QLineEdit, "export_modifier")
+        # self.gui.export_single = self.findChild(QCheckBox, "export_single")
+        # self.gui.export_dividing = self.findChild(QCheckBox, "export_dividing")
+        # self.gui.export_divided = self.findChild(QCheckBox, "export_divided")
+        # self.gui.export_vertical = self.findChild(QCheckBox, "export_vertical")
+        # self.gui.export_broken = self.findChild(QCheckBox, "export_broken")
+        # self.gui.export_edge = self.findChild(QCheckBox, "export_edge")
+        # self.gui.export_statistics_multithreaded = self.findChild(QCheckBox, "export_statistics_multithreaded")
+        # self.gui.export_active = self.findChild(QPushButton, "export_active")
+        # self.gui.export_all = self.findChild(QPushButton, "export_all")
+        # self.gui.export_normalise = self.findChild(QCheckBox, "export_normalise")
+        # self.gui.export_invert = self.findChild(QCheckBox, "export_invert")
+        # self.gui.export_scalebar = self.findChild(QCheckBox, "export_scalebar")
+        # self.gui.export_scalebar_resolution = self.findChild(QLineEdit, "export_scalebar_resolution")
+        # self.gui.export_scalebar_resolution_units = self.findChild(QComboBox, "export_scalebar_resolution_units")
+        # self.gui.export_scalebar_size = self.findChild(QLineEdit, "export_scalebar_size")
+        # self.gui.export_scalebar_size_units = self.findChild(QComboBox, "export_scalebar_size_units")
+        # self.gui.export_scalebar_colour = self.findChild(QComboBox, "export_scalebar_colour")
+        # self.gui.export_scalebar_thickness = self.findChild(QComboBox, "export_scalebar_thickness")
+        # self.gui.export_cropzoom = self.findChild(QCheckBox, "export_crop_zoom")
+        # self.gui.export_mask_background = self.findChild(QCheckBox, "export_mask_background")
+        #
+        # self.gui.export_stack_channel = self.findChild(QComboBox, "export_stack_channel")
+        # self.gui.export_stack_mode = self.findChild(QComboBox, "export_stack_mode")
+        # self.gui.export_stack_location = self.findChild(QComboBox, "export_stack_location")
+        # self.gui.export_stack_modifier = self.findChild(QLineEdit, "export_stack_modifier")
+        # self.gui.export_stack_image_setting = self.findChild(QCheckBox, "export_stack_image_setting")
+        # self.gui.export_stack_overwrite_setting = self.findChild(QCheckBox, "export_stack_overwrite_setting")
+        # self.gui.export_stack_active = self.findChild(QPushButton, "export_stack_active")
+        # self.gui.export_stack_all = self.findChild(QPushButton, "export_stack_all")
+        #
+        # self.gui.export_autocontrast = self.findChild(QCheckBox, "export_autocontrast")
+        # self.gui.export_statistics_pixelsize = self.findChild(QLineEdit, "export_statistics_pixelsize")
+        # self.gui.export_statistics_active = self.findChild(QPushButton, "export_statistics_active")
+        # self.gui.export_statistics_all = self.findChild(QPushButton, "export_statistics_all")
+        # self.gui.export_colicoords_mode = self.findChild(QComboBox, "export_colicoords_mode")
+        # self.gui.exporttab_progressbar = self.findChild(QProgressBar, "export_progressbar")
+        # self.gui.export_image_setting = self.findChild(QCheckBox, "export_image_setting")
+        # self.gui.export_overwrite_setting = self.findChild(QCheckBox, "export_overwrite_setting")
+        # self.export_directory = ""
 
 
     def initialise_pyqt_events(self):
 
         # import events
-        self.autocontrast.stateChanged.connect(self._autoContrast)
-        self.import_import.clicked.connect(self._importDialog)
-        self.label_overwrite.clicked.connect(self.overwrite_channel_info)
-        self.import_mode.currentIndexChanged.connect(self._set_available_multiframe_modes)
+        self.gui.import_auto_contrast.stateChanged.connect(self._autoContrast)
+        self.gui.import_import.clicked.connect(self._importDialog)
+        self.gui.label_overwrite.clicked.connect(self.overwrite_channel_info)
+        self.gui.import_mode.currentIndexChanged.connect(self._set_available_multiframe_modes)
 
-        self.fold.clicked.connect(self.fold_images)
-        self.unfold.clicked.connect(self.unfold_images)
+        self.gui.fold.clicked.connect(self.fold_images)
+        self.gui.unfold.clicked.connect(self.unfold_images)
 
-        self.align_active_image.clicked.connect(partial(self._align_images, mode="active"))
-        self.align_all_images.clicked.connect(partial(self._align_images, mode="all"))
-        self.undrift_images.clicked.connect(self._undrift_images)
+        self.gui.align_active_image.clicked.connect(partial(self._align_images, mode="active"))
+        self.gui.align_all_images.clicked.connect(partial(self._align_images, mode="all"))
+        self.gui.undrift_images.clicked.connect(self._undrift_images)
 
-        self.scalebar_show.stateChanged.connect(self._updateScaleBar)
-        self.scalebar_resolution.textChanged.connect(self._updateScaleBar)
-        self.scalebar_units.currentTextChanged.connect(self._updateScaleBar)
-        self.overlay_filename.stateChanged.connect(self._updateFileName)
-        self.overlay_folder.stateChanged.connect(self._updateFileName)
-        self.overlay_microscope.stateChanged.connect(self._updateFileName)
-        self.overlay_datemodified.stateChanged.connect(self._updateFileName)
-        self.overlay_content.stateChanged.connect(self._updateFileName)
-        self.overlay_phenotype.stateChanged.connect(self._updateFileName)
-        self.overlay_strain.stateChanged.connect(self._updateFileName)
-        self.overlay_antibiotic.stateChanged.connect(self._updateFileName)
-        self.overlay_stain.stateChanged.connect(self._updateFileName)
-        self.overlay_staintarget.stateChanged.connect(self._updateFileName)
-        self.overlay_modality.stateChanged.connect(self._updateFileName)
-        self.overlay_lightsource.stateChanged.connect(self._updateFileName)
-        self.overlay_focus.stateChanged.connect(self._updateFileName)
-        self.overlay_debris.stateChanged.connect(self._updateFileName)
-        self.overlay_laplacian.stateChanged.connect(self._updateFileName)
-        self.overlay_range.stateChanged.connect(self._updateFileName)
-        self.zoom_apply.clicked.connect(self._applyZoom)
+        self.gui.scalebar_show.stateChanged.connect(self._updateScaleBar)
+        self.gui.scalebar_resolution.textChanged.connect(self._updateScaleBar)
+        self.gui.scalebar_units.currentTextChanged.connect(self._updateScaleBar)
+        self.gui.overlay_filename.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_folder.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_microscope.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_datemodified.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_content.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_phenotype.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_strain.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_antibiotic.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_stain.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_staintarget.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_modality.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_lightsource.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_focus.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_debris.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_laplacian.stateChanged.connect(self._updateFileName)
+        self.gui.overlay_range.stateChanged.connect(self._updateFileName)
+        self.gui.zoom_apply.clicked.connect(self._applyZoom)
 
         # cellpose events
-        self.cellpose_flowthresh.valueChanged.connect(lambda: self._updateSliderLabel("cellpose_flowthresh", "cellpose_flowthresh_label"))
-        self.cellpose_maskthresh.valueChanged.connect(lambda: self._updateSliderLabel("cellpose_maskthresh", "cellpose_maskthresh_label"))
-        self.cellpose_minsize.valueChanged.connect(lambda: self._updateSliderLabel("cellpose_minsize", "cellpose_minsize_label"))
-        self.cellpose_diameter.valueChanged.connect(lambda: self._updateSliderLabel("cellpose_diameter", "cellpose_diameter_label"))
+        self.gui.cellpose_flowthresh.valueChanged.connect(lambda: self._updateSliderLabel("cellpose_flowthresh", "cellpose_flowthresh_label"))
+        self.gui.cellpose_maskthresh.valueChanged.connect(lambda: self._updateSliderLabel("cellpose_maskthresh", "cellpose_maskthresh_label"))
+        self.gui.cellpose_minsize.valueChanged.connect(lambda: self._updateSliderLabel("cellpose_minsize", "cellpose_minsize_label"))
+        self.gui.cellpose_diameter.valueChanged.connect(lambda: self._updateSliderLabel("cellpose_diameter", "cellpose_diameter_label"))
 
-        self.cellpose_select_custom_model.clicked.connect(self._select_custom_cellpose_model)
-        self.cellpose_save_dir.clicked.connect(self._select_cellpose_save_directory)
-        self.cellpose_segment_all.clicked.connect(self._segmentAll)
-        self.cellpose_segment_active.clicked.connect(self._segmentActive)
-        self.cellpose_train_model.clicked.connect(self._trainCellpose)
-        self.cellpose_segchannel.currentTextChanged.connect(self._updateSegChannels)
+        self.gui.cellpose_select_custom_model.clicked.connect(self._select_custom_cellpose_model)
+        self.gui.cellpose_save_dir.clicked.connect(self._select_cellpose_save_directory)
+        self.gui.cellpose_segment_all.clicked.connect(self._segmentAll)
+        self.gui.cellpose_segment_active.clicked.connect(self._segmentActive)
+        self.gui.cellpose_train_model.clicked.connect(self._trainCellpose)
+        self.gui.cellpose_segchannel.currentTextChanged.connect(self._updateSegChannels)
 
         # modify tab events
-        self.modify_panzoom.clicked.connect(self._modifyMode(mode="panzoom"))
-        self.modify_segment.clicked.connect(self._modifyMode(mode="segment"))
-        self.modify_classify.clicked.connect(self._modifyMode(mode="classify"))
-        self.modify_refine.clicked.connect(self._modifyMode(mode="refine"))
-        self.modify_add.clicked.connect(self._modifyMode(mode="add"))
-        self.modify_extend.clicked.connect(self._modifyMode(mode="extend"))
-        self.modify_join.clicked.connect(self._modifyMode(mode="join"))
-        self.modify_split.clicked.connect(self._modifyMode(mode="split"))
-        self.modify_delete.clicked.connect(self._modifyMode(mode="delete"))
-        self.classify_single.clicked.connect(self._modifyMode(mode="single"))
-        self.classify_dividing.clicked.connect(self._modifyMode(mode="dividing"))
-        self.classify_divided.clicked.connect(self._modifyMode(mode="divided"))
-        self.classify_vertical.clicked.connect(self._modifyMode(mode="vertical"))
-        self.classify_broken.clicked.connect(self._modifyMode(mode="broken"))
-        self.classify_edge.clicked.connect(self._modifyMode(mode="edge"))
+        self.gui.modify_panzoom.clicked.connect(self._modifyMode(mode="panzoom"))
+        self.gui.modify_segment.clicked.connect(self._modifyMode(mode="segment"))
+        self.gui.modify_classify.clicked.connect(self._modifyMode(mode="classify"))
+        self.gui.modify_refine.clicked.connect(self._modifyMode(mode="refine"))
+        self.gui.modify_add.clicked.connect(self._modifyMode(mode="add"))
+        self.gui.modify_extend.clicked.connect(self._modifyMode(mode="extend"))
+        self.gui.modify_join.clicked.connect(self._modifyMode(mode="join"))
+        self.gui.modify_split.clicked.connect(self._modifyMode(mode="split"))
+        self.gui.modify_delete.clicked.connect(self._modifyMode(mode="delete"))
+        self.gui.classify_single.clicked.connect(self._modifyMode(mode="single"))
+        self.gui.classify_dividing.clicked.connect(self._modifyMode(mode="dividing"))
+        self.gui.classify_divided.clicked.connect(self._modifyMode(mode="divided"))
+        self.gui.classify_vertical.clicked.connect(self._modifyMode(mode="vertical"))
+        self.gui.classify_broken.clicked.connect(self._modifyMode(mode="broken"))
+        self.gui.classify_edge.clicked.connect(self._modifyMode(mode="edge"))
 
         self.viewer.bind_key(key="b", func=self.set_blurred, overwrite=True)
-        self.set_focus_1.clicked.connect(partial(self.set_image_quality, mode="focus", value=1))
-        self.set_focus_2.clicked.connect(partial(self.set_image_quality, mode="focus", value=2))
-        self.set_focus_3.clicked.connect(partial(self.set_image_quality, mode="focus", value=3))
-        self.set_focus_4.clicked.connect(partial(self.set_image_quality, mode="focus", value=4))
-        self.set_focus_5.clicked.connect(partial(self.set_image_quality, mode="focus", value=5))
+        self.gui.set_focus_1.clicked.connect(partial(self.set_image_quality, mode="focus", value=1))
+        self.gui.set_focus_2.clicked.connect(partial(self.set_image_quality, mode="focus", value=2))
+        self.gui.set_focus_3.clicked.connect(partial(self.set_image_quality, mode="focus", value=3))
+        self.gui.set_focus_4.clicked.connect(partial(self.set_image_quality, mode="focus", value=4))
+        self.gui.set_focus_5.clicked.connect(partial(self.set_image_quality, mode="focus", value=5))
         self.viewer.bind_key(key="f", func=self.set_focused, overwrite=True)
 
-        self.set_debris_1.clicked.connect(partial(self.set_image_quality, mode="debris", value=1))
-        self.set_debris_2.clicked.connect(partial(self.set_image_quality, mode="debris", value=2))
-        self.set_debris_3.clicked.connect(partial(self.set_image_quality, mode="debris", value=3))
-        self.set_debris_4.clicked.connect(partial(self.set_image_quality, mode="debris", value=4))
-        self.set_debris_5.clicked.connect(partial(self.set_image_quality, mode="debris", value=5))
+        self.gui.set_debris_1.clicked.connect(partial(self.set_image_quality, mode="debris", value=1))
+        self.gui.set_debris_2.clicked.connect(partial(self.set_image_quality, mode="debris", value=2))
+        self.gui.set_debris_3.clicked.connect(partial(self.set_image_quality, mode="debris", value=3))
+        self.gui.set_debris_4.clicked.connect(partial(self.set_image_quality, mode="debris", value=4))
+        self.gui.set_debris_5.clicked.connect(partial(self.set_image_quality, mode="debris", value=5))
 
-        self.modify_viewmasks.stateChanged.connect(self._viewerControls("viewmasks"))
-        self.modify_viewlabels.stateChanged.connect(self._viewerControls("viewlabels"))
-        self.refine_all.clicked.connect(self._refine_bacseg)
-        self.modify_copymasktoall.clicked.connect(self._copymasktoall)
-        self.modify_deleteallmasks.clicked.connect(self._deleteallmasks(mode="all"))
-        self.modify_deleteactivemasks.clicked.connect(self._deleteallmasks(mode="active"))
-        self.modify_deleteactiveimage.clicked.connect(self._delete_active_image(mode="active"))
-        self.modify_deleteotherimages.clicked.connect(self._delete_active_image(mode="other"))
-        self.find_next.clicked.connect(self._sort_cells("next"))
-        self.find_previous.clicked.connect(self._sort_cells("previous"))
-        self.modify_channel.currentTextChanged.connect(self._modify_channel_changed)
+        self.gui.modify_viewmasks.stateChanged.connect(self._viewerControls("viewmasks"))
+        self.gui.modify_viewlabels.stateChanged.connect(self._viewerControls("viewlabels"))
+        self.gui.refine_all.clicked.connect(self._refine_bacseg)
+        self.gui.modify_copymasktoall.clicked.connect(self._copymasktoall)
+        self.gui.modify_deleteallmasks.clicked.connect(self._deleteallmasks(mode="all"))
+        self.gui.modify_deleteactivemasks.clicked.connect(self._deleteallmasks(mode="active"))
+        self.gui.modify_deleteactiveimage.clicked.connect(self._delete_active_image(mode="active"))
+        self.gui.modify_deleteotherimages.clicked.connect(self._delete_active_image(mode="other"))
+        self.gui.find_next.clicked.connect(self._sort_cells("next"))
+        self.gui.find_previous.clicked.connect(self._sort_cells("previous"))
+        self.gui.modify_channel.currentTextChanged.connect(self._modify_channel_changed)
 
-        self.filter_report.clicked.connect(partial(self._filter_segmentations, remove=False))
-        self.filter_remove.clicked.connect(partial(self._filter_segmentations, remove=True))
+        self.gui.filter_report.clicked.connect(partial(self._filter_segmentations, remove=False))
+        self.gui.filter_remove.clicked.connect(partial(self._filter_segmentations, remove=True))
 
         # export events
-        self.export_active.clicked.connect(self._export("active"))
-        self.export_all.clicked.connect(self._export("all"))
-        self.export_stack_active.clicked.connect(self._export_stack("active"))
-        self.export_stack_all.clicked.connect(self._export_stack("all"))
-        self.export_statistics_active.clicked.connect(self._export_statistics("active"))
-        self.export_statistics_all.clicked.connect(self._export_statistics("all"))
+        self.gui.export_active.clicked.connect(self._export("active"))
+        self.gui.export_all.clicked.connect(self._export("all"))
+        self.gui.export_stack_active.clicked.connect(self._export_stack("active"))
+        self.gui.export_stack_all.clicked.connect(self._export_stack("all"))
+        self.gui.export_statistics_active.clicked.connect(self._export_statistics("active"))
+        self.gui.export_statistics_all.clicked.connect(self._export_statistics("all"))
 
         # oufti events
-        self.oufti_generate_all_midlines.clicked.connect(self.generate_midlines(mode="all"))
-        self.oufti_generate_active_midlines.clicked.connect(self.generate_midlines(mode="active"))
+        self.gui.oufti_generate_all_midlines.clicked.connect(self.generate_midlines(mode="all"))
+        self.gui.oufti_generate_active_midlines.clicked.connect(self.generate_midlines(mode="active"))
         self.viewer.bind_key(key="m", func=self.midline_edit_toggle, overwrite=True)
-        self.oufti_edit_mode.clicked.connect(self.midline_edit_toggle)
-        self.oufti_panzoom_mode.clicked.connect(self.midline_edit_toggle)
-        self.oufti_centre_all_midlines.clicked.connect(self.centre_oufti_midlines(mode="all"))
-        self.oufti_centre_active_midlines.clicked.connect(self.centre_oufti_midlines(mode="active"))
+        self.gui.oufti_edit_mode.clicked.connect(self.midline_edit_toggle)
+        self.gui.oufti_panzoom_mode.clicked.connect(self.midline_edit_toggle)
+        self.gui.oufti_centre_all_midlines.clicked.connect(self.centre_oufti_midlines(mode="all"))
+        self.gui.oufti_centre_active_midlines.clicked.connect(self.centre_oufti_midlines(mode="active"))
 
         # upload tab events
-        self.upload_all.clicked.connect(self._uploadDatabase(mode="all"))
-        self.upload_active.clicked.connect(self._uploadDatabase(mode="active"))
-        self.database_download.clicked.connect(self._downloadDatabase)
-        self.create_database.clicked.connect(self._create_bacseg_database)
-        self.load_database.clicked.connect(self._load_bacseg_database)
-        self.store_metadata.clicked.connect(self.update_database_metadata)
+        self.gui.upload_all.clicked.connect(self._uploadDatabase(mode="all"))
+        self.gui.upload_active.clicked.connect(self._uploadDatabase(mode="active"))
+        self.gui.database_download.clicked.connect(self._downloadDatabase)
+        self.gui.create_database.clicked.connect(self._create_bacseg_database)
+        self.gui.load_database.clicked.connect(self._load_bacseg_database)
+        self.gui.store_metadata.clicked.connect(self.update_database_metadata)
 
-        self.picasso_detect.clicked.connect(self.detect_picasso_localisations)
-        self.picasso_fit.clicked.connect(self.fit_picasso_localisations)
-        self.picasso_vis_size.currentIndexChanged.connect(self.update_localisation_visualisation)
-        self.picasso_vis_mode.currentIndexChanged.connect(self.update_localisation_visualisation)
-        self.picasso_vis_opacity.currentIndexChanged.connect(self.update_localisation_visualisation)
-        self.picasso_vis_edge_width.currentIndexChanged.connect(self.update_localisation_visualisation)
-        self.picasso_export.clicked.connect(self.export_picasso_localisations)
+        self.gui.picasso_detect.clicked.connect(self.detect_picasso_localisations)
+        self.gui.picasso_fit.clicked.connect(self.fit_picasso_localisations)
+        self.gui.picasso_vis_size.currentIndexChanged.connect(self.update_localisation_visualisation)
+        self.gui.picasso_vis_mode.currentIndexChanged.connect(self.update_localisation_visualisation)
+        self.gui.picasso_vis_opacity.currentIndexChanged.connect(self.update_localisation_visualisation)
+        self.gui.picasso_vis_edge_width.currentIndexChanged.connect(self.update_localisation_visualisation)
+        self.gui.picasso_export.clicked.connect(self.export_picasso_localisations)
 
-        self.upload_initial.currentTextChanged.connect(self.populate_upload_combos)
+        self.gui.upload_initial.currentTextChanged.connect(self.populate_upload_combos)
 
-        self.filter_metadata.clicked.connect(self.update_upload_combos)
-        self.reset_metadata.clicked.connect(self.populate_upload_combos)
+        self.gui.filter_metadata.clicked.connect(self.update_upload_combos)
+        self.gui.reset_metadata.clicked.connect(self.populate_upload_combos)
 
         self.viewer.dims.events.current_step.connect(self._sliderEvent)
 
-        self.import_filemode.currentIndexChanged.connect(self.update_import_limit)
-        self.import_mode.currentIndexChanged.connect(self.update_import_limit)
+        self.gui.import_filemode.currentIndexChanged.connect(self.update_import_limit)
+        self.gui.import_mode.currentIndexChanged.connect(self.update_import_limit)
 
-        self.export_channel.currentIndexChanged.connect(self.update_export_options)
+        self.gui.export_channel.currentIndexChanged.connect(self.update_export_options)
 
     def initialise_keybindings(self):
 
@@ -614,22 +606,22 @@ class BacSeg(QWidget, _picasso_utils,
 
         try:
 
-            export_channel = self.export_channel.currentText()
+            export_channel = self.gui.export_channel.currentText()
 
             if export_channel == "Multi Channel":
-                self.export_multi_channel_mode.setEnabled(True)
-                self.export_multi_channel_mode_label.setEnabled(True)
+                self.gui.export_multi_channel_mode.setEnabled(True)
+                self.gui.export_multi_channel_mode_label.setEnabled(True)
 
-                self.export_multi_channel_mode.setVisible(True)
-                self.export_multi_channel_mode_label.setVisible(True)
+                self.gui.export_multi_channel_mode.setVisible(True)
+                self.gui.export_multi_channel_mode_label.setVisible(True)
 
-                self.export_multi_channel_mode
+                self.gui.export_multi_channel_mode
             else:
-                self.export_multi_channel_mode.setEnabled(False)
-                self.export_multi_channel_mode_label.setEnabled(False)
+                self.gui.export_multi_channel_mode.setEnabled(False)
+                self.gui.export_multi_channel_mode_label.setEnabled(False)
 
-                self.export_multi_channel_mode.setVisible(False)
-                self.export_multi_channel_mode_label.setVisible(False)
+                self.gui.export_multi_channel_mode.setVisible(False)
+                self.gui.export_multi_channel_mode_label.setVisible(False)
 
         except:
             print(traceback.format_exc())
@@ -647,11 +639,11 @@ class BacSeg(QWidget, _picasso_utils,
 
         try:
 
-            metric = self.filter_metric.currentText()
-            criteria = self.filter_criteria.currentText()
-            threshold = self.filter_threshold.text()
-            fov_mode = self.filter_mode.currentText()
-            ignore_edge = self.filter_ignore_edge.isChecked()
+            metric = self.gui.filter_metric.currentText()
+            criteria = self.gui.filter_criteria.currentText()
+            threshold = self.gui.filter_threshold.text()
+            fov_mode = self.gui.filter_mode.currentText()
+            ignore_edge = self.gui.filter_ignore_edge.isChecked()
 
             if self._check_number_string(threshold):
 
@@ -671,22 +663,22 @@ class BacSeg(QWidget, _picasso_utils,
 
 
     def _set_available_multiframe_modes(self):
-        multiframe_items = [self.import_multiframe_mode.itemText(i) for i in range(self.import_multiframe_mode.count())]
-        mode = self.import_mode.currentText()
+        multiframe_items = [self.gui.import_multiframe_mode.itemText(i) for i in range(self.gui.import_multiframe_mode.count())]
+        mode = self.gui.import_mode.currentText()
 
         if mode in ["Images", "NanoImager Data", "ImageJ files(s)"]:
             if "Keep All Frames (BETA)" not in multiframe_items:
-                self.import_multiframe_mode.addItem("Keep All Frames (BETA)")
+                self.gui.import_multiframe_mode.addItem("Keep All Frames (BETA)")
         else:
             if "Keep All Frames (BETA)" in multiframe_items:
-                self.import_multiframe_mode.removeItem(multiframe_items.index("Keep All Frames (BETA)"))
+                self.gui.import_multiframe_mode.removeItem(multiframe_items.index("Keep All Frames (BETA)"))
 
     def _applyZoom(self):
         try:
             import re
 
-            magnification = self.zoom_magnification.currentText()
-            pixel_resolution = float(self.scalebar_resolution.text())
+            magnification = self.gui.zoom_magnification.currentText()
+            pixel_resolution = float(self.gui.scalebar_resolution.text())
             magnification = (magnification.lower().replace("x", "").replace("%", ""))
 
             magnification = re.findall(r"\b\d+\b", magnification)[0]
@@ -719,7 +711,7 @@ class BacSeg(QWidget, _picasso_utils,
                 else:
                     fov_list = range(num_images)
 
-                alignment_channel = self.alignment_channel.currentText()
+                alignment_channel = self.gui.alignment_channel.currentText()
                 current_fov = self.viewer.dims.current_step[0]
 
                 target_channels = [layer for layer in layer_names if layer != alignment_channel]
@@ -755,7 +747,7 @@ class BacSeg(QWidget, _picasso_utils,
         try:
             layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations", ]]
 
-            update_mode = self.set_quality_mode.currentIndex()
+            update_mode = self.gui.set_quality_mode.currentIndex()
 
             if len(layer_names) > 0:
                 current_fov = self.viewer.dims.current_step[0]
@@ -814,10 +806,10 @@ class BacSeg(QWidget, _picasso_utils,
             if selected_layer not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations", ]:
                 metadata = self.viewer.layers[selected_layer].metadata.copy()
 
-                img_modality = self.img_modality.currentText()
-                img_light_source = self.img_light_source.currentText()
-                img_stain = self.img_stain.currentText()
-                img_stain_target = self.img_stain_target.currentText()
+                img_modality = self.gui.img_modality.currentText()
+                img_light_source = self.gui.img_light_source.currentText()
+                img_stain = self.gui.img_stain.currentText()
+                img_stain_target = self.gui.img_stain_target.currentText()
 
                 if img_stain != "":
                     channel = img_stain
@@ -844,14 +836,14 @@ class BacSeg(QWidget, _picasso_utils,
 
     def _export_statistics(self, mode="active"):
         def _event(viewer):
-            multithreaded = self.export_statistics_multithreaded.isChecked()
+            multithreaded = self.gui.export_statistics_multithreaded.isChecked()
 
             if self.unfolded == True:
                 self.fold_images()
 
-            pixel_size = float(self.export_statistics_pixelsize.text())
+            pixel_size = float(self.gui.export_statistics_pixelsize.text())
 
-            colicoords_channel = self.export_colicoords_mode.currentText()
+            colicoords_channel = self.gui.export_colicoords_mode.currentText()
             colicoords_channel = colicoords_channel.replace("Mask + ", "")
 
             if pixel_size <= 0:
@@ -878,7 +870,7 @@ class BacSeg(QWidget, _picasso_utils,
                 self.threadpool.start(worker)
                 cell_data = worker.result()
 
-                if self.export_colicoords_mode.currentIndex() != 0:
+                if self.gui.export_colicoords_mode.currentIndex() != 0:
 
                     from napari_bacseg.funcs.colicoords_utils import run_colicoords
                     self.run_colicoords = self.wrapper(run_colicoords)
@@ -892,22 +884,22 @@ class BacSeg(QWidget, _picasso_utils,
         return _event
 
     def update_import_limit(self):
-        if (self.import_filemode.currentIndex() == 1 or self.import_mode.currentText() == "Zeiss (.czi) Data"):
-            self.import_limit.setEnabled(True)
-            self.import_limit.setCurrentIndex(0)
-            self.import_limit.show()
-            self.import_limit_label.show()
+        if (self.gui.import_filemode.currentIndex() == 1 or self.gui.import_mode.currentText() == "Zeiss (.czi) Data"):
+            self.gui.import_limit.setEnabled(True)
+            self.gui.import_limit.setCurrentIndex(0)
+            self.gui.import_limit.show()
+            self.gui.import_limit_label.show()
 
-            if self.import_mode.currentText() == "Zeiss (.czi) Data":
-                self.import_limit_label.setText("Import Limit (FOV)")
+            if self.gui.import_mode.currentText() == "Zeiss (.czi) Data":
+                self.gui.import_limit_label.setText("Import Limit (FOV)")
             else:
-                self.import_limit_label.setText("Import Limit (Files)")
+                self.gui.import_limit_label.setText("Import Limit (Files)")
 
         else:
-            self.import_limit.setEnabled(False)
-            self.import_limit.setCurrentIndex(6)
-            self.import_limit.hide()
-            self.import_limit_label.hide()
+            self.gui.import_limit.setEnabled(False)
+            self.gui.import_limit.setCurrentIndex(6)
+            self.gui.import_limit.hide()
+            self.gui.import_limit_label.hide()
 
     def _sort_cells(self, order):
         def _event(viewer):
@@ -921,8 +913,8 @@ class BacSeg(QWidget, _picasso_utils,
 
                 self._compute_simple_cell_stats()
 
-                find_criterion = self.find_criterion.currentText()
-                find_mode = self.find_mode.currentText()
+                find_criterion = self.gui.find_criterion.currentText()
+                find_mode = self.gui.find_mode.currentText()
 
                 cell_centre = meta["simple_cell_stats"]["cell_centre"]
                 cell_zoom = meta["simple_cell_stats"]["cell_zoom"]
@@ -1030,14 +1022,14 @@ class BacSeg(QWidget, _picasso_utils,
         if self.unfolded == True:
             self.fold_images()
 
-        pixel_size = float(self.export_statistics_pixelsize.text())
+        pixel_size = float(self.gui.export_statistics_pixelsize.text())
 
         if pixel_size <= 0:
             pixel_size = 1
 
         current_fov = self.viewer.dims.current_step[0]
 
-        channel = self.refine_channel.currentText()
+        channel = self.gui.refine_channel.currentText()
         colicoords_channel = channel.replace("Mask + ", "")
 
         mask_stack = self.segLayer.data
@@ -1064,7 +1056,7 @@ class BacSeg(QWidget, _picasso_utils,
                     if self.unfolded == True:
                         self.fold_images()
 
-                    if self.upload_initial.currentText() in ["", "Required for upload", ]:
+                    if self.gui.upload_initial.currentText() in ["", "Required for upload", ]:
                         show_info("Please select the user initial.")
                     else:
 
@@ -1086,7 +1078,7 @@ class BacSeg(QWidget, _picasso_utils,
                 if self.unfolded == True:
                     self.fold_images()
 
-                if self.upload_initial.currentText() in ["", "Required for upload", ]:
+                if self.gui.upload_initial.currentText() in ["", "Required for upload", ]:
                     show_info("Please select the user initial.")
 
                 else:
@@ -1112,47 +1104,47 @@ class BacSeg(QWidget, _picasso_utils,
     def _updateSegChannels(self):
         layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations", ]]
 
-        segChannel = self.cellpose_segchannel.currentText()
+        segChannel = self.gui.cellpose_segchannel.currentText()
 
-        self.export_channel.setCurrentText(segChannel)
+        self.gui.export_channel.setCurrentText(segChannel)
 
 
     def _Progresbar(self, progress, progressbar):
         if progressbar == "picasso":
-            self.picasso_progressbar.setValue(progress)
+            self.gui.picasso_progressbar.setValue(progress)
         if progressbar == "import":
-            self.import_progressbar.setValue(progress)
+            self.gui.import_progressbar.setValue(progress)
         if progressbar == "export":
-            self.export_progressbar.setValue(progress)
+            self.gui.exporttab_progressbar.setValue(progress)
         if progressbar == "cellpose":
-            self.cellpose_progressbar.setValue(progress)
+            self.gui.cellpose_progressbar.setValue(progress)
         if progressbar == "database_upload":
-            self.upload_progressbar.setValue(progress)
+            self.gui.upload_progressbar.setValue(progress)
         if progressbar == "database_download":
-            self.download_progressbar.setValue(progress)
+            self.gui.download_progressbar.setValue(progress)
         if progressbar == "modify":
-            self.modify_progressbar.setValue(progress)
+            self.gui.modify_progressbar.setValue(progress)
         if progressbar == "undrift":
-            self.undrift_progressbar.setValue(progress)
+            self.gui.undrift_progressbar.setValue(progress)
 
         if progress == 100:
             time.sleep(1)
-            self.import_progressbar.setValue(0)
-            self.export_progressbar.setValue(0)
-            self.cellpose_progressbar.setValue(0)
-            self.modify_progressbar.setValue(0)
-            self.undrift_progressbar.setValue(0)
-            self.download_progressbar.setValue(0)
-            self.upload_progressbar.setValue(0)
+            self.gui.import_progressbar.setValue(0)
+            self.gui.exporttab_progressbar.setValue(0)
+            self.gui.cellpose_progressbar.setValue(0)
+            self.gui.modify_progressbar.setValue(0)
+            self.gui.undrift_progressbar.setValue(0)
+            self.gui.download_progressbar.setValue(0)
+            self.gui.upload_progressbar.setValue(0)
 
-            # self.picasso_progressbar.setValue(0)
+            # self.gui.picasso_progressbar.setValue(0)
 
     def _importDialog(self, paths=None):
         if self.unfolded == True:
             self.fold_images()
 
-        import_mode = self.import_mode.currentText()
-        import_filemode = self.import_filemode.currentText()
+        import_mode = self.gui.import_mode.currentText()
+        import_filemode = self.gui.import_filemode.currentText()
 
         file_extension = "*.tif"
 
@@ -1252,7 +1244,7 @@ class BacSeg(QWidget, _picasso_utils,
         def _event(viewer):
             execute_export = True
 
-            if self.export_location.currentIndex() == 1:
+            if self.gui.export_location.currentIndex() == 1:
                 desktop = os.path.expanduser("~/Desktop")
                 self.export_directory = QFileDialog.getExistingDirectory(self, "Select Directory", desktop)
 
@@ -1274,7 +1266,7 @@ class BacSeg(QWidget, _picasso_utils,
 
             execute_export = True
 
-            if self.export_location.currentIndex() == 1:
+            if self.gui.export_location.currentIndex() == 1:
                 desktop = os.path.expanduser("~/Desktop")
                 self.export_directory = QFileDialog.getExistingDirectory(self, "Select Directory", desktop)
 
@@ -1302,7 +1294,7 @@ class BacSeg(QWidget, _picasso_utils,
             self.fold_images()
 
         current_fov = int(self.viewer.dims.current_step[0])
-        chanel = str(self.cellpose_segchannel.currentText())
+        chanel = str(self.gui.cellpose_segchannel.currentText())
 
         images = self.viewer.layers[chanel].data.copy()
 
@@ -1317,7 +1309,7 @@ class BacSeg(QWidget, _picasso_utils,
         if self.unfolded == True:
             self.fold_images()
 
-        channel = str(self.cellpose_segchannel.currentText())
+        channel = str(self.gui.cellpose_segchannel.currentText())
         images = self.viewer.layers[channel].data.copy()
 
         images = self.unstack_images(images)
@@ -1330,51 +1322,51 @@ class BacSeg(QWidget, _picasso_utils,
 
     def _updateSliderLabel(self, slider_name, label_name):
         self.slider = self.findChild(QSlider, slider_name)
-        self.label = self.findChild(QLabel, label_name)
+        self.gui.label = self.findChild(QLabel, label_name)
 
         slider_value = self.slider.value()
 
         if (slider_name == "cellpose_flowthresh" or slider_name == "cellpose_maskthresh"):
-            self.label.setText(str(slider_value / 100))
+            self.gui.label.setText(str(slider_value / 100))
         else:
-            self.label.setText(str(slider_value))
+            self.gui.label.setText(str(slider_value))
 
     def _updateSegmentationCombo(self):
         layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations", ]]
 
-        self.cellpose_segchannel.clear()
-        self.cellpose_segchannel.addItems(layer_names)
+        self.gui.cellpose_segchannel.clear()
+        self.gui.cellpose_segchannel.addItems(layer_names)
 
-        self.cellpose_trainchannel.clear()
-        self.cellpose_trainchannel.addItems(layer_names)
+        self.gui.cellpose_trainchannel.clear()
+        self.gui.cellpose_trainchannel.addItems(layer_names)
 
-        self.cellpose_trainchannel.clear()
-        self.cellpose_trainchannel.addItems(layer_names)
+        self.gui.cellpose_trainchannel.clear()
+        self.gui.cellpose_trainchannel.addItems(layer_names)
 
-        self.alignment_channel.clear()
-        self.alignment_channel.addItems(layer_names)
+        self.gui.alignment_channel.clear()
+        self.gui.alignment_channel.addItems(layer_names)
 
-        self.undrift_channel.clear()
-        self.undrift_channel.addItems(layer_names)
+        self.gui.undrift_channel.clear()
+        self.gui.undrift_channel.addItems(layer_names)
 
-        self.export_stack_channel.clear()
-        self.export_stack_channel.addItems(layer_names)
+        self.gui.export_stack_channel.clear()
+        self.gui.export_stack_channel.addItems(layer_names)
 
-        self.picasso_image_channel.clear()
-        self.picasso_image_channel.addItems(layer_names)
+        self.gui.picasso_image_channel.clear()
+        self.gui.picasso_image_channel.addItems(layer_names)
 
-        self.export_channel.clear()
+        self.gui.export_channel.clear()
         export_layers = layer_names
         export_layers.extend(["Multi Channel", ])
-        self.export_channel.addItems(export_layers)
+        self.gui.export_channel.addItems(export_layers)
 
-        self.refine_channel.clear()
+        self.gui.refine_channel.clear()
         refine_layers = ["Mask + " + layer for layer in layer_names]
-        self.refine_channel.addItems(["Mask"] + refine_layers)
+        self.gui.refine_channel.addItems(["Mask"] + refine_layers)
 
-        self.export_colicoords_mode.clear()
+        self.gui.export_colicoords_mode.clear()
         refine_layers = ["Mask + " + layer for layer in layer_names]
-        self.export_colicoords_mode.addItems(["None (OpenCV Stats)", "Mask"] + refine_layers)
+        self.gui.export_colicoords_mode.addItems(["None (OpenCV Stats)", "Mask"] + refine_layers)
 
     def _sliderEvent(self, current_step):
         try:
@@ -1396,9 +1388,9 @@ class BacSeg(QWidget, _picasso_utils,
         layer_names = [layer.name for layer in self.viewer.layers]
 
         try:
-            if self.scalebar_show.isChecked() and len(layer_names) > 0:
-                pixel_resolution = float(self.scalebar_resolution.text())
-                scalebar_units = self.scalebar_units.currentText()
+            if self.gui.scalebar_show.isChecked() and len(layer_names) > 0:
+                pixel_resolution = float(self.gui.scalebar_resolution.text())
+                scalebar_units = self.gui.scalebar_units.currentText()
 
                 if pixel_resolution > 0:
                     for layer in layer_names:
@@ -1416,7 +1408,7 @@ class BacSeg(QWidget, _picasso_utils,
 
     def _autoContrast(self):
         try:
-            if self.autocontrast.isChecked():
+            if self.gui.import_auto_contrast.isChecked():
                 layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations", ]]
 
                 if len(layer_names) != 0:
@@ -1451,38 +1443,38 @@ class BacSeg(QWidget, _picasso_utils,
 
             viewer_text = ""
 
-            if (self.overlay_filename.isChecked() and "image_name" in metadata.keys()):
+            if (self.gui.overlay_filename.isChecked() and "image_name" in metadata.keys()):
                 viewer_text = f"File Name: {metadata['image_name']}"
-            if self.overlay_folder.isChecked() and "folder" in metadata.keys():
+            if self.gui.overlay_folder.isChecked() and "folder" in metadata.keys():
                 viewer_text = viewer_text + f"\nFolder: {metadata['folder']}"
-            if (self.overlay_microscope.isChecked() and "microscope" in metadata.keys()):
+            if (self.gui.overlay_microscope.isChecked() and "microscope" in metadata.keys()):
                 viewer_text = (viewer_text + f"\nMicroscope: {metadata['microscope']}")
-            if (self.overlay_datemodified.isChecked() and "date_modified" in metadata.keys()):
+            if (self.gui.overlay_datemodified.isChecked() and "date_modified" in metadata.keys()):
                 viewer_text = (viewer_text + f"\nDate Modified: {metadata['date_modified']}")
-            if (self.overlay_content.isChecked() and "content" in metadata.keys()):
+            if (self.gui.overlay_content.isChecked() and "content" in metadata.keys()):
                 viewer_text = viewer_text + f"\nContent: {metadata['content']}"
-            if self.overlay_strain.isChecked() and "strain" in metadata.keys():
+            if self.gui.overlay_strain.isChecked() and "strain" in metadata.keys():
                 viewer_text = viewer_text + f"\nStrain: {metadata['strain']}"
-            if (self.overlay_phenotype.isChecked() and "phenotype" in metadata.keys()):
+            if (self.gui.overlay_phenotype.isChecked() and "phenotype" in metadata.keys()):
                 viewer_text = (viewer_text + f"\nPhenotype: {metadata['phenotype']}")
-            if (self.overlay_antibiotic.isChecked() and "antibiotic" in metadata.keys()):
+            if (self.gui.overlay_antibiotic.isChecked() and "antibiotic" in metadata.keys()):
                 viewer_text = (viewer_text + f"\nAntibiotic: {metadata['antibiotic']}")
-            if self.overlay_stain.isChecked() and "stain" in metadata.keys():
+            if self.gui.overlay_stain.isChecked() and "stain" in metadata.keys():
                 viewer_text = viewer_text + f"\nStain: {metadata['stain']}"
-            if (self.overlay_staintarget.isChecked() and "stain_target" in metadata.keys()):
+            if (self.gui.overlay_staintarget.isChecked() and "stain_target" in metadata.keys()):
                 viewer_text = (viewer_text + f"\nStain Target: {metadata['stain_target']}")
-            if (self.overlay_modality.isChecked() and "modality" in metadata.keys()):
+            if (self.gui.overlay_modality.isChecked() and "modality" in metadata.keys()):
                 viewer_text = (viewer_text + f"\nModality: {metadata['modality']}")
-            if (self.overlay_lightsource.isChecked() and "source" in metadata.keys()):
+            if (self.gui.overlay_lightsource.isChecked() and "source" in metadata.keys()):
                 viewer_text = (viewer_text + f"\nLight Source: {metadata['source']}")
-            if (self.overlay_focus.isChecked() and "image_focus" in metadata.keys()):
+            if (self.gui.overlay_focus.isChecked() and "image_focus" in metadata.keys()):
                 viewer_text = (viewer_text + f"\nImage Focus: {metadata['image_focus']}")
-            if (self.overlay_debris.isChecked() and "image_debris" in metadata.keys()):
+            if (self.gui.overlay_debris.isChecked() and "image_debris" in metadata.keys()):
                 viewer_text = (viewer_text + f"\nImage Debris: {metadata['image_debris']}")
-            if self.overlay_laplacian.isChecked():
+            if self.gui.overlay_laplacian.isChecked():
                 image_laplacian = np.mean(cv2.Laplacian(image, cv2.CV_64F))
                 viewer_text = viewer_text + f"\nLaplacian: {image_laplacian}"
-            if self.overlay_range.isChecked():
+            if self.gui.overlay_range.isChecked():
                 image_range = np.max(image) - np.min(image)
                 viewer_text = viewer_text + f"\nRange: {image_range}"
 
@@ -1499,7 +1491,7 @@ class BacSeg(QWidget, _picasso_utils,
     def _process_import(self, imported_data, rearrange=True):
         layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations", ]]
 
-        append_mode = self.import_append_mode.currentIndex()
+        append_mode = self.gui.import_append_mode.currentIndex()
 
         if append_mode == 0:
             # removes all layers (except segmentation layer)
@@ -1633,7 +1625,7 @@ class BacSeg(QWidget, _picasso_utils,
         self._updateFileName()
         self._updateSegmentationCombo()
         self._updateSegChannels()
-        self.import_progressbar.reset()
+        self.gui.import_progressbar.reset()
         self.viewer.reset_view()
         self._autoClassify()
         self.align_image_channels()

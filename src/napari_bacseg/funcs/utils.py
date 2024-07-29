@@ -78,9 +78,9 @@ class _utils:
             paths = file_paths[i]
             paths = os.path.abspath(paths)
     
-            import_precision = self.import_precision.currentText()
-            multiframe_mode = self.import_multiframe_mode.currentIndex()
-            crop_mode = self.import_crop_mode.currentIndex()
+            import_precision = self.gui.import_precision.currentText()
+            multiframe_mode = self.gui.import_multiframe_mode.currentIndex()
+            crop_mode = self.gui.import_crop_mode.currentIndex()
     
             image_list, meta = self.read_image_file(paths, import_precision, multiframe_mode, crop_mode)
     
@@ -477,7 +477,7 @@ class _utils:
 
         layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
-        if self.import_align.isChecked() and len(layer_names) > 1:
+        if self.gui.import_align.isChecked() and len(layer_names) > 1:
             primary_image = layer_names[-1]
 
             layer_names.remove(primary_image)

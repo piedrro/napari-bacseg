@@ -29,7 +29,7 @@ class _undrift_utils:
     def _undrift_postprocesing(self):
         try:
             # remove borders
-            undrift_channel = self.undrift_channel.currentText()
+            undrift_channel = self.gui.undrift_channel.currentText()
 
             boundary_image = np.min(self.viewer.layers[undrift_channel].data.copy(), axis=0)
             boundary, _ = self._find_shifted_boundary(boundary_image)
@@ -49,7 +49,7 @@ class _undrift_utils:
                             pass
 
             # refresh active layer
-            self.viewer.layers[self.undrift_channel.currentText()].refresh()
+            self.viewer.layers[self.gui.undrift_channel.currentText()].refresh()
 
             # reset viewer
             self.viewer.reset_view()
@@ -96,7 +96,7 @@ class _undrift_utils:
             if layer_names != []:
                 shift_list = []
 
-                undrift_channel = self.undrift_channel.currentText()
+                undrift_channel = self.gui.undrift_channel.currentText()
 
                 image_shape = self.viewer.layers[undrift_channel].data.shape
 

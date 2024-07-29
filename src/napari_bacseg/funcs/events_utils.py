@@ -35,7 +35,7 @@ class _events_utils:
         return mask
 
     def _modify_channel_changed(self, event):
-        if self.modify_channel.currentIndex() == 0:
+        if self.gui.modify_channel.currentIndex() == 0:
             self.viewer.layers.selection.active = self.segLayer
         else:
             self.viewer.layers.selection.active = self.nucLayer
@@ -66,7 +66,7 @@ class _events_utils:
                 if "Shift" in event.modifiers:
                     self._modifyMode(mode="add")
 
-                if self.modify_channel.currentIndex() == 0:
+                if self.gui.modify_channel.currentIndex() == 0:
                     modify_channel = self.segLayer
                     self.viewer.layers.selection.active = self.segLayer
                 else:
@@ -479,7 +479,7 @@ class _events_utils:
                         if mask_id != 0:
                             current_fov = self.viewer.dims.current_step[0]
 
-                            channel = self.refine_channel.currentText()
+                            channel = self.gui.refine_channel.currentText()
                             channel = channel.replace("Mask + ", "")
 
                             label_stack = self.classLayer.data
@@ -572,18 +572,18 @@ class _events_utils:
                     data_coordinates = modify_channel.world_to_data(event.position)
                     coord = np.round(data_coordinates).astype(int)
 
-                if self.modify_auto_panzoom.isChecked() == True:
+                if self.gui.modify_auto_panzoom.isChecked() == True:
                     self.interface_mode = "panzoom"
-                    self.modify_panzoom.setEnabled(False)
-                    self.modify_segment.setEnabled(True)
-                    self.modify_classify.setEnabled(True)
+                    self.gui.modify_panzoom.setEnabled(False)
+                    self.gui.modify_segment.setEnabled(True)
+                    self.gui.modify_classify.setEnabled(True)
 
         except:
             print(traceback.format_exc())
 
     def _newSegColour(self):
 
-        if self.modify_channel.currentIndex() == 0:
+        if self.gui.modify_channel.currentIndex() == 0:
             modify_channel = self.segLayer
         else:
             modify_channel = self.nucLayer
@@ -605,7 +605,7 @@ class _events_utils:
 
     def _modifyMode(self, mode, viewer=None):
         def _event(viewer):
-            if self.modify_channel.currentIndex() == 0:
+            if self.gui.modify_channel.currentIndex() == 0:
                 modify_channel = self.segLayer
                 self.viewer.layers.selection.active = self.segLayer
             else:
@@ -616,19 +616,19 @@ class _events_utils:
                 modify_channel.mode = "pan_zoom"
 
                 self.interface_mode = "panzoom"
-                self.modify_panzoom.setEnabled(False)
-                self.modify_panzoom.setEnabled(False)
-                self.modify_segment.setEnabled(True)
-                self.modify_classify.setEnabled(True)
+                self.gui.modify_panzoom.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(False)
+                self.gui.modify_segment.setEnabled(True)
+                self.gui.modify_classify.setEnabled(True)
 
             if mode == "segment":
                 self.viewer.layers.selection.select_only(modify_channel)
 
                 self.interface_mode = "segment"
                 self.segmentation_mode = "add"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(False)
-                self.modify_classify.setEnabled(True)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(False)
+                self.gui.modify_classify.setEnabled(True)
 
             if mode == "classify":
                 self.viewer.layers.selection.select_only(modify_channel)
@@ -636,23 +636,23 @@ class _events_utils:
                 self.interface_mode = "classify"
                 self.segmentation_mode = "add"
                 self.class_mode = 1
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(True)
-                self.modify_classify.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(True)
+                self.gui.modify_classify.setEnabled(False)
 
             if mode == "clicktozoom":
                 self.viewer.layers.selection.select_only(modify_channel)
 
                 self.interface_mode = "segment"
-                self.segmentation_mode = "clicktozoom"  # self.modify_panzoom.setEnabled(True)  # self.modify_segment.setEnabled(True)  # self.modify_classify.setEnabled(True)
+                self.segmentation_mode = "clicktozoom"  # self.gui.modify_panzoom.setEnabled(True)  # self.gui.modify_segment.setEnabled(True)  # self.gui.modify_classify.setEnabled(True)
 
             if mode == "add":
                 self.viewer.layers.selection.select_only(modify_channel)
 
                 self.interface_mode = "segment"
                 self.segmentation_mode = "add"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(False)
                 show_info("Add (click/drag to add)")
 
             if mode == "extend":
@@ -660,8 +660,8 @@ class _events_utils:
 
                 self.interface_mode = "segment"
                 self.segmentation_mode = "extend"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(False)
                 show_info("Extend (click/drag to extend)")
 
             if mode == "join":
@@ -669,8 +669,8 @@ class _events_utils:
 
                 self.interface_mode = "segment"
                 self.segmentation_mode = "join"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(False)
                 show_info("Join (click/drag to join)")
 
             if mode == "split":
@@ -678,8 +678,8 @@ class _events_utils:
 
                 self.interface_mode = "segment"
                 self.segmentation_mode = "split"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(False)
                 show_info("Split (click/drag to split)")
 
             if mode == "delete":
@@ -687,8 +687,8 @@ class _events_utils:
 
                 self.interface_mode = "segment"
                 self.segmentation_mode = "delete"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(False)
                 show_info("Delete (click/drag to delete)")
 
             if mode == "edit_vertex":
@@ -697,16 +697,16 @@ class _events_utils:
                 self.interface_mode = "shapes"
                 self.segmentation_mode = "edit_vertex"
 
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(False)
 
             if mode == "refine":
                 self.viewer.layers.selection.select_only(modify_channel)
 
                 self.interface_mode = "segment"
                 self.segmentation_mode = "refine"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(False)
                 show_info("Refine (click to refine)")
 
             if self.interface_mode == "segment":
@@ -718,9 +718,9 @@ class _events_utils:
                 self.class_mode = mode
                 self.class_colour = 1
                 self.interface_mode = "classify"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(True)
-                self.modify_classify.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(True)
+                self.gui.modify_classify.setEnabled(False)
                 show_info("Single (click to classify)")
 
             if mode == "dividing":
@@ -729,9 +729,9 @@ class _events_utils:
                 self.class_mode = mode
                 self.class_colour = 2
                 self.interface_mode = "classify"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(True)
-                self.modify_classify.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(True)
+                self.gui.modify_classify.setEnabled(False)
                 show_info("Dividing (click to classify)")
 
             if mode == "divided":
@@ -740,9 +740,9 @@ class _events_utils:
                 self.class_mode = mode
                 self.class_colour = 3
                 self.interface_mode = "classify"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(True)
-                self.modify_classify.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(True)
+                self.gui.modify_classify.setEnabled(False)
                 show_info("Divided (click to classify)")
 
             if mode == "vertical":
@@ -751,9 +751,9 @@ class _events_utils:
                 self.class_mode = mode
                 self.class_colour = 4
                 self.interface_mode = "classify"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(True)
-                self.modify_classify.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(True)
+                self.gui.modify_classify.setEnabled(False)
                 show_info("Vertical (click to classify)")
 
             if mode == "broken":
@@ -762,9 +762,9 @@ class _events_utils:
                 self.class_mode = mode
                 self.class_colour = 5
                 self.interface_mode = "classify"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(True)
-                self.modify_classify.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(True)
+                self.gui.modify_classify.setEnabled(False)
                 show_info("Broken (click to classify)")
 
             if mode == "edge":
@@ -773,9 +773,9 @@ class _events_utils:
                 self.class_mode = mode
                 self.class_colour = 6
                 self.interface_mode = "classify"
-                self.modify_panzoom.setEnabled(True)
-                self.modify_segment.setEnabled(True)
-                self.modify_classify.setEnabled(False)
+                self.gui.modify_panzoom.setEnabled(True)
+                self.gui.modify_segment.setEnabled(True)
+                self.gui.modify_classify.setEnabled(False)
                 show_info("Edge (click to classify)")
 
         return _event
@@ -799,24 +799,24 @@ class _events_utils:
             if key == "z":
                 if self.segLayer.visible == True:
                     self.segLayer.visible = False
-                    self.modify_viewmasks.setChecked(False)
+                    self.gui.modify_viewmasks.setChecked(False)
                 else:
                     self.segLayer.visible = True
-                    self.modify_viewmasks.setChecked(True)
+                    self.gui.modify_viewmasks.setChecked(True)
 
             if key == "x":
                 if self.classLayer.visible == True:
                     self.classLayer.visible = False
-                    self.modify_viewlabels.setChecked(False)
+                    self.gui.modify_viewlabels.setChecked(False)
                 else:
                     self.classLayer.visible = True
-                    self.modify_viewlabels.setChecked(True)
+                    self.gui.modify_viewlabels.setChecked(True)
 
             if key == "viewlabels":
-                self.classLayer.visible = self.modify_viewlabels.isChecked()
+                self.classLayer.visible = self.gui.modify_viewlabels.isChecked()
 
             if key == "viewmasks":
-                self.segLayer.visible = self.modify_viewmasks.isChecked()
+                self.segLayer.visible = self.gui.modify_viewmasks.isChecked()
 
             if key == "c":
                 layer_names = [
@@ -1044,11 +1044,11 @@ class _events_utils:
         colour = self.segLayer.get_value(coord)
 
         if mouse_button == 1 and colour in [0, None]:
-            if self.modify_viewmasks.isChecked() == True:
-                self.modify_viewmasks.setChecked(False)
+            if self.gui.modify_viewmasks.isChecked() == True:
+                self.gui.modify_viewmasks.setChecked(False)
                 self.segLayer.visible = False
             else:
-                self.modify_viewmasks.setChecked(True)
+                self.gui.modify_viewmasks.setChecked(True)
                 self.segLayer.visible = True
 
         if mouse_button == 1 and colour != 0:

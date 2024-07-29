@@ -55,7 +55,7 @@ class _cellpose_utils:
 
     def _postpocess_cellpose(self, mask):
         try:
-            min_seg_size = int(self.cellpose_min_seg_size.currentText())
+            min_seg_size = int(self.gui.cellpose_min_seg_size.currentText())
 
             post_processed_mask = np.zeros(mask.shape, dtype=np.uint16)
 
@@ -95,13 +95,13 @@ class _cellpose_utils:
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-            flow_threshold = float(self.cellpose_flowthresh_label.text())
-            mask_threshold = float(self.cellpose_maskthresh_label.text())
-            min_size = int(self.cellpose_minsize_label.text())
-            diameter = int(self.cellpose_diameter_label.text())
-            seg_batch_size = self.cellpose_seg_batchsize.currentText()
+            flow_threshold = float(self.gui.cellpose_flowthresh_label.text())
+            mask_threshold = float(self.gui.cellpose_maskthresh_label.text())
+            min_size = int(self.gui.cellpose_minsize_label.text())
+            diameter = int(self.gui.cellpose_diameter_label.text())
+            seg_batch_size = self.gui.cellpose_seg_batchsize.currentText()
 
-            model_type = self.cellpose_segmodel.currentText()
+            model_type = self.gui.cellpose_segmodel.currentText()
             model_path = self.cellpose_custom_model_path
 
             (model, gpu, omnipose_model, labels_to_flows,) = self._initialise_cellpose_model(model_type, model_path, diameter)
@@ -144,9 +144,9 @@ class _cellpose_utils:
                                 mask_threshold=mask_threshold, flow_threshold=flow_threshold,
                                 min_size=min_size,
                                 batch_size=batch_size,
-                                invert=self.cellpose_invert_images.isChecked(),
+                                invert=self.gui.cellpose_invert_images.isChecked(),
                                 omni=True,
-                                progress=self.cellpose_progressbar,
+                                progress=self.gui.cellpose_progressbar,
                             )
                         else:
                             masks, flow, diam = model.eval(
@@ -154,8 +154,8 @@ class _cellpose_utils:
                                 flow_threshold=flow_threshold, cellprob_threshold=mask_threshold,
                                 min_size=min_size,
                                 batch_size=batch_size,
-                                invert=self.cellpose_invert_images.isChecked(),
-                                progress=self.cellpose_progressbar,
+                                invert=self.gui.cellpose_invert_images.isChecked(),
+                                progress=self.gui.cellpose_progressbar,
                             )
 
                         for i, mask in enumerate(masks):
@@ -185,7 +185,7 @@ class _cellpose_utils:
             if len(segmentation_data) > 0:
                 masks = segmentation_data
 
-                if self.cellpose_seg_mode.currentIndex() == 0:
+                if self.gui.cellpose_seg_mode.currentIndex() == 0:
                     output_layer = self.segLayer
                 else:
                     output_layer = self.nucLayer
@@ -202,12 +202,12 @@ class _cellpose_utils:
                 output_layer.refresh()
 
                 self.cellpose_segmentation = True
-                self.cellpose_progressbar.setValue(0)
+                self.gui.cellpose_progressbar.setValue(0)
 
-                if self.cellpose_auto_classify.isChecked() == True:
+                if self.gui.cellpose_auto_classify.isChecked() == True:
                     self._autoClassify(reset=True)
 
-                if self.cellpose_resetimage.isChecked() == True:
+                if self.gui.cellpose_resetimage.isChecked() == True:
                     self.viewer.reset_view()
 
         except:
@@ -228,7 +228,7 @@ class _cellpose_utils:
 
         gpu = False
 
-        if torch.cuda.is_available() and self.cellpose_usegpu.isChecked():
+        if torch.cuda.is_available() and self.gui.cellpose_usegpu.isChecked():
             if self.widget_notifications:
                 show_info("Cellpose Using GPU")
             gpu = True
@@ -257,7 +257,7 @@ class _cellpose_utils:
 
         gpu = False
 
-        if torch.cuda.is_available() and self.cellpose_usegpu.isChecked():
+        if torch.cuda.is_available() and self.gui.cellpose_usegpu.isChecked():
             if self.widget_notifications:
                 show_info("Omnipose Using GPU")
             gpu = True
@@ -357,24 +357,24 @@ class _cellpose_utils:
 
     def train_cellpose_model(self, progress_callback=0):
         try:
-            channel = self.cellpose_trainchannel.currentText()
+            channel = self.gui.cellpose_trainchannel.currentText()
 
             images = self.viewer.layers[channel].data
             images = self.unstack_images(images, axis=0)
 
-            if self.cellpose_seg_mode.currentIndex() == 0:
+            if self.gui.cellpose_seg_mode.currentIndex() == 0:
                 masks = self.segLayer.data
                 masks = self.unstack_images(masks, axis=0)
             else:
                 masks = self.nucleiLayer.data
                 masks = self.unstack_images(masks, axis=0)
 
-            nepochs = int(self.cellpose_nepochs.currentText())
-            batchsize = int(self.cellpose_batchsize.currentText())
-            model_type = self.cellpose_trainmodel.currentText()
+            nepochs = int(self.gui.cellpose_nepochs.currentText())
+            batchsize = int(self.gui.cellpose_batchsize.currentText())
+            model_type = self.gui.cellpose_trainmodel.currentText()
             model_load_path = self.cellpose_custom_model_path
             model_save_path = self.cellpose_train_model_path
-            diameter = int(self.cellpose_diameter_label.text())
+            diameter = int(self.gui.cellpose_diameter_label.text())
 
             (model, gpu, omnipose_model, labels_to_flows,) = self._initialise_cellpose_model(model_type,
                 model_load_path, diameter, mode="train")
@@ -492,8 +492,8 @@ class _cellpose_utils:
             if ("cellpose_" in model_name or "omnipose_" in model_name or model_name in cellpose_model_names):
                 if os.path.isfile(path):
                     self.cellpose_custom_model_path = path
-                    self.cellpose_segmodel.setCurrentIndex(13)
-                    self.cellpose_trainmodel.setCurrentIndex(13)
+                    self.gui.cellpose_segmodel.setCurrentIndex(13)
+                    self.gui.cellpose_trainmodel.setCurrentIndex(13)
 
                     if "_omni" in model_name or "omnipose_" in model_name:
                         if self.widget_notifications:
