@@ -26,7 +26,7 @@ from qtpy.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QFormLayout,
     QLabel, QLineEdit, QProgressBar, QPushButton, QRadioButton, QSlider,
     QTabWidget, QVBoxLayout, QWidget, )
 
-from napari_bacseg.GUI.bacseg_ui import Ui_tab_widget
+from GUI.bacseg_ui import Ui_tab_widget
 
 from napari_bacseg.funcs.utils import _utils
 from napari_bacseg.funcs.IO.import_utils import _import_utils
@@ -64,6 +64,9 @@ class BacSeg(QWidget, _picasso_utils,
         super().__init__()
 
         self.viewer = viewer
+
+        from napari_bacseg.__init__ import __version__ as version
+        show_info(f"napari-bacseg version: {version}")
 
         self.initialise_widget_ui()
         self.initialise_controls()
