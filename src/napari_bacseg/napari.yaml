@@ -1,5 +1,5 @@
 name: napari-bacseg
-display_name: bacSEG
+display_name: BacSEG
 contributions:
   commands:
     - id: napari-bacseg.make_qwidget
@@ -7,4 +7,4 @@ contributions:
       title: Make BacSeg QWidget
   widgets:
     - command: napari-bacseg.make_qwidget
-      display_name: bacSEG
+      display_name: BacSEG

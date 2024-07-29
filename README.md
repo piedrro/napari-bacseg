@@ -1,4 +1,4 @@
-# napari-bacSEG
+# napari-BacSEG
 
 [![License BSD-3](https://img.shields.io/pypi/l/napari-bacseg.svg?color=green)](https://github.com/piedrro/napari-bacseg/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-bacseg.svg?color=green)](https://pypi.org/project/napari-bacseg)
