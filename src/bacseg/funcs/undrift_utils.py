@@ -2,7 +2,7 @@ import traceback
 from functools import partial
 import cv2
 import numpy as np
-from napari_bacseg.funcs.threading_utils import Worker
+from bacseg.funcs.threading_utils import Worker
 
 class _undrift_utils:
 

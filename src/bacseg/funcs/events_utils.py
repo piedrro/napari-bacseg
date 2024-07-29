@@ -501,7 +501,7 @@ class _events_utils:
                             cell_mask[mask != mask_id] = 0
                             cell_mask[mask == mask_id] = 1
 
-                            from napari_bacseg.funcs.colicoords_utils import (
+                            from bacseg.funcs.colicoords_utils import (
                                 process_colicoords,
                                 run_colicoords,
                             )

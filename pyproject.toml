@@ -67,7 +67,7 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.dynamic]
-version = {attr = "napari_bacseg.__init__.__version__"}
+version = {attr = "bacseg.__init__.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -89,4 +89,4 @@ line_length = 79
 
 
 [project.entry-points."napari.manifest"]
-"napari-bacseg" = "napari_bacseg:napari.yaml"
+"napari-bacseg" = "bacseg:napari.yaml"

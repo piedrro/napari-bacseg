@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from functools import partial
 import time
-from napari_bacseg.funcs.threading_utils import Worker
+from bacseg.funcs.threading_utils import Worker
 
 
 class _picasso_utils:

@@ -9,7 +9,6 @@ Replace code below according to your needs.
 
 import os
 import shutil
-import sys
 import tempfile
 import time
 import traceback
@@ -20,40 +19,37 @@ import napari
 import numpy as np
 from napari.utils.notifications import show_info
 from qtpy.QtCore import QThreadPool
-from PyQt5.QtGui import QFont
 
-from qtpy.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QFormLayout,
-    QLabel, QLineEdit, QProgressBar, QPushButton, QRadioButton, QSlider,
-    QTabWidget, QVBoxLayout, QWidget, )
+from qtpy.QtWidgets import (QComboBox, QFileDialog, QLabel, QSlider, QWidget, )
 
 
-from GUI.widget_ui import Ui_Form as gui
+from bacseg.GUI.gui import Ui_Form as gui
 
-from napari_bacseg.funcs.utils import _utils
-from napari_bacseg.funcs.IO.import_utils import _import_utils
-from napari_bacseg.funcs.IO.oni_utils import _oni_utils
-from napari_bacseg.funcs.IO.olympus_utils import _olympus_utils
-from napari_bacseg.funcs.IO.export_utils import _export_utils
-from napari_bacseg.funcs.database_utils import _database_utils
-from napari_bacseg.funcs.databaseIO_utils import _databaseIO
-from napari_bacseg.funcs.cellpose_utils import _cellpose_utils
-from napari_bacseg.funcs.tiler_utils import _tiler_utils
-from napari_bacseg.funcs.undrift_utils import _undrift_utils
-from napari_bacseg.funcs.IO.zeiss_utils import _zeiss_utils
-from napari_bacseg.funcs.events_utils import _events_utils
-from napari_bacseg.funcs.statistics_utils import _stats_utils
-from napari_bacseg.funcs.IO.oufti_utils import _oufti_utils
-from napari_bacseg.funcs.IO.imagej_utils import _imagej_utils
-from napari_bacseg.funcs.picasso_utils import _picasso_utils
+from bacseg.funcs.utils import _utils
+from bacseg.funcs.IO.import_utils import _import_utils
+from bacseg.funcs.IO.oni_utils import _oni_utils
+from bacseg.funcs.IO.olympus_utils import _olympus_utils
+from bacseg.funcs.IO.export_utils import _export_utils
+from bacseg.funcs.database_utils import _database_utils
+from bacseg.funcs.databaseIO_utils import _databaseIO
+from bacseg.funcs.cellpose_utils import _cellpose_utils
+from bacseg.funcs.tiler_utils import _tiler_utils
+from bacseg.funcs.undrift_utils import _undrift_utils
+from bacseg.funcs.IO.zeiss_utils import _zeiss_utils
+from bacseg.funcs.events_utils import _events_utils
+from bacseg.funcs.statistics_utils import _stats_utils
+from bacseg.funcs.IO.oufti_utils import _oufti_utils
+from bacseg.funcs.IO.imagej_utils import _imagej_utils
+from bacseg.funcs.picasso_utils import _picasso_utils
 
-from napari_bacseg.funcs.threading_utils import Worker
+from bacseg.funcs.threading_utils import Worker
 
 sub_classes = [_picasso_utils, _utils, _import_utils, _export_utils,
     _database_utils, _databaseIO, _cellpose_utils, _events_utils,
     _tiler_utils, _zeiss_utils, _stats_utils, _oufti_utils, _imagej_utils,
     _oni_utils, _olympus_utils, _undrift_utils]
 
-class BacSeg(QWidget, gui, *sub_classes):
+class QWidget(QWidget, gui, *sub_classes):
 
     def __init__(self, viewer: napari.Viewer):
 
@@ -61,7 +57,7 @@ class BacSeg(QWidget, gui, *sub_classes):
 
         self.viewer = viewer
 
-        from napari_bacseg.__init__ import __version__ as version
+        from bacseg.__init__ import __version__ as version
         show_info(f"napari-bacseg version: {version}")
 
         self.initialise_widget_ui()
@@ -872,7 +868,7 @@ class BacSeg(QWidget, gui, *sub_classes):
 
                 if self.gui.export_colicoords_mode.currentIndex() != 0:
 
-                    from napari_bacseg.funcs.colicoords_utils import run_colicoords
+                    from bacseg.funcs.colicoords_utils import run_colicoords
                     self.run_colicoords = self.wrapper(run_colicoords)
 
                     worker = Worker(self.run_colicoords, cell_data=cell_data, colicoords_channel=colicoords_channel, pixel_size=pixel_size, statistics=True, multithreaded=multithreaded, )

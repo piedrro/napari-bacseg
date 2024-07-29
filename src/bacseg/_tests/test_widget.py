@@ -1,6 +1,6 @@
 import numpy as np
 
-from napari_bacseg import ExampleQWidget, example_magic_widget
+from bacseg import ExampleQWidget, example_magic_widget
 
 
 # make_napari_viewer==a pytest fixture that returns a napari viewer object

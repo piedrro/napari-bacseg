@@ -1,15 +1,15 @@
 name: napari-bacseg
-display_name: BacSeg
+display_name: bacSEG
 contributions:
   commands:
     - id: napari-bacseg.make_qwidget
-      python_name: napari_bacseg._widget:BacSeg
+      python_name: bacseg._widget:QWidget
       title: Make BacSeg QWidget
   #    - id: napari-bacseg.make_examplewidget
-  #      python_name: napari_bacseg._widget:ExampleQWidget
+  #      python_name: bacseg._widget:ExampleQWidget
   #      title: Make ExampleQWidget
   widgets:
     - command: napari-bacseg.make_qwidget
-      display_name: BacSeg
+      display_name: bacSEG
 #    - command: napari-bacseg.make_examplewidget
 #      display_name: ExampleQWidget
