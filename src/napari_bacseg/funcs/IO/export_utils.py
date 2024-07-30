@@ -305,7 +305,7 @@ class _export_utils:
         invert = self.gui.export_invert.isChecked()
         autocontrast = self.gui.export_autocontrast.isChecked()
         scalebar = self.gui.export_scalebar.isChecked()
-        cropzoom = self.gui.export_cropzoom.isChecked()
+        cropzoom = self.gui.export_crop_zoom.isChecked()
         mask_background = self.gui.export_mask_background.isChecked()
 
         export_channel = self.gui.export_channel.currentText()

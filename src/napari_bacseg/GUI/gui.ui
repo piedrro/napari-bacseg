@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>527</width>
-    <height>685</height>
+    <width>681</width>
+    <height>993</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1955,23 +1955,23 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_56">
+            <widget class="QLabel" name="label_33">
              <property name="text">
-              <string>Delete segmentation [D] or [Double Click]</string>
+              <string>Edit midlines [Shift + M]</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_33">
+            <widget class="QLabel" name="label_56">
              <property name="text">
-              <string>Select cell midlines for editing [S]</string>
+              <string>Delete segmentation [Shift + D]</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_38">
              <property name="text">
-              <string>Dilate/Erode segmentation [Control + Scroll]</string>
+              <string>Dilate/Erode segmentation [Up/Down]</string>
              </property>
             </widget>
            </item>
@@ -2012,517 +2012,673 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
-        <widget class="QLabel" name="label_108">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
+        <widget class="QTabWidget" name="tabWidget_6">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="text">
-          <string>Picasso Fit Settings</string>
+         <property name="currentIndex">
+          <number>0</number>
          </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QFormLayout" name="formLayout_27">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_112">
-           <property name="text">
-            <string>Image Channel</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QComboBox" name="picasso_image_channel"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_116">
-           <property name="text">
-            <string>Image Frames</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QComboBox" name="picasso_image_frames">
+         <widget class="QWidget" name="tab_21">
+          <attribute name="title">
+           <string>Detect</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_20">
            <item>
-            <property name="text">
-             <string>Active</string>
-            </property>
+            <widget class="QLabel" name="label_108">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Picasso Fit Settings</string>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>All</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_109">
-           <property name="text">
-            <string>Box Size</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QComboBox" name="picasso_box_size">
-           <property name="currentIndex">
-            <number>0</number>
-           </property>
-           <item>
-            <property name="text">
-             <string>1</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>3</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>5</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>7</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>9</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>11</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>13</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>15</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>17</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>19</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>21</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_110">
-           <property name="text">
-            <string>Min Net Gradient</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="picasso_min_net_gradient">
-           <property name="text">
-            <string>10000</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="picasso_filter_localisations">
-         <property name="text">
-          <string>Remove localisations outside of segmentations</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_52">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Minimum</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_113">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Picasso Visualisation Settings</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QGridLayout" name="gridLayout_14">
-         <item row="0" column="3">
-          <widget class="QComboBox" name="picasso_vis_size">
-           <property name="currentIndex">
-            <number>3</number>
-           </property>
-           <item>
-            <property name="text">
-             <string>0.1</string>
-            </property>
+            <layout class="QFormLayout" name="formLayout_27">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_112">
+               <property name="text">
+                <string>Image Channel</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QComboBox" name="picasso_image_channel"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_116">
+               <property name="text">
+                <string>Image Frames</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QComboBox" name="picasso_image_frames">
+               <item>
+                <property name="text">
+                 <string>Active</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>All</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_109">
+               <property name="text">
+                <string>Box Size</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QComboBox" name="picasso_box_size">
+               <property name="currentIndex">
+                <number>2</number>
+               </property>
+               <item>
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>3</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>5</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>7</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>9</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>11</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>13</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>15</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>17</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>19</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>21</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_110">
+               <property name="text">
+                <string>Min Net Gradient</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="picasso_min_net_gradient">
+               <property name="text">
+                <string>10000</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>0.2</string>
-            </property>
+            <widget class="QCheckBox" name="picasso_filter_localisations">
+             <property name="text">
+              <string>Remove localisations outside of segmentations</string>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>0.5</string>
-            </property>
+            <spacer name="verticalSpacer_18">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
-            <property name="text">
-             <string>1</string>
-            </property>
+            <widget class="QLabel" name="label_111">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Picasso Run</string>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>2</string>
-            </property>
+            <widget class="QPushButton" name="picasso_detect">
+             <property name="text">
+              <string>Detect Localisations</string>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>5</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_114">
-           <property name="text">
-            <string>Mode</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QComboBox" name="picasso_vis_mode">
-           <item>
-            <property name="text">
-             <string>Disk</string>
-            </property>
+            <widget class="QPushButton" name="picasso_fit">
+             <property name="text">
+              <string>Fit Localisations</string>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>Square</string>
-            </property>
+            <layout class="QFormLayout" name="formLayout_29">
+             <item row="0" column="1">
+              <widget class="QProgressBar" name="picasso_progressbar">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>20</height>
+                </size>
+               </property>
+               <property name="value">
+                <number>0</number>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_117">
+               <property name="text">
+                <string>Progress</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_115">
-           <property name="text">
-            <string>Size</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_120">
-           <property name="text">
-            <string>Opacity</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QComboBox" name="picasso_vis_opacity">
-           <property name="currentIndex">
-            <number>9</number>
-           </property>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_26">
+          <attribute name="title">
+           <string>Visualise</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_30">
            <item>
-            <property name="text">
-             <string>0.1</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>0.2</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>0.3</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>0.4</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>0.5</string>
-            </property>
+            <widget class="QLabel" name="label_113">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Picasso Visualisation Settings</string>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>0.6</string>
-            </property>
+            <layout class="QGridLayout" name="gridLayout_14">
+             <item row="0" column="3">
+              <widget class="QComboBox" name="picasso_vis_size">
+               <property name="currentIndex">
+                <number>5</number>
+               </property>
+               <item>
+                <property name="text">
+                 <string>0.1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.5</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>3</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>4</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>5</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>6</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>7</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>8</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>9</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>10</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_114">
+               <property name="text">
+                <string>Mode</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QComboBox" name="picasso_vis_mode">
+               <item>
+                <property name="text">
+                 <string>Disk</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Square</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLabel" name="label_115">
+               <property name="text">
+                <string>Size</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_120">
+               <property name="text">
+                <string>Opacity</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QComboBox" name="picasso_vis_opacity">
+               <property name="currentIndex">
+                <number>9</number>
+               </property>
+               <item>
+                <property name="text">
+                 <string>0.1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.3</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.4</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.5</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.6</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.7</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.8</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.9</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>1.0</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLabel" name="label_121">
+               <property name="text">
+                <string>Edge Width</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QComboBox" name="picasso_vis_edge_width">
+               <property name="currentText">
+                <string>0.2</string>
+               </property>
+               <property name="currentIndex">
+                <number>1</number>
+               </property>
+               <item>
+                <property name="text">
+                 <string>0.1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.3</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.4</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.5</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.6</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.7</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.8</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>0.9</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>1.0</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>0.7</string>
-            </property>
+            <widget class="QCheckBox" name="picasso_show_vis">
+             <property name="text">
+              <string>Show Visualisations</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>0.8</string>
-            </property>
+            <spacer name="verticalSpacer_13">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_22">
+          <attribute name="title">
+           <string>Transform</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_28">
+           <item>
+            <widget class="QLabel" name="label_126">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Transform Coordinates</string>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>0.9</string>
-            </property>
+            <widget class="QLabel" name="label_13">
+             <property name="text">
+              <string>Transform coordinates to an ideal cell model, requires fitted Picasso localisations and fitted (BactFit) cells.</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>1.0</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QLabel" name="label_121">
-           <property name="text">
-            <string>Edge Width</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="3">
-          <widget class="QComboBox" name="picasso_vis_edge_width">
-           <property name="currentText">
-            <string>1.0</string>
-           </property>
-           <property name="currentIndex">
-            <number>9</number>
-           </property>
-           <item>
-            <property name="text">
-             <string>0.1</string>
-            </property>
+            <widget class="QPushButton" name="transform_coordinates">
+             <property name="text">
+              <string>Transform Coordinates</string>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>0.2</string>
-            </property>
+            <layout class="QFormLayout" name="formLayout_31">
+             <item row="0" column="1">
+              <widget class="QProgressBar" name="transform_progressbar">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>20</height>
+                </size>
+               </property>
+               <property name="value">
+                <number>0</number>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_127">
+               <property name="text">
+                <string>Progress</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>0.3</string>
-            </property>
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_23">
+          <attribute name="title">
+           <string>Export</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_29">
+           <item>
+            <widget class="QLabel" name="label_118">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Export Localisation Data</string>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>0.4</string>
-            </property>
+            <layout class="QFormLayout" name="formLayout_30">
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_119">
+               <property name="text">
+                <string>Export Mode</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QComboBox" name="picasso_export_mode">
+               <item>
+                <property name="text">
+                 <string>.csv</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>.pos.out</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Picasso HDF5</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_14">
+               <property name="text">
+                <string>Export Data</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QComboBox" name="picasso_export_data">
+               <item>
+                <property name="text">
+                 <string>Localisations</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Transformed Localisations</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>0.5</string>
-            </property>
+            <widget class="QPushButton" name="picasso_export">
+             <property name="text">
+              <string>Export</string>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>0.6</string>
-            </property>
+            <spacer name="verticalSpacer_11">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>192</height>
+              </size>
+             </property>
+            </spacer>
            </item>
-           <item>
-            <property name="text">
-             <string>0.7</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>0.8</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>0.9</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>1.0</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="picasso_show_vis">
-         <property name="text">
-          <string>Show Visualisations</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_51">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Minimum</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_111">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Picasso Run</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="picasso_detect">
-         <property name="text">
-          <string>Detect Localisations</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="picasso_fit">
-         <property name="text">
-          <string>Fit Localisations</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QFormLayout" name="formLayout_29">
-         <item row="0" column="1">
-          <widget class="QProgressBar" name="picasso_progressbar">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="value">
-            <number>0</number>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_117">
-           <property name="text">
-            <string>Progress</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_50">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Minimum</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_118">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Export Localisation Data</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QFormLayout" name="formLayout_30">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_119">
-           <property name="text">
-            <string>Export Mode</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QComboBox" name="picasso_export_mode">
-           <item>
-            <property name="text">
-             <string>.csv</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>.pos.out</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Picasso HDF5</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QPushButton" name="picasso_export">
-         <property name="text">
-          <string>Export</string>
-         </property>
+          </layout>
+         </widget>
         </widget>
        </item>
        <item>
@@ -2555,8 +2711,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>485</width>
-            <height>488</height>
+            <width>639</width>
+            <height>796</height>
            </rect>
           </property>
           <attribute name="label">
@@ -5258,8 +5414,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>485</width>
-            <height>407</height>
+            <width>639</width>
+            <height>715</height>
            </rect>
           </property>
           <attribute name="label">

@@ -222,6 +222,8 @@ class QWidget(QWidget, gui, *sub_classes):
 
         self.gui.fit_segmentations.clicked.connect(self.initialise_bactfit)
 
+        self.gui.transform_coordinates.clicked.connect(self.init_transform_coordinates)
+
     def initialise_keybindings(self):
 
         self.viewer.bind_key("a", func=self._modifyMode(mode="add"), overwrite=True)
@@ -267,6 +269,7 @@ class QWidget(QWidget, gui, *sub_classes):
         self.viewer.bind_key("Alt-Right", func=self._manual_align_channels("right", mode="all"), overwrite=True, )
         self.viewer.bind_key("Alt-Up", func=self._manual_align_channels("up", mode="all"), overwrite=True, )
         self.viewer.bind_key("Alt-Down", func=self._manual_align_channels("down", mode="all"), overwrite=True, )
+
 
     def initialise_viewer_events(self):
 
@@ -887,7 +890,8 @@ class QWidget(QWidget, gui, *sub_classes):
             self.gui.undrift_progressbar.setValue(progress)
         if progressbar == "bactfit":
             self.gui.bactfit_progressbar.setValue(progress)
-
+        if progressbar == "transform_coordinates":
+            self.gui.transform_progressbar.setValue(progress)
 
         if progress == 100:
             time.sleep(1)
@@ -900,6 +904,7 @@ class QWidget(QWidget, gui, *sub_classes):
             self.gui.upload_progressbar.setValue(0)
             self.gui.bactfit_progressbar.setValue(0)
             self.gui.picasso_progressbar.setValue(0)
+            self.gui.transform_progressbar.setValue(0)
 
     def _importDialog(self, paths=None):
         if self.unfolded == True:

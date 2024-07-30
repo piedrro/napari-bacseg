@@ -220,12 +220,6 @@ class Cell(object):
             polygon_locs = self.locs[polygon_point_indices]
 
             polygon_locs = pd.DataFrame(polygon_locs)
-
-            if "cell_index" in polygon_locs.columns:
-                polygon_locs = polygon_locs.drop(columns=["cell_index"])
-            if "segmentation_index" in polygon_locs.columns:
-                polygon_locs = polygon_locs.drop(columns=["segmentation_index"])
-
             polygon_locs = polygon_locs.to_records(index=False)
 
             filtered_locs.append(polygon_locs)
@@ -243,13 +237,14 @@ class Cell(object):
 
         if target_cell is not None and self.locs is not None:
 
-            transformed_locs = cell_coordinate_transformation(self, target_cell, method)
+            cell = cell_coordinate_transformation(self, target_cell, method)
 
-            if len(transformed_locs) > 0:
-                self.locs = transformed_locs
+            cell_locs = cell.locs
+
+            if cell_locs is not None:
+                self.locs = cell_locs
             else:
                 self.locs = None
-
 
     def optimise(self, refine_fit = True, fit_mode = "directed_hausdorff",
             min_radius = -1, max_radius = -1):
@@ -613,7 +608,7 @@ class CellList(object):
                         progress_callback.emit(progress)
 
 
-    def get_locs(self, symmetry=True):
+    def get_locs(self, symmetry=False):
 
         locs = []
 

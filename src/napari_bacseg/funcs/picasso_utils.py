@@ -14,128 +14,163 @@ class _picasso_utils:
 
     def export_picasso_localisations(self, event=None):
         try:
-            if (hasattr(self, "detected_locs") == False and hasattr(self, "fitted_locs") == False):
-                show_info("No localisations found, please detect + fit localisations first")
-            elif (hasattr(self, "detected_locs") == True and hasattr(self, "fitted_locs") == False):
-                show_info("No fitted localisations found, please fit localisations first")
-            elif (hasattr(self, "detected_locs") == True and hasattr(self, "fitted_locs") == True):
-                desktop = os.path.expanduser("~/Desktop")
 
-                export_mode = self.gui.picasso_export_mode.currentText()
+            export_data = self.gui.picasso_export_data.currentText()
+            export_mode = self.gui.picasso_export_mode.currentText()
 
-                if export_mode == ".csv":
-                    export_extension = "csv"
-                elif export_mode == "Picasso HDF5":
-                    export_extension = "hdf5"
-                elif export_mode == ".pos.out":
-                    export_extension = "pos.out"
+            if export_data == "Transformed Localisations":
+                if hasattr(self, "transformed_locs") == False:
+                    show_info("No transformed localisations found, please transform localisations first")
+                    return
+                localisation_data = self.transformed_locs
 
-                import_path = self.viewer.layers[self.gui.picasso_image_channel.currentText()].metadata[0]["image_path"]
-                # replace extension with export extension
-                import_path = os.path.splitext(import_path)[0] + "." + export_extension
+            else:
+                if hasattr(self, "fitted_locs") == False:
+                    show_info("No fitted localisations found, please fit localisations first")
+                    return
+                localisation_data = self.fitted_locs
 
+            if len(localisation_data) == 0:
+                show_info("No localisations found to export")
+                return
 
-                export_path = QFileDialog.getSaveFileName(self, "Select Save Directory", import_path, f"(*.{export_extension})")[0]
-                export_directory = os.path.dirname(export_path)
+            if export_mode == ".csv":
+                export_extension = "csv"
+            elif export_mode == "Picasso HDF5":
+                export_extension = "hdf5"
+            elif export_mode == ".pos.out":
+                export_extension = "pos.out"
 
-                if os.path.isdir(export_directory):
-                    image_layers = [layer.name for layer in self.viewer.layers]
-                    image_channel = self.gui.picasso_image_channel.currentText()
+            import_path = self.viewer.layers[self.gui.picasso_image_channel.currentText()].metadata[0]["image_path"]
+            # replace extension with export extension
+            import_path = os.path.splitext(import_path)[0] + "." + export_extension
 
-                    if image_channel in image_layers:
+            export_path = QFileDialog.getSaveFileName(self, "Select Save Directory", import_path, f"(*.{export_extension})")[0]
+            export_directory = os.path.dirname(export_path)
 
-                        image_name = os.path.basename(export_path)
+            if os.path.isdir(export_directory):
+                image_layers = [layer.name for layer in self.viewer.layers]
+                image_channel = self.gui.picasso_image_channel.currentText()
 
-                        image_path = self.viewer.layers[image_channel].metadata[0]["image_path"]
+                if image_channel in image_layers:
 
-                        localisation_data = self.get_localisation_data(self.fitted_locs)
+                    image_name = os.path.basename(export_path)
 
-                        if export_mode == ".csv":
+                    image_path = self.viewer.layers[image_channel].metadata[0]["image_path"]
 
-                            def replace_image_name(dat, image_names):
-                                frame_index = dat["frame"]
-                                image_name = image_names[frame_index]
-                                dat["image_name"] = image_name
-                                return dat
+                    if export_mode == ".csv":
 
-                            channel_metadata = self.viewer.layers[image_channel].metadata
-                            frame_list = localisation_data["frame"].unique()
-                            image_names = [channel_metadata[frame]["image_name"] for frame in frame_list]
+                        def replace_image_name(dat, image_names):
+                            frame_index = dat["frame"]
+                            image_name = image_names[frame_index]
+                            dat["image_name"] = image_name
+                            return dat
 
+                        localisation_data = pd.DataFrame(localisation_data)
+
+                        channel_metadata = self.viewer.layers[image_channel].metadata
+                        frame_list = localisation_data["frame"].unique()
+                        image_names = [channel_metadata[frame]["image_name"] for frame in frame_list]
+
+                        if "image_name" not in localisation_data.columns:
                             localisation_data.insert(0, "image_name", "")
-                            localisation_data = localisation_data.apply(lambda x: replace_image_name(x, image_names), axis=1)
 
-                            export_path = os.path.join(export_directory, image_name)
-                            export_path = os.path.abspath(export_path)
+                        localisation_data = localisation_data.apply(lambda x: replace_image_name(x, image_names), axis=1)
 
-                            localisation_data = pd.DataFrame(localisation_data)
+                        export_path = os.path.join(export_directory, image_name)
+                        export_path = os.path.abspath(export_path)
 
+                        localisation_data = pd.DataFrame(localisation_data)
+
+                        if "cell_index" not in localisation_data.columns:
+                            localisation_data.sort_values(by=["frame"], inplace=True)
+                        else:
                             localisation_data.sort_values(by=["frame", "cell_index"], inplace=True)
 
-                            localisation_data.to_csv(export_path, index=False)
+                        localisation_data.to_csv(export_path, index=False)
 
-                            show_info("Picasso localisations exported to: " + export_path)
+                        show_info("Picasso localisations exported to: " + export_path)
 
-                        elif export_mode == ".pos.out":
-                            export_path = os.path.join(export_directory, image_name)
-                            export_path = os.path.abspath(export_path)
+                    elif export_mode == ".pos.out":
 
-                            st_locs = localisation_data[["frame", "x", "y", "photons", "bg", "sx", "sy", ]].copy()
+                        export_path = os.path.join(export_directory, image_name)
+                        export_path = os.path.abspath(export_path)
 
-                            st_locs.dropna(axis=0, inplace=True)
+                        localisation_data = pd.DataFrame(localisation_data)
 
-                            st_locs.columns = ["FRAME", "XCENTER", "YCENTER", "BRIGHTNESS", "BG", "S_X", "S_Y", ]
+                        st_locs = localisation_data[["frame", "x", "y", "photons", "bg", "sx", "sy", ]].copy()
 
-                            st_locs.loc[:, "I0"] = 0
-                            st_locs.loc[:, "THETA"] = 0
-                            st_locs.loc[:, "ECC"] = (st_locs["S_X"] / st_locs["S_Y"])
-                            st_locs.loc[:, "FRAME"] = st_locs["FRAME"] + 1
+                        st_locs.dropna(axis=0, inplace=True)
 
-                            st_locs = st_locs[["FRAME", "XCENTER", "YCENTER", "BRIGHTNESS", "BG", "I0", "S_X", "S_Y", "THETA", "ECC", ]]
+                        st_locs.columns = ["FRAME", "XCENTER", "YCENTER", "BRIGHTNESS", "BG", "S_X", "S_Y", ]
 
-                            st_locs.to_csv(export_path, sep="\t", index=False)
+                        st_locs.loc[:, "I0"] = 0
+                        st_locs.loc[:, "THETA"] = 0
+                        st_locs.loc[:, "ECC"] = (st_locs["S_X"] / st_locs["S_Y"])
+                        st_locs.loc[:, "FRAME"] = st_locs["FRAME"] + 1
 
-                            show_info("Picasso localisations exported to: " + export_path)
+                        st_locs = st_locs[["FRAME", "XCENTER", "YCENTER", "BRIGHTNESS", "BG", "I0", "S_X", "S_Y", "THETA", "ECC", ]]
 
-                        elif export_mode == "Picasso HDF5":
-                            # get fil
-                            hdf5_path = os.path.join(export_directory, image_name)
-                            yaml_path = os.path.join(export_directory, image_name.replace(".hdf5",".yaml"))
-                            hdf5_path = os.path.abspath(hdf5_path)
-                            yaml_path = os.path.abspath(yaml_path)
+                        st_locs.to_csv(export_path, sep="\t", index=False)
 
-                            localisation_data = pd.DataFrame(localisation_data)
+                        show_info("Picasso localisations exported to: " + export_path)
 
-                            columns = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", ]
-                            localisation_data = localisation_data[columns]
+                    elif export_mode == "Picasso HDF5":
+                        # get fil
+                        hdf5_path = os.path.join(export_directory, image_name)
+                        yaml_path = os.path.join(export_directory, image_name.replace(".hdf5",".yaml"))
+                        hdf5_path = os.path.abspath(hdf5_path)
+                        yaml_path = os.path.abspath(yaml_path)
 
-                            import h5py
-                            import yaml
+                        localisation_data = pd.DataFrame(localisation_data)
 
-                            structured_arr = localisation_data.to_records(index=False)
+                        columns = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", ]
+                        localisation_data = localisation_data[columns]
 
-                            # Create a new HDF5 file (or open an existing one).
-                            with h5py.File(hdf5_path, "w") as hdf_file:
-                                # Create a dataset within the file, named 'locs'.
-                                dataset = hdf_file.create_dataset("locs", data=structured_arr)
+                        import h5py
+                        import yaml
 
+                        structured_arr = localisation_data.to_records(index=False)
+
+                        # Create a new HDF5 file (or open an existing one).
+                        with h5py.File(hdf5_path, "w") as hdf_file:
+                            # Create a dataset within the file, named 'locs'.
+                            dataset = hdf_file.create_dataset("locs", data=structured_arr)
+
+                        if export_data == "Transformed Localisations":
+                            coords_x = self.transformed_locs["x"]
+                            coords_y = self.transformed_locs["y"]
+                            x_max = int(np.max(coords_x))
+                            y_max = int(np.max(coords_y))
+                            image_shape = (1, y_max, x_max)
+
+                        else:
                             picasso_channel = (self.gui.picasso_image_channel.currentText())
                             image_shape = self.viewer.layers[picasso_channel].data.shape
-                            min_net_gradient = int(self.gui.picasso_min_net_gradient.text())
-                            box_size = int(self.gui.picasso_box_size.currentText())
 
-                            data = {"Byte Order": "<", "Data Type": "uint16", "File": image_path, "Frames": image_shape[0], "Height": image_shape[1], "Micro-Manager Acquisiton Comments": "", "Width":
-                                image_shape[2], }
+                        min_net_gradient = int(self.gui.picasso_min_net_gradient.text())
+                        box_size = int(self.gui.picasso_box_size.currentText())
 
-                            data2 = {"Box Size": box_size, "Fit method": "LQ, Gaussian", "Generated by": "Picasso Localize", "Min. Net Gradient": min_net_gradient, "Pixelsize": 130, "ROI": None, }
+                        data = {"Byte Order": "<",
+                                "Data Type": "uint16",
+                                "File": image_path,
+                                "Frames": image_shape[0],
+                                "Height": image_shape[1],
+                                "Micro-Manager Acquisiton Comments": "", "Width":image_shape[2], }
 
-                            # Write YAML file with "---" as a separator between documents
-                            with open(yaml_path, "w") as file:
-                                yaml.dump(data, file, default_flow_style=False)
-                                file.write("---\n")  # Document separator
-                                yaml.dump(data2, file, default_flow_style=False)
+                        data2 = {"Box Size": box_size,
+                                 "Fit method": "LQ, Gaussian",
+                                 "Generated by": "Picasso Localize",
+                                 "Min. Net Gradient": min_net_gradient,
+                                 "Pixelsize": 130, "ROI": None, }
 
-                            show_info("Picasso localisations exported to: " + hdf5_path)
+                        # Write YAML file with "---" as a separator between documents
+                        with open(yaml_path, "w") as file:
+                            yaml.dump(data, file, default_flow_style=False)
+                            file.write("---\n")  # Document separator
+                            yaml.dump(data2, file, default_flow_style=False)
+
+                        show_info("Picasso localisations exported to: " + hdf5_path)
 
         except:
             print(traceback.format_exc())
@@ -144,7 +179,14 @@ class _picasso_utils:
         import pandas as pd
 
         try:
-            param_list = ["frame", "cell_index", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", "z", "d_zcalib", "likelihood", "iterations", "group", "len", "n",
+            param_list = ["frame", "cell_index",
+                          "x", "y", "photons",
+                          "sx", "sy", "bg",
+                          "lpx", "lpy",
+                          "ellipticity", "net_gradient",
+                          "z", "d_zcalib",
+                          "likelihood", "iterations",
+                          "group", "len", "n",
                           "photon_rate", ]
 
             loc_data = []

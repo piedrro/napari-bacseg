@@ -328,9 +328,6 @@ class _cell_events:
                         polygon_coords = np.fliplr(polygon_coords)
                         midline_coords = np.fliplr(midline_coords)
 
-                        polygon_coords = np.vstack([frame_indices, polygon_coords.T]).T
-                        midline_coords = np.vstack([frame_indices, midline_coords.T]).T
-
                     else:
                         if bactfit:
                             midline_coords = np.fliplr(midline_coords)
@@ -834,3 +831,5 @@ class _cell_events:
 
         except:
             pass
+
+
