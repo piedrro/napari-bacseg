@@ -74,13 +74,16 @@ class _cell_events:
         self.viewer.reset_view()
 
         self.cellLayer.mouse_drag_callbacks.append(self.celllayer_clicked)
-        self.cellLayer.mouse_wheel_callbacks.append(self.dilate_cell)
+        # self.cellLayer.mouse_wheel_callbacks.append(self.dilate_cell)
         self.cellLayer.events.data.connect(self.update_cells)
         # self.register_shape_layer_keybinds(self.cellLayer)
 
         self.viewer.bind_key("m", lambda event: self.cell_key_event(mode="midline"), overwrite=True)
         self.viewer.bind_key("Shift-m", lambda event: self.cell_key_event(mode="edit_midlines"), overwrite=True)
         self.viewer.bind_key("Shift-d", lambda event: self.cell_key_event(mode="delete_midlines"), overwrite=True)
+        self.viewer.bind_key("Escape", lambda event: self.cell_key_event(mode="panzoom"), overwrite=True)
+        self.viewer.bind_key("Up", lambda event: self.dilate_cell(direction="up"), overwrite=True)
+        self.viewer.bind_key("Down", lambda event: self.dilate_cell(direction="down"), overwrite=True)
 
         self.store_cell_shapes(init=True)
 
@@ -125,6 +128,15 @@ class _cell_events:
                 show_info("Delete Cell (click to delete midline)")
 
                 self.cell_interaction_mode = "delete"
+
+            if mode == "panzoom":
+
+                self.viewer.layers.selection.select_only(self.cellLayer)
+
+                self.cellLayer.mode = "pan_zoom"
+                self.cellLayer.refresh()
+
+                self.cell_interaction_mode = "panzoom"
 
 
     def celllayer_clicked(self, viewer=None, event=None):
@@ -215,58 +227,63 @@ class _cell_events:
 
         return self.cellLayer
 
-    def dilate_cell(self, viewer=None, event=None):
+    def dilate_cell(self, direction="up"):
         try:
-            if "Control" in event.modifiers:
 
-                coords = self.cellLayer.world_to_data(event.position)
-                cell_selection = self.cellLayer.get_value(coords)[0]
+            selected_layer = self.viewer.layers.selection.active
 
-                if cell_selection is not None:
-                    properties = copy.deepcopy(self.cellLayer.properties)
-                    cell_shapes = copy.deepcopy(self.cellLayer.data)
+            if selected_layer != self.cellLayer:
+                return
 
-                    cell_name = properties["name"][cell_selection]
+            mouse_position = self.viewer.cursor.position
+            coords = self.cellLayer.world_to_data(mouse_position)
+            cell_selection = self.cellLayer.get_value(coords)[0]
 
-                    cell = self.get_cell(cell_name, ndim=2)
+            if cell_selection is not None:
+                properties = copy.deepcopy(self.cellLayer.properties)
+                cell_shapes = copy.deepcopy(self.cellLayer.data)
 
-                    if cell is not None:
-                        self.cellLayer.events.data.disconnect(self.update_cells)
+                cell_name = properties["name"][cell_selection]
 
-                        midline_coords = cell["midline_coords"]
-                        width = cell["width"]
-                        frame_index = cell["frame_index"]
+                cell = self.get_cell(cell_name, ndim=2)
 
-                        midline = LineString(midline_coords)
+                if cell is not None:
+                    self.cellLayer.events.data.disconnect(self.update_cells)
 
-                        if event.delta[1] > 0:
-                            buffer = 0.5
-                        else:
-                            buffer = -0.5
+                    midline_coords = cell["midline_coords"]
+                    width = cell["width"]
+                    frame_index = cell["frame_index"]
 
-                        width += buffer
+                    midline = LineString(midline_coords)
 
-                        polygon = midline.buffer(width)
+                    if direction == "up":
+                        buffer = 0.5
+                    else:
+                        buffer = -0.5
 
-                        polygon_coords = np.array(polygon.exterior.coords)
-                        polygon_coords = polygon_coords[:-1]
+                    width += buffer
 
-                        polygon_coords = np.vstack([np.ones(len(polygon_coords)) * frame_index, polygon_coords.T]).T
-                        midline_coords = np.vstack([np.ones(len(midline_coords)) * frame_index, midline_coords.T]).T
+                    polygon = midline.buffer(width)
 
-                        polygon_index = cell["polygon_index"]
-                        midline_index = cell["midline_index"]
+                    polygon_coords = np.array(polygon.exterior.coords)
+                    polygon_coords = polygon_coords[:-1]
 
-                        cell_shapes[polygon_index] = polygon_coords
-                        cell_shapes[midline_index] = midline_coords
-                        properties["cell"][polygon_index]["width"] = width
-                        properties["cell"][midline_index]["width"] = width
+                    polygon_coords = np.vstack([np.ones(len(polygon_coords)) * frame_index, polygon_coords.T]).T
+                    midline_coords = np.vstack([np.ones(len(midline_coords)) * frame_index, midline_coords.T]).T
 
-                        self.update_shapes(cell_shapes, properties=properties)
+                    polygon_index = cell["polygon_index"]
+                    midline_index = cell["midline_index"]
 
-                        self.store_cell_shapes()
+                    cell_shapes[polygon_index] = polygon_coords
+                    cell_shapes[midline_index] = midline_coords
+                    properties["cell"][polygon_index]["width"] = width
+                    properties["cell"][midline_index]["width"] = width
 
-                        self.cellLayer.events.data.connect(self.update_cells)
+                    self.update_shapes(cell_shapes, properties=properties)
+
+                    self.store_cell_shapes()
+
+                    self.cellLayer.events.data.connect(self.update_cells)
 
         except:
             print(traceback.format_exc())
