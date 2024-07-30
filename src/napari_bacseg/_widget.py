@@ -42,13 +42,15 @@ from napari_bacseg.funcs.statistics_utils import _stats_utils
 from napari_bacseg.funcs.IO.oufti_utils import _oufti_utils
 from napari_bacseg.funcs.IO.imagej_utils import _imagej_utils
 from napari_bacseg.funcs.picasso_utils import _picasso_utils
+from napari_bacseg.funcs.bactfit_utils import _bactfit_utils
+from napari_bacseg.funcs.cell_events import _cell_events
 
 from napari_bacseg.funcs.threading_utils import Worker
 
 sub_classes = [_picasso_utils, _utils, _import_utils, _export_utils,
     _database_utils, _databaseIO, _cellpose_utils, _events_utils,
     _tiler_utils, _zeiss_utils, _stats_utils, _oufti_utils, _imagej_utils,
-    _oni_utils, _olympus_utils, _undrift_utils]
+    _oni_utils, _olympus_utils, _undrift_utils, _bactfit_utils, _cell_events]
 
 class QWidget(QWidget, gui, *sub_classes):
 
@@ -62,11 +64,11 @@ class QWidget(QWidget, gui, *sub_classes):
         show_info(f"napari-bacseg version: {version}")
 
         self.initialise_widget_ui()
+        self.initialise_label_layers()
         self.initialise_pyqt_events()
         self.initialise_keybindings()
         self.initialise_viewer_events()
         self.initialise_global_variables()
-        self.initialise_label_layers()
 
         self.update_import_limit()
 
@@ -218,6 +220,8 @@ class QWidget(QWidget, gui, *sub_classes):
 
         self.gui.export_channel.currentIndexChanged.connect(self.update_export_options)
 
+        self.gui.fit_segmentations.clicked.connect(self.initialise_bactfit)
+
     def initialise_keybindings(self):
 
         self.viewer.bind_key("a", func=self._modifyMode(mode="add"), overwrite=True)
@@ -316,6 +320,11 @@ class QWidget(QWidget, gui, *sub_classes):
         self.updating_combos = False
         self.contours = []
 
+        self.widget_notifications = True
+        self._show_database_controls(False)
+
+    def initialise_label_layers(self):
+
         self.class_colours = {
             0: (0 / 255, 0 / 255, 0 / 255, 1),
             1: (255 / 255, 255 / 255, 255 / 255, 1),
@@ -332,11 +341,6 @@ class QWidget(QWidget, gui, *sub_classes):
 
         self.class_cmap = napari.utils.colormaps.DirectLabelColormap(
             color_dict=self.class_colours)
-
-        self.widget_notifications = True
-        self._show_database_controls(False)
-
-    def initialise_label_layers(self):
 
         self.classLayer = self.viewer.add_labels(np.zeros((1, 100, 100),
             dtype=np.uint16), opacity=0.25, name="Classes",
@@ -881,6 +885,9 @@ class QWidget(QWidget, gui, *sub_classes):
             self.gui.modify_progressbar.setValue(progress)
         if progressbar == "undrift":
             self.gui.undrift_progressbar.setValue(progress)
+        if progressbar == "bactfit":
+            self.gui.bactfit_progressbar.setValue(progress)
+
 
         if progress == 100:
             time.sleep(1)
@@ -891,8 +898,8 @@ class QWidget(QWidget, gui, *sub_classes):
             self.gui.undrift_progressbar.setValue(0)
             self.gui.download_progressbar.setValue(0)
             self.gui.upload_progressbar.setValue(0)
-
-            # self.gui.picasso_progressbar.setValue(0)
+            self.gui.bactfit_progressbar.setValue(0)
+            self.gui.picasso_progressbar.setValue(0)
 
     def _importDialog(self, paths=None):
         if self.unfolded == True:

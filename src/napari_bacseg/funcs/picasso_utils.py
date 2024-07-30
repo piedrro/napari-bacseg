@@ -395,8 +395,8 @@ class _picasso_utils:
 
                 if len(box_centres) > 0:
                     if "Localisations" not in layer_names:
-                        self.viewer.add_points(box_centres, edge_color="blue", face_color=[0, 0, 0,
-                                                                                           0], opacity=vis_opacity, name="Localisations", symbol=symbol, size=vis_size, edge_width=vis_edge_width, )
+                        self.viewer.add_points(box_centres, border_color="blue", face_color=[0, 0, 0,
+                                                                                           0], opacity=vis_opacity, name="Localisations", symbol=symbol, size=vis_size, border_width=vis_edge_width, )
                     else:
                         self.viewer.layers["Localisations"].data = []
 
@@ -404,8 +404,8 @@ class _picasso_utils:
                         self.viewer.layers["Localisations"].symbol = symbol
                         self.viewer.layers["Localisations"].size = vis_size
                         self.viewer.layers["Localisations"].opacity = vis_opacity
-                        self.viewer.layers["Localisations"].edge_width = vis_edge_width
-                        self.viewer.layers["Localisations"].edge_color = "blue"
+                        self.viewer.layers["Localisations"].border_width = vis_edge_width
+                        self.viewer.layers["Localisations"].border_color = "blue"
 
                 else:
                     if "Localisations" in layer_names:

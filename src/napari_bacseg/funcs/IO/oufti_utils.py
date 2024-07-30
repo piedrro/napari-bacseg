@@ -115,7 +115,7 @@ class _oufti_utils:
             meta = self.segLayer.metadata.copy()
     
             if "center_lines" not in layer_names:
-                self.shapeLayer = self.viewer.add_shapes(shape_type='path', edge_width=0.5, opacity=0.5, edge_color='red', face_color='black', name="center_lines")
+                self.shapeLayer = self.viewer.add_shapes(shape_type='path', border_width=0.5, opacity=0.5, border_color='red', face_color='black', name="center_lines")
     
                 self.shapeLayer.mouse_drag_callbacks.append(self._segmentationEvents)
     

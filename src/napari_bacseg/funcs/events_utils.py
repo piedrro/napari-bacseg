@@ -9,6 +9,10 @@ from napari.utils.notifications import show_info
 
 class _events_utils:
 
+    def update_ui(self, init=False):
+
+        pass
+
     def find_contours(self,img):
         # finds contours of shapes, only returns the external contours of the shapes
         contours, hierarchy = cv2.findContours(
