@@ -73,13 +73,14 @@ class _cell_events:
         self.cellLayer.refresh()
         self.viewer.reset_view()
 
-        # self.cellLayer.mouse_drag_callbacks.append(self.celllayer_clicked)
+        self.cellLayer.mouse_drag_callbacks.append(self.celllayer_clicked)
         self.cellLayer.mouse_wheel_callbacks.append(self.dilate_cell)
         self.cellLayer.events.data.connect(self.update_cells)
         # self.register_shape_layer_keybinds(self.cellLayer)
 
         self.viewer.bind_key("m", lambda event: self.cell_key_event(mode="midline"), overwrite=True)
         self.viewer.bind_key("Shift-m", lambda event: self.cell_key_event(mode="edit_midlines"), overwrite=True)
+        self.viewer.bind_key("Shift-d", lambda event: self.cell_key_event(mode="delete_midlines"), overwrite=True)
 
         self.store_cell_shapes(init=True)
 
@@ -91,9 +92,7 @@ class _cell_events:
     def cell_key_event(self, viewer=None, event=None, mode = "delete"):
 
         if hasattr(self, "cellLayer"):
-            if mode == "delete":
-                self.segmentation_mode = "delete"
-                self.cellLayer.mode = "select"
+
             if mode == "midline":
 
                 self.viewer.layers.selection.select_only(self.cellLayer)
@@ -102,6 +101,8 @@ class _cell_events:
                 self.cellLayer.refresh()
 
                 show_info("Midline (click to add midline)")
+
+                self.cell_interaction_mode = "add"
 
             if mode == "edit_midlines":
 
@@ -112,12 +113,25 @@ class _cell_events:
 
                 show_info("Edit midlines (click/drag to edit midline)")
 
+                self.cell_interaction_mode = "edit"
+
+            if mode == "delete_midlines":
+
+                self.viewer.layers.selection.select_only(self.cellLayer)
+
+                self.cellLayer.mode = "select"
+                self.cellLayer.refresh()
+
+                show_info("Delete Cell (click to delete midline)")
+
+                self.cell_interaction_mode = "delete"
 
 
     def celllayer_clicked(self, viewer=None, event=None):
         try:
-            if hasattr(self, "segmentation_mode"):
-                if self.segmentation_mode == "delete":
+            if hasattr(self, "cell_interaction_mode"):
+                if self.cell_interaction_mode == "delete":
+
                     coords = self.cellLayer.world_to_data(event.position)
                     shape_index = self.cellLayer.get_value(coords)[0]
 
@@ -131,10 +145,9 @@ class _cell_events:
                             midline_index = cell["midline_index"]
 
                             self.remove_cells([polygon_index, midline_index])
-
                             self.store_cell_shapes()
 
-                    self.segmentation_mode = "panzoom"
+                    self.cell_interaction_mode = "panzoom"
                     self.cellLayer.mode = "pan_zoom"
 
         except:
@@ -751,8 +764,6 @@ class _cell_events:
     def update_cells(self, event):
         try:
 
-            print(event.action)
-
             if event.action == "changed":
                 modified_indices = self.get_modified_shape_indices()
 
@@ -769,7 +780,8 @@ class _cell_events:
                     if modified_shape_type == "polygon":
                         self.update_midline_position(name)
                         self.store_cell_shapes()
-                        pass
+
+                self.cellLayer.mode = "pan_zoom"
 
             if event.action == "added":
                 shapes = self.cellLayer.data.copy()
@@ -782,6 +794,8 @@ class _cell_events:
                     self.add_manual_cell(last_index)
 
                 self.store_cell_shapes()
+
+                self.cellLayer.mode = "pan_zoom"
 
         except:
             print(traceback.format_exc())

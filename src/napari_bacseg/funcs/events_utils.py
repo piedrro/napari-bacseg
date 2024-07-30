@@ -609,6 +609,7 @@ class _events_utils:
 
     def _modifyMode(self, mode, viewer=None):
         def _event(viewer):
+
             if self.gui.modify_channel.currentIndex() == 0:
                 modify_channel = self.segLayer
                 self.viewer.layers.selection.active = self.segLayer
