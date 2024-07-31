@@ -1,5 +1,7 @@
 import numpy as np
 import traceback
+
+import pandas as pd
 from shapely.geometry import Point, LineString, Polygon
 from shapely.strtree import STRtree
 from napari_bacseg.bactfit.utils import resize_line, rotate_linestring, fit_poly, get_vertical, get_polygon_midline
@@ -238,17 +240,17 @@ def compute_vectors(segments):
 
 
 def cell_coordinate_transformation(cell, target_cell,
-        method = "angular", n_segments=1000,progress_list = []):
+        method = "angular", n_segments=1000,progress_list = [], shape_measurements=True):
 
     if method == "angular":
 
         cell = angular_coordinate_transformation(cell, target_cell,
-            n_segments, progress_list)
+            n_segments, progress_list, shape_measurements)
 
     elif method == "perpendicular":
 
         cell = perpendicular_coordinate_transformation(cell, target_cell,
-            n_segments, progress_list)
+            n_segments, progress_list, shape_measurements)
 
     return cell
 
@@ -311,7 +313,7 @@ def compute_vectors(segments):
 
 
 def perpendicular_coordinate_transformation(cell, target_cell,
-        n_segments=1000, progress_list = []):
+        n_segments=1000, progress_list = [], shape_measurements=True):
 
     transformed_locs = []
 
@@ -395,6 +397,9 @@ def perpendicular_coordinate_transformation(cell, target_cell,
 
             cell.locs = transformed_locs
             cell.cell_polygon = target_polygon
+
+            if shape_measurements:
+                cell = compute_shape_measurements(cell)
 
         else:
             cell.locs = None
@@ -572,7 +577,7 @@ def check_point_inside_polygon(polygon, point):
 
         
 def angular_coordinate_transformation(cell, target_cell,
-        n_segments=1000, progress_list = []):
+        n_segments=1000, progress_list = [], shape_measurements=True):
     
 
     try:
@@ -651,6 +656,9 @@ def angular_coordinate_transformation(cell, target_cell,
             cell.cell_polygon = target_polygon
             cell.cell_midline = target_midline
 
+            if shape_measurements:
+                cell = compute_shape_measurements(cell)
+
         else:
             cell.locs = None
 
@@ -660,4 +668,92 @@ def angular_coordinate_transformation(cell, target_cell,
         pass
 
     return cell
+
+def compute_shape_measurements(cell):
+
+    try:
+
+        locs = cell.locs
+        midline = cell.cell_midline
+        polygon = cell.cell_polygon
+        pixel_size = cell.pixel_size
+
+        locs = pd.DataFrame(locs)
+        locs["pixel_size (nm)"] = pixel_size
+        locs["centroid_distance (nm)"] = None
+        locs["membrane_distance (nm)"] = None
+        locs["midline_distance (nm)"] = None
+        locs["cell_pole_distance (nm)"] = None
+
+        if len(locs) == 0:
+            return None
+
+        coords = np.array(locs[["x", "y"]].values)
+
+        try:
+
+            polygon_centroid = polygon.centroid.coords[0]
+
+            centroid_distance = [Point(coord).distance(Point(polygon_centroid)) for coord in coords]
+
+            if len(centroid_distance) == len(coords):
+                centroid_distance = np.array(centroid_distance)
+                centroid_distance = centroid_distance * pixel_size
+                centroid_distance = centroid_distance.tolist()
+                locs["centroid_distance (nm)"] = centroid_distance
+
+        except:
+            pass
+
+        try:
+
+            polygon_coords = np.array(polygon.exterior.coords)
+            polygon_outline = LineString(polygon_coords)
+
+            membrane_distance = [Point(coord).distance(polygon_outline) for coord in coords]
+
+            if len(membrane_distance) == len(coords):
+                membrane_distance = np.array(membrane_distance)
+                membrane_distance = membrane_distance * pixel_size
+                membrane_distance = membrane_distance.tolist()
+                locs["membrane_distance (nm)"] = membrane_distance
+
+        except:
+            pass
+
+        try:
+
+            midline_distance = [Point(coord).distance(midline) for coord in coords]
+
+            if len(midline_distance) == len(coords):
+                midline_distance = np.array(midline_distance)
+                midline_distance = midline_distance * pixel_size
+                midline_distance = midline_distance.tolist()
+                locs["midline_distance (nm)"] = midline_distance
+
+        except:
+            pass
+
+        try:
+            midline_coords = np.array(midline.coords)
+            cell_poles = [Point(midline_coords[0]), Point(midline_coords[-1])]
+
+            cell_pole_distance = [min([Point(coord).distance(pole) for pole in cell_poles]) for coord in coords]
+
+            if len(cell_pole_distance) == len(coords):
+                cell_pole_distance = np.array(cell_pole_distance)
+                cell_pole_distance = cell_pole_distance * pixel_size
+                cell_pole_distance = cell_pole_distance.tolist()
+                locs["cell_pole_distance (nm)"] = cell_pole_distance
+        except:
+            pass
+
+        if len(locs) > 0:
+            cell.locs = locs.to_records(index=False)
+
+    except:
+        pass
+
+    return cell
+
 
