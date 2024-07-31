@@ -240,7 +240,7 @@ def compute_vectors(segments):
 
 
 def cell_coordinate_transformation(cell, target_cell,
-        method = "angular", n_segments=1000,progress_list = [], shape_measurements=True):
+        method = "angular", n_segments=1000, progress_list = [], shape_measurements=True):
 
     if method == "angular":
 
@@ -577,8 +577,8 @@ def check_point_inside_polygon(polygon, point):
 
         
 def angular_coordinate_transformation(cell, target_cell,
-        n_segments=1000, progress_list = [], shape_measurements=True):
-    
+        n_segments=1000, shape_measurements=True, progress_list = []):
+
 
     try:
 
@@ -702,6 +702,8 @@ def compute_shape_measurements(cell):
                 centroid_distance = centroid_distance.tolist()
                 locs["centroid_distance (nm)"] = centroid_distance
 
+                print(centroid_distance)
+
         except:
             pass
 
@@ -752,6 +754,7 @@ def compute_shape_measurements(cell):
             cell.locs = locs.to_records(index=False)
 
     except:
+        print(traceback.format_exc())
         pass
 
     return cell

@@ -1,5 +1,7 @@
 import random
 import string
+import time
+
 import numpy as np
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
@@ -238,8 +240,8 @@ class Cell(object):
 
         if target_cell is not None and self.locs is not None:
 
-            cell = cell_coordinate_transformation(self, target_cell,
-                method, shape_measurements)
+            cell = cell_coordinate_transformation(cell=self, target_cell=target_cell,
+                method=method, shape_measurements=shape_measurements)
 
             cell_locs = cell.locs
 
@@ -552,12 +554,21 @@ class CellList(object):
                 cell.remove_locs_outside_cell()
 
     @staticmethod
-    def compute_task(job):
-        cell, target_cell, method, shape_measurements = job
-        cell = cell_coordinate_transformation(cell=cell, target_cell=target_cell,
-            method=method, shape_measurements=shape_measurements)
-        return cell
+    def compute_transforms(jobs, compute_list):
+        
+        transformed_cells = []
 
+        for job_index, job in enumerate(jobs):
+
+            cell, target_cell, method, shape_measurements = job
+            cell = cell_coordinate_transformation(cell=cell, target_cell=target_cell,
+                method=method, shape_measurements=shape_measurements)
+
+            transformed_cells.append(cell)
+            compute_list.append(1)
+
+        return transformed_cells
+        
 
     def is_optimised(self, max_error = 5):
 
@@ -572,55 +583,84 @@ class CellList(object):
         return optimised
 
 
+    def compute_progress(self, futures, n_jobs,
+            progress_list, progress_callback):
+
+        try:
+            last_progress = None
+            while True:
+                progress = ((len(progress_list) + 1) / n_jobs)
+                progress = int(progress * 100)
+
+                if progress != last_progress:
+                    last_progress = progress
+                    if progress_callback is not None:
+                        progress_callback.emit(progress)
+
+                time.sleep(0.1)  # Sleep for a short duration to reduce CPU usage
+
+                if all(future.done() for future in futures):
+                    progress_callback.emit(100)
+                    break
+
+        except:
+            print(traceback.format_exc())
+            return
+
     def transform_locs(self, target_cell=None, method = "angular",
             shape_measurements=True, progress_callback=None):
 
         if target_cell is not None:
 
-            compute_jobs = [list([cell,
-                                  target_cell,
-                                  method,
-                                  shape_measurements]) for cell in self.data if len(cell.locs) > 0]
+            jobs = [list([cell,target_cell,
+                          method, shape_measurements]) for cell in self.data if len(cell.locs) > 0]
 
-            n_jobs = len(compute_jobs)
-            completed_jobs = 0
-
+            n_jobs = len(jobs)
             n_transformed = 0
 
-            if isinstance(compute_jobs[0][0], Cell):
+            if isinstance(jobs[0][0], Cell):
                 executor = ProcessPoolExecutor()
+                n_cpus = os.cpu_count()
+                compute_jobs = np.array_split(jobs, n_cpus)
             else:
                 executor = ThreadPoolExecutor()
+                n_cpus = 1
+                compute_jobs = [[job] for job in jobs]
 
-            with executor:
+            print(f"Transforming localisations within {n_jobs} cells using {n_cpus} CPU(s) cores")
 
-                futures = [executor.submit(CellList.compute_task, job) for job in compute_jobs]
+            with Manager() as manager:
 
-                for future in as_completed(futures):
-                    try:
-                        result = future.result()
+                progress_list = manager.list()
 
-                        if result is not None:
-                            cell = result
-                            cell_index = cell.cell_index
-                            locs = cell.locs
+                with executor:
 
-                            if type(locs) == np.recarray:
-                                self.data[cell_index] = cell
-                                n_transformed += 1
-                            else:
-                                self.data[cell_index].locs = None
+                    futures = [executor.submit(CellList.compute_transforms, job, progress_list) for job in compute_jobs]
 
-                    except Exception as e:
+                    self.compute_progress(futures, n_jobs, progress_list, progress_callback)
 
-                        print(f"Error: {e}")
-                        traceback.print_exc()
+                    for future in as_completed(futures):
 
-                    completed_jobs += 1
+                        try:
+                            results = future.result()
 
-                    if progress_callback is not None:
-                        progress = 100 * (completed_jobs / n_jobs)
-                        progress_callback.emit(progress)
+                            if results is not None:
+
+                                if len(results) > 0:
+                                    for cell in results:
+                                        cell_index = cell.cell_index
+                                        locs = cell.locs
+
+                                        if type(locs) == np.recarray:
+                                            self.data[cell_index] = cell
+                                            n_transformed += 1
+                                        else:
+                                            self.data[cell_index].locs = None
+
+                        except Exception as e:
+
+                            print(f"Error: {e}")
+                            traceback.print_exc()
 
             if n_transformed == 0:
                 for cell in self.data:
@@ -639,7 +679,8 @@ class CellList(object):
                 if len(cell_locs) == 0:
                     continue
 
-                locs.append(cell_locs)
+                if isinstance(cell_locs, np.recarray):
+                    locs.append(cell_locs)
 
             except:
                 continue
