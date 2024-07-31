@@ -1249,6 +1249,7 @@ class QWidget(QWidget, gui, *sub_classes):
             worker.signals.error.connect(self.update_ui)
             worker.signals.finished.connect(self.update_ui)
             self.threadpool.start(worker)
+
         except:
             self.update_ui()
             print(traceback.format_exc())

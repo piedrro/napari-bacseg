@@ -129,10 +129,12 @@ class _bactfit_utils:
 
         try:
 
-            celllist.transform_locs(model, method=method,
+            self.celllist.transform_locs(model, method=method,
                 progress_callback=progress_callback)
 
-            celllocs = celllist.get_locs(symmetry=False)
+            symmetry = self.gui.transform_symmetry.isChecked()
+
+            celllocs = self.celllist.get_locs(symmetry=symmetry)
             celllocs = pd.DataFrame(celllocs)
 
             if len(celllocs) == 0:
@@ -140,14 +142,18 @@ class _bactfit_utils:
 
             self.transformed_locs = celllocs
 
-            show_info(f"Transformed {len(celllocs)} localisations")
+            n_transformed = len(celllocs)
+
+            if symmetry:
+                n_transformed = n_transformed / 4
+
+            show_info(f"Transformed {n_transformed} localisations")
 
         except:
             print(traceback.format_exc())
             pass
 
-    def init_transform_coordinates(self, model_length_um=5,
-            model_width_um=2, pixel_size_um=0.1, method = "angular"):
+    def init_transform_coordinates(self, method = "angular"):
 
         try:
 
@@ -213,8 +219,11 @@ class _bactfit_utils:
                 show_info("No cells found")
                 return
 
+            model_length = int(self.gui.model_cell_length.value())
+            model_width = int(self.gui.model_cell_width.value())
+
             celllist = CellList(cell_list)
-            model = ModelCell(length=12, width=3)
+            model = ModelCell(length=model_length, width=model_length)
 
             show_info(f"Transforming {n_locs} localisations within {n_cells} cells")
 
