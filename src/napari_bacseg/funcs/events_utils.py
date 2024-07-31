@@ -11,7 +11,20 @@ class _events_utils:
 
     def update_ui(self, init=False):
 
-        pass
+        try:
+
+            if hasattr(self, "controls_dict") == False:
+                self.populate_controls_dict()
+
+            for control in self.controls_dict.values():
+                if init == True:
+                    control.setEnabled(False)
+                else:
+                    control.setEnabled(True)
+
+        except:
+            print(traceback.format_exc())
+
 
     def find_contours(self,img):
         # finds contours of shapes, only returns the external contours of the shapes

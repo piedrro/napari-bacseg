@@ -510,39 +510,48 @@ def get_l_dist(cell_list, channel, force_symmetry=True):
 
 
 def process_colicoords(self, colicoords_data):
-    colicoords_data = colicoords_data["cell_statistics"]
 
-    current_fov = self.viewer.dims.current_step[0]
-    colicoords_channel = self.gui.cellpose_segchannel.currentText()
+    try:
 
-    image_stack = self.viewer.layers[colicoords_channel].data
-    label_stack = self.classLayer.data
-    mask_stack = self.segLayer.data
+        colicoords_data = colicoords_data["cell_statistics"]
 
-    image = image_stack[current_fov, :, :].copy()
-    mask = mask_stack[current_fov, :, :].copy()
-    label = label_stack[current_fov, :, :].copy()
+        current_fov = self.viewer.dims.current_step[0]
+        colicoords_channel = self.gui.cellpose_segchannel.currentText()
 
-    for i in range(len(colicoords_data)):
-        dat = colicoords_data[i]
+        image_stack = self.viewer.layers[colicoords_channel].data
+        label_stack = self.classLayer.data
+        mask_stack = self.segLayer.data
 
-        if dat["cell"] != None:
-            mask_id = dat["mask_id"]
-            cnt = dat["refined_cnt"]
+        image = image_stack[current_fov, :, :].copy()
+        mask = mask_stack[current_fov, :, :].copy()
+        label = label_stack[current_fov, :, :].copy()
 
-            new_mask = np.zeros_like(mask)
-            cv2.drawContours(new_mask, [cnt], -1, 1, -1)
+        for i in range(len(colicoords_data)):
+            dat = colicoords_data[i]
 
-            current_label = np.unique(label[mask == mask_id])
+            if dat["cell"] != None:
+                mask_id = dat["mask_id"]
+                cnt = dat["refined_cnt"]
 
-            label[mask == mask_id] = 0
-            mask[mask == mask_id] = 0
+                new_mask = np.zeros_like(mask)
+                cv2.drawContours(new_mask, [cnt], -1, 1, -1)
 
-            mask[new_mask == 1] = mask_id
-            label[new_mask == 1] = current_label
+                current_label = np.unique(label[mask == mask_id])
 
-            mask_stack[current_fov, :, :] = mask
-            label_stack[current_fov, :, :] = label
+                label[mask == mask_id] = 0
+                mask[mask == mask_id] = 0
 
-            self.segLayer.data = mask_stack
-            self.classLayer.data = label_stack
+                mask[new_mask == 1] = mask_id
+                label[new_mask == 1] = current_label
+
+                mask_stack[current_fov, :, :] = mask
+                label_stack[current_fov, :, :] = label
+
+                self.segLayer.data = mask_stack
+                self.classLayer.data = label_stack
+
+        self.update_ui()
+
+    except:
+        self.update_ui()
+        print(traceback.format_exc())

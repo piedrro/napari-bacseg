@@ -218,10 +218,18 @@ class _bactfit_utils:
 
             show_info(f"Transforming {n_locs} localisations within {n_cells} cells")
 
-            worker = Worker(self.transform_coordinates, celllist, model, method)
-            worker.signals.progress.connect(partial(self._Progresbar,
-                    progressbar="transform_coordinates"))
-            self.threadpool.start(worker)
+            try:
+                self.update_ui(init=True)
+                worker = Worker(self.transform_coordinates, celllist, model, method)
+                worker.signals.progress.connect(partial(self._Progresbar,
+                        progressbar="transform_coordinates"))
+                worker.signals.finished.connect(self.update_ui)
+                worker.signals.error.connect(self.update_ui)
+                self.threadpool.start(worker)
+            except:
+                self.update_ui()
+                print(traceback.format_exc())
+
 
         except:
             print(traceback.format_exc())

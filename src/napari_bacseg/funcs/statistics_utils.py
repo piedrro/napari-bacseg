@@ -545,7 +545,11 @@ class _stats_utils:
                     cell_statistics.to_excel(writer, sheet_name="Cell Statistics", index=False, startrow=1, startcol=1, )
                     if isinstance(ldist_data, pd.DataFrame):
                         ldist_data.to_excel(writer, sheet_name="Length Distribution Data", index=False, startrow=1, startcol=1, )
+
+                self.update_ui()
+
             except:
+                self.update_ui()
                 print(traceback.format_exc())
 
             return

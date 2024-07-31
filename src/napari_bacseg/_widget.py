@@ -21,7 +21,7 @@ from napari.utils.colormaps import label_colormap
 from napari.utils.notifications import show_info
 from qtpy.QtCore import QThreadPool
 
-from qtpy.QtWidgets import (QComboBox, QFileDialog, QLabel, QSlider, QWidget, )
+from qtpy.QtWidgets import (QComboBox, QFileDialog, QLabel, QSlider, QWidget, QPushButton)
 
 
 from napari_bacseg.GUI.gui import Ui_Form as gui
@@ -326,6 +326,23 @@ class QWidget(QWidget, gui, *sub_classes):
         self.widget_notifications = True
         self._show_database_controls(False)
 
+        self.populate_controls_dict()
+
+
+    def populate_controls_dict(self):
+
+        try:
+
+            self.controls_dict = {}
+
+            buttons = self.findChildren(QPushButton)
+
+            for buttons in buttons:
+                self.controls_dict[buttons.objectName()] = buttons
+
+        except:
+            print(traceback.format_exc())
+
     def initialise_label_layers(self):
 
         self.class_colours = {
@@ -626,21 +643,32 @@ class QWidget(QWidget, gui, *sub_classes):
             if os.path.isdir(path):
                 path = os.path.abspath(path)
 
+                self.update_ui(init=True)
+
                 worker = Worker(self.get_cell_statistics, mode=mode, pixel_size=pixel_size, colicoords_dir=colicoords_dir, )
                 worker.signals.progress.connect(partial(self._Progresbar, progressbar="export"))
                 worker.signals.result.connect(partial(self.process_cell_statistics, path=path))
+                worker.signals.error.connect(self.update_ui)
                 self.threadpool.start(worker)
                 cell_data = worker.result()
 
                 if self.gui.export_colicoords_mode.currentIndex() != 0:
 
+                    self.update_ui(init=True)
+
                     from napari_bacseg.funcs.colicoords_utils import run_colicoords
                     self.run_colicoords = self.wrapper(run_colicoords)
 
-                    worker = Worker(self.run_colicoords, cell_data=cell_data, colicoords_channel=colicoords_channel, pixel_size=pixel_size, statistics=True, multithreaded=multithreaded, )
+                    worker = Worker(self.run_colicoords,
+                        cell_data=cell_data,
+                        colicoords_channel=colicoords_channel,
+                        pixel_size=pixel_size,
+                        statistics=True,
+                        multithreaded=multithreaded, )
 
                     worker.signals.progress.connect(partial(self._Progresbar, progressbar="export"))
                     worker.signals.result.connect(partial(self.process_cell_statistics, path=path))
+                    worker.signals.error.connect(self.update_ui)
                     self.threadpool.start(worker)
 
         return _event
@@ -781,34 +809,45 @@ class QWidget(QWidget, gui, *sub_classes):
         return _event
 
     def _refine_bacseg(self):
-        if self.unfolded == True:
-            self.fold_images()
 
-        pixel_size = float(self.gui.export_statistics_pixelsize.text())
+        try:
 
-        if pixel_size <= 0:
-            pixel_size = 1
+            if self.unfolded == True:
+                self.fold_images()
 
-        current_fov = self.viewer.dims.current_step[0]
+            pixel_size = float(self.gui.export_statistics_pixelsize.text())
 
-        channel = self.gui.refine_channel.currentText()
-        colicoords_channel = channel.replace("Mask + ", "")
+            if pixel_size <= 0:
+                pixel_size = 1
 
-        mask_stack = self.segLayer.data
-        mask = mask_stack[current_fov, :, :].copy()
+            current_fov = self.viewer.dims.current_step[0]
 
-        colicoords_dir = os.path.join(tempfile.gettempdir(), "colicoords")
+            channel = self.gui.refine_channel.currentText()
+            colicoords_channel = channel.replace("Mask + ", "")
 
-        worker = Worker(self.get_cell_statistics, mode="active", pixel_size=pixel_size, colicoords_dir=colicoords_dir, )
+            mask_stack = self.segLayer.data
+            mask = mask_stack[current_fov, :, :].copy()
 
-        self.threadpool.start(worker)
-        cell_data = worker.result()
+            colicoords_dir = os.path.join(tempfile.gettempdir(), "colicoords")
 
-        worker = Worker(self.run_colicoords, cell_data=cell_data, colicoords_channel=colicoords_channel, pixel_size=pixel_size, multithreaded=True, )
+            self.update_ui(init=True)
 
-        worker.signals.progress.connect(partial(self._Progresbar, progressbar="modify"))
-        worker.signals.result.connect(self.process_colicoords)
-        self.threadpool.start(worker)
+            worker = Worker(self.get_cell_statistics,
+                mode="active", pixel_size=pixel_size, colicoords_dir=colicoords_dir, )
+            worker.signals.error(self.update_ui)
+            cell_data = worker.result()
+
+            worker = Worker(self.run_colicoords, cell_data=cell_data,
+                colicoords_channel=colicoords_channel, pixel_size=pixel_size, multithreaded=True, )
+
+            worker.signals.progress.connect(partial(self._Progresbar, progressbar="modify"))
+            worker.signals.result.connect(self.process_colicoords)
+            worker.signals.error(self.update_ui)
+            self.threadpool.start(worker)
+
+        except:
+            self.update_ui()
+
 
     def _uploadDatabase(self, viewer=None, mode=""):
         def _event(viewer):
@@ -822,13 +861,18 @@ class QWidget(QWidget, gui, *sub_classes):
                         show_info("Please select the user initial.")
                     else:
 
+                        self.update_ui(init=True)
+
                         worker = Worker(self.backup_user_metadata)
                         self.threadpool.start(worker)
 
                         worker = Worker(self._upload_bacseg_database, mode=mode)
                         worker.signals.progress.connect(partial(self._Progresbar, progressbar="database_upload"))
+                        worker.signals.finished.connect(self.update_ui)
+                        worker.signals.error.connect(self.update_ui)
                         self.threadpool.start(worker)
             except:
+                self.update_ui()
                 print(traceback.format_exc())
                 pass
 
@@ -855,12 +899,17 @@ class QWidget(QWidget, gui, *sub_classes):
 
                     else:
 
+                        self.update_ui(init=True)
+
                         worker = Worker(self.read_bacseg_images, measurements=measurements, channels=channels, )
                         worker.signals.result.connect(self._process_import)
                         worker.signals.progress.connect(partial(self._Progresbar, progressbar="database_download"))
+                        worker.signals.finished.connect(self.update_ui)
+                        worker.signals.error.connect(self.update_ui)
                         self.threadpool.start(worker)
 
         except:
+            self.update_ui()
             print(traceback.format_exc())
 
     def _updateSegChannels(self):
@@ -944,67 +993,137 @@ class QWidget(QWidget, gui, *sub_classes):
         else:
             if import_mode == "Images":
 
-                worker = Worker(self.import_images, file_paths=paths)
-                worker.signals.result.connect(self._process_import)
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
-                self.threadpool.start(worker)
-
-            if import_mode == "NanoImager Data":
-
-                measurements, file_paths, channels = self.read_nim_directory(paths)
-
-                worker = Worker(self.read_nim_images, measurements=measurements, channels=channels, )
-                worker.signals.result.connect(self._process_import)
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
-                self.threadpool.start(worker)
-
-            if import_mode == "Mask (.tif) Segmentation(s)":
-
-                self.import_masks(paths, file_extension=".tif")
-                self._autoClassify()
-
-            if import_mode == "Cellpose (.npy) Segmentation(s)":
-
-                self.import_masks(paths, file_extension=".npy")
-                self._autoClassify()
-
-            if import_mode == "Oufti (.mat) Segmentation(s)":
-
-                self.import_masks(paths, file_extension=".mat")
-                self._autoClassify()
-
-            if import_mode == "JSON (.txt) Segmentation(s)":
-
-                self.import_masks(paths, file_extension=".txt")
-                self._autoClassify()
-
-            if import_mode == "ImageJ files(s)":
-
-                worker = Worker(self.import_imagej, paths=paths)
-                worker.signals.result.connect(self._process_import)
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
-                self.threadpool.start(worker)
-
-            if import_mode == "ScanR Data":
-
-                measurements, file_paths, channels = self.read_scanr_directory(paths)
-
-                worker = Worker(self.read_scanr_images, measurements=measurements, channels=channels, )
-                worker.signals.result.connect(self._process_import)
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
-                self.threadpool.start(worker)
-
-            if import_mode == "Zeiss (.czi) Data":
                 try:
 
-                    (zeiss_measurements, channel_names, num_measurements,) = self.get_zeiss_measurements(paths)
+                    self.update_ui(init=True)
 
-                    worker = Worker(self.read_zeiss_image_files, zeiss_measurements=zeiss_measurements, channel_names=channel_names, num_measurements=num_measurements, )
+                    worker = Worker(self.import_images, file_paths=paths)
                     worker.signals.result.connect(self._process_import)
                     worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
+                    worker.signals.finished.connect(self.update_ui)
+                    worker.signals.error.connect(self.update_ui)
                     self.threadpool.start(worker)
 
                 except:
+                    self.update_ui()
+                    print(traceback.format_exc())
+
+            if import_mode == "NanoImager Data":
+
+                try:
+
+                    self.update_ui(init=True)
+
+                    measurements, file_paths, channels = self.read_nim_directory(paths)
+
+                    worker = Worker(self.read_nim_images, measurements=measurements, channels=channels, )
+                    worker.signals.result.connect(self._process_import)
+                    worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
+                    worker.signals.finished.connect(self.update_ui)
+                    worker.signals.error.connect(self.update_ui)
+                    self.threadpool.start(worker)
+
+                except:
+                    self.update_ui()
+                    print(traceback.format_exc())
+
+            if import_mode == "Mask (.tif) Segmentation(s)":
+
+                try:
+                    self.update_ui(init=True)
+                    self.import_masks(paths, file_extension=".tif")
+                    self._autoClassify()
+                    self.update_ui()
+                except:
+                    self.update_ui()
+                    print(traceback.format_exc())
+
+            if import_mode == "Cellpose (.npy) Segmentation(s)":
+
+                try:
+                    self.update_ui(init=True)
+                    self.import_masks(paths, file_extension=".npy")
+                    self._autoClassify()
+                    self.update_ui()
+                except:
+                    self.update_ui()
+                    print(traceback.format_exc())
+
+            if import_mode == "Oufti (.mat) Segmentation(s)":
+
+                try:
+                    self.update_ui(init=True)
+                    self.import_masks(paths, file_extension=".mat")
+                    self._autoClassify()
+                    self.update_ui()
+                except:
+                    self.update_ui()
+                    print(traceback.format_exc())
+
+            if import_mode == "JSON (.txt) Segmentation(s)":
+
+                try:
+                    self.update_ui(init=True)
+                    self.import_masks(paths, file_extension=".txt")
+                    self._autoClassify()
+                    self.update_ui()
+                except:
+                    self.update_ui()
+                    print(traceback.format_exc())
+
+            if import_mode == "ImageJ files(s)":
+
+                try:
+
+                    self.update_ui(init=True)
+
+                    worker = Worker(self.import_imagej, paths=paths)
+                    worker.signals.result.connect(self._process_import)
+                    worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
+                    worker.signals.finished.connect(self.update_ui)
+                    worker.signals.error.connect(self.update_ui)
+                    self.threadpool.start(worker)
+
+                except:
+                    self.update_ui()
+                    print(traceback.format_exc())
+
+            if import_mode == "ScanR Data":
+
+                try:
+
+                    self.update_ui(init=True)
+
+                    measurements, file_paths, channels = self.read_scanr_directory(paths)
+
+                    worker = Worker(self.read_scanr_images, measurements=measurements, channels=channels, )
+                    worker.signals.result.connect(self._process_import)
+                    worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
+                    worker.signals.finished.connect(self.update_ui)
+                    worker.signals.error.connect(self.update_ui)
+                    self.threadpool.start(worker)
+
+                except:
+                    self.update_ui()
+                    print(traceback.format_exc())
+
+            if import_mode == "Zeiss (.czi) Data":
+
+                try:
+                    self.update_ui(init=True)
+
+                    (zeiss_measurements, channel_names, num_measurements,) = self.get_zeiss_measurements(paths)
+
+                    worker = Worker(self.read_zeiss_image_files,
+                        zeiss_measurements=zeiss_measurements, channel_names=channel_names, num_measurements=num_measurements, )
+                    worker.signals.result.connect(self._process_import)
+                    worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
+                    worker.signals.finished.connect(self.update_ui)
+                    worker.signals.error.connect(self.update_ui)
+                    self.threadpool.start(worker)
+
+                except:
+                    self.update_ui()
                     print(traceback.format_exc())
 
     def _export_stack(self, mode, viewer=None):
@@ -1020,9 +1139,18 @@ class QWidget(QWidget, gui, *sub_classes):
 
             if execute_export == True:
 
-                worker = Worker(self.export_stacks, mode=mode)
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="export"))
-                self.threadpool.start(worker)
+                try:
+
+                    self.update_ui(init=True)
+                    worker = Worker(self.export_stacks, mode=mode)
+                    worker.signals.progress.connect(partial(self._Progresbar, progressbar="export"))
+                    worker.signals.finished.connect(self.update_ui)
+                    worker.signals.error.connect(self.update_ui)
+                    self.threadpool.start(worker)
+
+                except:
+                    self.update_ui()
+                    print(traceback.format_exc())
 
         return _event
 
@@ -1042,49 +1170,88 @@ class QWidget(QWidget, gui, *sub_classes):
 
             if execute_export == True:
 
-                worker = Worker(self.export_files, mode=mode)
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="export"))
-                self.threadpool.start(worker)
+
+                try:
+                    self.update_ui(init=True)
+                    worker = Worker(self.export_files, mode=mode)
+                    worker.signals.progress.connect(partial(self._Progresbar, progressbar="export"))
+                    worker.signals.finished.connect(self.update_ui)
+                    worker.signals.error.connect(self.update_ui)
+                    self.threadpool.start(worker)
+
+                except:
+                    self.update_ui()
+                    print(traceback.format_exc())
+
+
 
         return _event
 
     def _trainCellpose(self):
-        if self.unfolded == True:
-            self.fold_images()
 
-        worker = Worker(self.train_cellpose_model)
-        worker.signals.progress.connect(partial(self._Progresbar, progressbar="cellpose_train"))
-        self.threadpool.start(worker)
+        try:
+
+            if self.unfolded == True:
+                self.fold_images()
+
+            self.update_ui(init=True)
+            worker = Worker(self.train_cellpose_model)
+            worker.signals.progress.connect(partial(self._Progresbar, progressbar="cellpose_train"))
+            worker.signals.finished.connect(self.update_ui)
+            worker.signals.error.connect(self.update_ui)
+            self.threadpool.start(worker)
+        except:
+            self.update_ui()
+            print(traceback.format_exc())
 
     def _segmentActive(self):
-        if self.unfolded == True:
-            self.fold_images()
 
-        current_fov = int(self.viewer.dims.current_step[0])
-        chanel = str(self.gui.cellpose_segchannel.currentText())
+        try:
 
-        images = self.viewer.layers[chanel].data.copy()
+            if self.unfolded == True:
+                self.fold_images()
 
-        image = [images[current_fov, :, :]]
+            current_fov = int(self.viewer.dims.current_step[0])
+            chanel = str(self.gui.cellpose_segchannel.currentText())
 
-        worker = Worker(self._run_cellpose, images=image)
-        worker.signals.result.connect(self._process_cellpose)
-        worker.signals.progress.connect(partial(self._Progresbar, progressbar="cellpose"))
-        self.threadpool.start(worker)
+            images = self.viewer.layers[chanel].data.copy()
+
+            image = [images[current_fov, :, :]]
+
+            self.update_ui(init=True)
+            worker = Worker(self._run_cellpose, images=image)
+            worker.signals.result.connect(self._process_cellpose)
+            worker.signals.progress.connect(partial(self._Progresbar, progressbar="cellpose"))
+            worker.signals.error.connect(self.update_ui)
+            worker.signals.finished.connect(self.update_ui)
+            self.threadpool.start(worker)
+
+        except:
+            self.update_ui()
+            print(traceback.format_exc())
 
     def _segmentAll(self):
-        if self.unfolded == True:
-            self.fold_images()
 
-        channel = str(self.gui.cellpose_segchannel.currentText())
-        images = self.viewer.layers[channel].data.copy()
+        try:
 
-        images = self.unstack_images(images)
+            if self.unfolded == True:
+                self.fold_images()
 
-        worker = Worker(self._run_cellpose, images=images)
-        worker.signals.result.connect(self._process_cellpose)
-        worker.signals.progress.connect(partial(self._Progresbar, progressbar="cellpose"))
-        self.threadpool.start(worker)
+            channel = str(self.gui.cellpose_segchannel.currentText())
+            images = self.viewer.layers[channel].data.copy()
+
+            images = self.unstack_images(images)
+
+            self.update_ui(init=True)
+            worker = Worker(self._run_cellpose, images=images)
+            worker.signals.result.connect(self._process_cellpose)
+            worker.signals.progress.connect(partial(self._Progresbar, progressbar="cellpose"))
+            worker.signals.error.connect(self.update_ui)
+            worker.signals.finished.connect(self.update_ui)
+            self.threadpool.start(worker)
+        except:
+            self.update_ui()
+            print(traceback.format_exc())
 
 
     def _updateSliderLabel(self, slider_name, label_name):

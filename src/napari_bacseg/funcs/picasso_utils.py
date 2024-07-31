@@ -225,6 +225,9 @@ class _picasso_utils:
 
     def _fit_localisations_cleanup(self):
         try:
+
+            self.update_ui()
+
             self._Progresbar(100, "picasso")
 
             self.localisation_centres = self.get_localisation_centres(self.fitted_locs)
@@ -388,6 +391,8 @@ class _picasso_utils:
 
     def _detect_localisations_cleanup(self):
         try:
+            self.update_ui()
+
             self.localisation_centres = self.get_localisation_centres(self.detected_locs)
 
             self._reorderLayers()
@@ -466,27 +471,51 @@ class _picasso_utils:
 
             # check min net gradient is a number
             if min_net_gradient.isdigit() and image_channel != "":
-                worker = Worker(self._detect_localisations, min_net_gradient=min_net_gradient, box_size=box_size, camera_info=camera_info, image_channel=image_channel, )
+
+                self.update_ui(init=True)
+
+                worker = Worker(self._detect_localisations,
+                    min_net_gradient=min_net_gradient,
+                    box_size=box_size,
+                    camera_info=camera_info,
+                    image_channel=image_channel, )
                 worker.signals.finished.connect(self._detect_localisations_cleanup)
+                worker.signals.error.connect(self.update_ui)
                 self.threadpool.start(worker)
 
         except:
+            self.update_ui(init=True)
             print(traceback.format_exc())
 
     def fit_picasso_localisations(self):
-        if hasattr(self, "localisation_centres") == False:
-            show_info("No localisations detected, please detect localisations first")
-        else:
-            image_channel = self.gui.picasso_image_channel.currentText()
-            box_size = int(self.gui.picasso_box_size.currentText())
-            min_net_gradient = self.gui.picasso_min_net_gradient.text()
 
-            camera_info = {"baseline": 100.0, "gain": 1, "sensitivity": 1.0, "qe": 0.9, }
+        try:
 
-            # check min net gradient is a number
-            if min_net_gradient.isdigit() and image_channel != "":
-                worker = Worker(self._fit_localisations, min_net_gradient=min_net_gradient, box_size=box_size, camera_info=camera_info, image_channel=image_channel, )
-                worker.signals.progress.connect(partial(self._Progresbar, progressbar="picasso"))
-                worker.signals.finished.connect(self._fit_localisations_cleanup)
-                self.threadpool.start(worker)
+            if hasattr(self, "localisation_centres") == False:
+                show_info("No localisations detected, please detect localisations first")
+            else:
+                image_channel = self.gui.picasso_image_channel.currentText()
+                box_size = int(self.gui.picasso_box_size.currentText())
+                min_net_gradient = self.gui.picasso_min_net_gradient.text()
+
+                camera_info = {"baseline": 100.0, "gain": 1, "sensitivity": 1.0, "qe": 0.9, }
+
+                # check min net gradient is a number
+                if min_net_gradient.isdigit() and image_channel != "":
+
+                    self.update_ui(init=True)
+
+                    worker = Worker(self._fit_localisations,
+                        min_net_gradient=min_net_gradient,
+                        box_size=box_size,
+                        camera_info=camera_info,
+                        image_channel=image_channel, )
+                    worker.signals.progress.connect(partial(self._Progresbar, progressbar="picasso"))
+                    worker.signals.finished.connect(self._fit_localisations_cleanup)
+                    worker.signals.error.connect(self.update_ui)
+                    self.threadpool.start(worker)
+
+        except:
+            self.update_ui(init=True)
+            print(traceback.format_exc())
 
