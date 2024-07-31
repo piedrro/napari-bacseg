@@ -47,6 +47,7 @@ dependencies = [
     "czifile",
     "omnipose",
     "h5py",
+    "pyqtgraph",
 ]
 
 [project.optional-dependencies]

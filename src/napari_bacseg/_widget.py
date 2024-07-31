@@ -13,7 +13,7 @@ import tempfile
 import time
 import traceback
 from functools import partial
-
+from pyqtgraph import ImageView
 import cv2
 import napari
 import numpy as np
@@ -21,7 +21,8 @@ from napari.utils.colormaps import label_colormap
 from napari.utils.notifications import show_info
 from qtpy.QtCore import QThreadPool
 
-from qtpy.QtWidgets import (QComboBox, QFileDialog, QLabel, QSlider, QWidget, QPushButton)
+from qtpy.QtWidgets import (QComboBox, QFileDialog, QLabel, QSlider, QWidget, QPushButton, QVBoxLayout)
+
 
 
 from napari_bacseg.GUI.gui import Ui_Form as gui
@@ -44,13 +45,15 @@ from napari_bacseg.funcs.IO.imagej_utils import _imagej_utils
 from napari_bacseg.funcs.picasso_utils import _picasso_utils
 from napari_bacseg.funcs.bactfit_utils import _bactfit_utils
 from napari_bacseg.funcs.cell_events import _cell_events
+from napari_bacseg.funcs.heatmap_utils import _heatmap_utils
 
 from napari_bacseg.funcs.threading_utils import Worker
 
 sub_classes = [_picasso_utils, _utils, _import_utils, _export_utils,
     _database_utils, _databaseIO, _cellpose_utils, _events_utils,
     _tiler_utils, _zeiss_utils, _stats_utils, _oufti_utils, _imagej_utils,
-    _oni_utils, _olympus_utils, _undrift_utils, _bactfit_utils, _cell_events]
+    _oni_utils, _olympus_utils, _undrift_utils, _bactfit_utils,
+               _cell_events, _heatmap_utils]
 
 class QWidget(QWidget, gui, *sub_classes):
 
@@ -69,7 +72,8 @@ class QWidget(QWidget, gui, *sub_classes):
         self.initialise_keybindings()
         self.initialise_viewer_events()
         self.initialise_global_variables()
-
+        self.initialise_plot_canvases()
+        self.update_heatmap_options()
         self.update_import_limit()
 
         self.threadpool = QThreadPool()  # self.load_dev_data()
@@ -223,6 +227,13 @@ class QWidget(QWidget, gui, *sub_classes):
         self.gui.fit_segmentations.clicked.connect(self.initialise_bactfit)
 
         self.gui.transform_coordinates.clicked.connect(self.init_transform_coordinates)
+
+        self.gui.export_heatmap.clicked.connect(self.export_cell_heatmap)
+        self.gui.export_heatmap_locs.clicked.connect(self.export_heatmap_locs)
+        self.gui.heatmap_mode.currentIndexChanged.connect(self.update_heatmap_options)
+        self.gui.generate_heatmap.clicked.connect(self.plot_heatmap)
+        self.gui.heatmap_length_reset.clicked.connect(self.update_render_length_range)
+
 
     def initialise_keybindings(self):
 
@@ -380,6 +391,22 @@ class QWidget(QWidget, gui, *sub_classes):
         self.segLayer.mouse_double_click_callbacks.append(self._doubeClickEvents)
 
         self.segLayer.contour = 1
+
+    def initialise_plot_canvases(self):
+
+        try:
+            self.heatmap_canvas = ImageView()
+            self.gui.heatmap_graph_container.setLayout(QVBoxLayout())
+            self.gui.heatmap_graph_container.layout().addWidget(self.heatmap_canvas)
+            self.heatmap_canvas.ui.histogram.hide()
+            self.heatmap_canvas.ui.roiBtn.hide()
+            self.heatmap_canvas.ui.menuBtn.hide()
+
+        except:
+            print(traceback.format_exc())
+            pass
+
+
 
     def update_export_options(self):
 

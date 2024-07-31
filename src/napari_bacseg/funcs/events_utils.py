@@ -5,7 +5,8 @@ import traceback
 import cv2
 import numpy as np
 from napari.utils.notifications import show_info
-
+from PyQt5.QtWidgets import (QApplication, QComboBox, QDoubleSpinBox, QFormLayout,
+    QVBoxLayout, QWidget, QMainWindow, QSpinBox, QLineEdit, QCheckBox)
 
 class _events_utils:
 
@@ -1082,3 +1083,76 @@ class _events_utils:
             self.segLayer.metadata = meta
             self.segLayer.mode = "pan_zoom"
             self.update_image_folds()
+
+
+    def update_heatmap_options(self):
+
+        mode = self.gui.heatmap_mode.currentText()
+        layout = self.gui.heatmap_settings_layout
+
+        core_settings = ["heatmap_dataset", "heatmap_channel", "heatmap_mode",
+                         "heatmap_dataset_label", "heatmap_channel_label", "heatmap_mode_label",
+                         "heatmap_colourmap", "heatmap_colourmap_label","heatmap_length_label",
+                         "heatmap_min_length", "heatmap_max_length", "heatmap_length_spacer",]
+
+        for i in reversed(range(layout.count())):
+            widget = layout.itemAt(i).widget()
+            if widget is not None:
+                widget_name = widget.objectName()
+                if widget_name.lower() not in core_settings:
+                    if widget is not None:
+                        widget.deleteLater()
+
+        self.initialise_heatmap_controls()
+
+        if mode == "Heatmap":
+            layout.addRow("Binning", self.heatmap_binning)
+        elif mode == "Render":
+            layout.addRow("Blur Method", self.heatmap_blur_method)
+            layout.addRow("Min Blur Width", self.heatmap_min_blur_width)
+            layout.addRow("Oversampling", self.heatmap_oversampling)
+
+
+    def initialise_heatmap_controls(self):
+
+        try:
+
+            self.heatmap_binning = QSpinBox()
+            self.heatmap_blur_method = QComboBox()
+            self.heatmap_min_blur_width = QDoubleSpinBox()
+            self.heatmap_oversampling = QSpinBox()
+
+            self.heatmap_binning.setRange(1, 100)
+            self.heatmap_binning.setSingleStep(1)
+            self.heatmap_binning.setValue(30)
+
+            self.heatmap_min_blur_width.setRange(0.1, 10)
+            self.heatmap_min_blur_width.setSingleStep(0.1)
+            self.heatmap_min_blur_width.setValue(0.4)
+
+            self.heatmap_oversampling.setRange(1, 100)
+            self.heatmap_oversampling.setSingleStep(1)
+            self.heatmap_oversampling.setValue(20)
+
+            blur_methods = ["One-Pixel-Blur", "Global Localisation Precision",
+                            "Individual Localisation Precision, iso",
+                            "Individual Localisation Precision"]
+
+            self.heatmap_blur_method.clear()
+            self.heatmap_blur_method.addItems(blur_methods)
+            self.heatmap_blur_method.setCurrentIndex(1)
+
+
+            self.heatmap_binning.blockSignals(True)
+            self.heatmap_blur_method.blockSignals(True)
+            self.heatmap_min_blur_width.blockSignals(True)
+            self.heatmap_oversampling.blockSignals(True)
+
+            self.heatmap_binning.blockSignals(False)
+            self.heatmap_blur_method.blockSignals(False)
+            self.heatmap_min_blur_width.blockSignals(False)
+            self.heatmap_oversampling.blockSignals(False)
+
+        except:
+            print(traceback.format_exc())
+            pass

@@ -129,31 +129,16 @@ class _bactfit_utils:
 
         try:
 
-            self.celllist.transform_locs(model, method=method,
+            celllist.transform_locs(model, method=method,
                 progress_callback=progress_callback)
-
-            symmetry = self.gui.transform_symmetry.isChecked()
-
-            celllocs = self.celllist.get_locs(symmetry=symmetry)
-            celllocs = pd.DataFrame(celllocs)
-
-            if len(celllocs) == 0:
-                return
-
-            self.transformed_locs = celllocs
-
-            n_transformed = len(celllocs)
-
-            if symmetry:
-                n_transformed = n_transformed / 4
-
-            show_info(f"Transformed {n_transformed} localisations")
 
         except:
             print(traceback.format_exc())
             pass
 
-    def init_transform_coordinates(self, method = "angular"):
+        return celllist
+
+    def init_transform_coordinates(self, progress_callback=None, method = "angular"):
 
         try:
 
@@ -178,16 +163,91 @@ class _bactfit_utils:
                 show_info("Coordinate transformation requires fitted cells")
                 return
 
+            cell_length = int(self.gui.model_cell_length.value())
+            cell_width = int(self.gui.model_cell_radius.value())
+            pixel_size = float(self.gui.transform_pixel_size.value())
+
+            cell_list = self.populate_cell_list(locs, pixel_size)
+
+            if len(cell_list) == 0:
+                show_info("No cells found")
+                return
+
+            celllist = CellList(cell_list)
+
+            model = ModelCell(
+                length=cell_length,
+                width=cell_width,)
+
+            if hasattr(self, "celllist"):
+                del self.celllist
+
+            n_cells = len(celllist.data)
+            n_locs = len(celllist.get_locs())
+
+            show_info(f"Transforming {n_locs} localisations within {n_cells} cells")
+
+            try:
+                self.update_ui(init=True)
+                worker = Worker(self.transform_coordinates, celllist, model, method)
+                worker.signals.progress.connect(partial(self._Progresbar,
+                        progressbar="transform_coordinates"))
+                worker.signals.result.connect(self.transform_coordinates_results)
+                worker.signals.finished.connect(self.transform_coordinates_finished)
+                worker.signals.error.connect(self.update_ui)
+                self.threadpool.start(worker)
+            except:
+                self.update_ui()
+                print(traceback.format_exc())
+
+
+        except:
+            print(traceback.format_exc())
+            pass
+
+
+    def transform_coordinates_results(self, celllist):
+
+        try:
+
+
+            self.celllist = celllist
+
+            celllocs = celllist.get_locs(symmetry=False)
+            celllocs = pd.DataFrame(celllocs)
+
+            if len(celllocs) == 0:
+                return
+
+            self.transformed_locs = celllocs
+
+            n_transformed = len(celllocs)
+
+            show_info(f"Transformed {n_transformed} localisations")
+
+        except:
+            print(traceback.format_exc())
+            pass
+
+    def transform_coordinates_finished(self):
+
+        self.update_render_length_range()
+        self.heatmap_canvas.clear()
+        self.plot_heatmap()
+        self.update_ui()
+
+    def populate_cell_list(self, locs, pixel_size=100.0):
+
+        try:
+
             name_list = self.cellLayer.properties["name"].copy()
             name_list = list(set(name_list))
             cell_list = []
 
-            n_locs = 0
-            n_cells = 0
-
             for name in name_list:
 
-                cell = self.get_cell(name, bactfit=True)
+                cell = self.get_cell(name, bactfit=True,
+                    pixel_size=pixel_size)
 
                 if cell is None:
                     continue
@@ -204,68 +264,19 @@ class _bactfit_utils:
                     continue
 
                 cell.remove_locs_outside_cell(frame_locs)
-
                 cell_locs = cell.locs
 
                 if cell_locs is None:
                     continue
 
-                n_locs += len(cell_locs)
-                n_cells += 1
-
                 cell_list.append(cell)
 
             if len(cell_list) == 0:
                 show_info("No cells found")
-                return
-
-            model_length = int(self.gui.model_cell_length.value())
-            model_width = int(self.gui.model_cell_width.value())
-
-            celllist = CellList(cell_list)
-            model = ModelCell(length=model_length, width=model_length)
-
-            show_info(f"Transforming {n_locs} localisations within {n_cells} cells")
-
-            try:
-                self.update_ui(init=True)
-                worker = Worker(self.transform_coordinates, celllist, model, method)
-                worker.signals.progress.connect(partial(self._Progresbar,
-                        progressbar="transform_coordinates"))
-                worker.signals.finished.connect(self.update_ui)
-                worker.signals.error.connect(self.update_ui)
-                self.threadpool.start(worker)
-            except:
-                self.update_ui()
-                print(traceback.format_exc())
-
+                return []
 
         except:
             print(traceback.format_exc())
             pass
 
-
-
-
-    def populate_celllist(self):
-
-        try:
-
-            name_list = self.cellLayer.properties["name"].copy()
-            name_list = list(set(name_list))
-            cell_list = []
-
-            for name in name_list:
-                cell = self.get_cell(name, bactfit=True)
-                cell_list.append(cell)
-
-            if len(cell_list) == 0:
-                return
-
-            cells = CellList(cell_list)
-
-        except:
-            print(traceback.format_exc())
-            pass
-
-        return cells
+        return cell_list

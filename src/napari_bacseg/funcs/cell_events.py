@@ -289,7 +289,7 @@ class _cell_events:
             print(traceback.format_exc())
             pass
 
-    def get_cell(self, name, json=False, bactfit=False, ndim=2):
+    def get_cell(self, name, json=False, bactfit=False, ndim=2, pixel_size=None):
 
         cell = None
 
@@ -301,7 +301,9 @@ class _cell_events:
 
             shape_types = self.cellLayer.shape_type.copy()
             shapes = self.cellLayer.data.copy()
-            pixel_size = self.cellLayer.scale[0]
+
+            if pixel_size is None:
+                pixel_size = self.cellLayer.scale[0]
 
             cell_indices = [i for i, n in enumerate(name_list) if n == name]
 

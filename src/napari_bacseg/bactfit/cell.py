@@ -579,7 +579,14 @@ class CellList(object):
             n_jobs = len(compute_jobs)
             completed_jobs = 0
 
-            with ProcessPoolExecutor() as executor:
+            n_transformed = 0
+
+            if isinstance(compute_jobs[0][0], Cell):
+                executor = ProcessPoolExecutor()
+            else:
+                executor = ThreadPoolExecutor()
+
+            with executor:
 
                 futures = [executor.submit(CellList.compute_task, job) for job in compute_jobs]
 
@@ -594,10 +601,12 @@ class CellList(object):
 
                             if type(locs) == np.recarray:
                                 self.data[cell_index] = cell
+                                n_transformed += 1
                             else:
                                 self.data[cell_index].locs = None
 
                     except Exception as e:
+
                         print(f"Error: {e}")
                         traceback.print_exc()
 
@@ -607,6 +616,9 @@ class CellList(object):
                         progress = 100 * (completed_jobs / n_jobs)
                         progress_callback.emit(progress)
 
+            if n_transformed == 0:
+                for cell in self.data:
+                    cell.locs = None
 
     def get_locs(self, symmetry=False):
 
@@ -615,8 +627,6 @@ class CellList(object):
         for cell in self.data:
             try:
                 cell_locs = cell.locs
-
-                # print(f"Cell index: {cell.cell_index}, {len(cell_locs)} localisations")
 
                 if cell_locs is None:
                     continue
@@ -688,7 +698,7 @@ class CellList(object):
             try:
                 length_um = cell.cell_length_um
 
-                if length_um > min_length and length_um < max_length:
+                if length_um >= min_length and length_um <= max_length:
                     filtered_cells.append(cell)
             except:
                 pass
