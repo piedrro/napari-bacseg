@@ -1,15 +1,12 @@
 import numpy as np
 import traceback
-
 import pandas as pd
-
 from napari_bacseg.funcs.threading_utils import Worker
-from napari_bacseg.bactfit.preprocess import data_to_cells, mask_to_cells
+from bactfit.preprocess import data_to_cells, mask_to_cells
 from functools import partial
 from shapely.geometry import Polygon, LineString
 import matplotlib.pyplot as plt
-from napari_bacseg.bactfit.fit import BactFit
-from napari_bacseg.bactfit.cell import CellList, Cell, ModelCell
+from bactfit.cell import CellList, Cell, ModelCell
 from napari.utils.notifications import show_info
 
 class _bactfit_utils:
@@ -28,7 +25,7 @@ class _bactfit_utils:
 
         cell_names = data["names"]
         cell_polygons = data["polygons"]
-        cell_widths = data["widths"]
+        cell_radii = data["cell_radii"]
         cell_params = data["poly_params"]
         cell_poles = data["cell_poles"]
         cell_midlines = data["midlines"]
@@ -42,12 +39,12 @@ class _bactfit_utils:
         shape_types = []
         properties = {"name": [], "cell": []}
 
-        for name, polygon, width, midline, params, poles in zip(cell_names, cell_polygons,
-                cell_widths, cell_midlines, cell_params, cell_poles):
+        for name, polygon, radius, midline, params, poles in zip(cell_names, cell_polygons,
+                cell_radii, cell_midlines, cell_params, cell_poles):
 
             try:
 
-                fit_params = {"name": name, "width": width,
+                fit_params = {"name": name, "radius": radius,
                               "poly_params": params, "cell_poles": poles}
 
                 shapes.append(polygon)
@@ -63,6 +60,8 @@ class _bactfit_utils:
             except:
                 pass
 
+        show_info(f"Initialsing Napari Cells Layer")
+
         self.cellLayer = self.initialise_cellLayer(shapes=shapes,
             shape_types=shape_types, properties=properties)
 
@@ -77,6 +76,8 @@ class _bactfit_utils:
             max_radius = float(self.gui.fit_max_radius.value())
             max_error = float(self.gui.fit_max_error.value())
 
+            show_info(f"Building CellList")
+
             celllist = mask_to_cells(segmentations)
 
             n_cells = len(celllist.data)
@@ -86,22 +87,18 @@ class _bactfit_utils:
 
             show_info(f"BactFit Fitting {n_cells} cells")
 
-            bf = BactFit(celllist=celllist,
-                max_radius=max_radius, min_radius=min_radius, max_error=max_error,
-                progress_callback=progress_callback, parallel=True,)
+            celllist.optimise(max_radius=max_radius, min_radius=min_radius,
+                max_error=max_error, progress_callback=progress_callback)
 
-            celllist = bf.fit()
-
-            self.celllist = celllist
-
-            max_error = [cell.fit_error for cell in self.celllist.data]
-            print(f"Max error: {max(max_error)}")
+            error_list = [cell.fit_error for cell in celllist.data]
+            error_list = [error for error in error_list if error is not None]
+            print(f"Max error: {max(error_list)}")
 
         except:
             print(traceback.format_exc())
             return None
 
-        return self.celllist
+        return celllist
 
     def initialise_bactfit(self):
 
@@ -129,7 +126,7 @@ class _bactfit_utils:
 
         try:
 
-            celllist.transform_locs(model, method=method,
+            celllist.transform_cells(model,
                 progress_callback=progress_callback)
 
         except:
@@ -141,13 +138,16 @@ class _bactfit_utils:
     def init_transform_coordinates(self, progress_callback=None, method = "angular"):
 
         try:
+            self.update_ui(init=True)
 
             if hasattr(self, "cellLayer") == False:
                 show_info("Coordinate transformation requires fitted cells")
+                self.update_ui()
                 return
 
             if hasattr(self, "fitted_locs") == False:
                 show_info("Coordinate transformation requires fitted localisations")
+                self.update_ui()
                 return
 
             locs = self.fitted_locs.copy()
@@ -155,29 +155,34 @@ class _bactfit_utils:
 
             if len(locs) == 0:
                 show_info("Coordinate transformation requires fitted localisations")
+                self.update_ui()
                 return
 
             cell_data = self.cellLayer.data.copy()
 
             if len(cell_data) == 0:
                 show_info("Coordinate transformation requires fitted cells")
+                self.update_ui()
                 return
 
             cell_length = int(self.gui.model_cell_length.value())
-            cell_width = int(self.gui.model_cell_radius.value())
+            cell_radius = int(self.gui.model_cell_radius.value())
             pixel_size = float(self.gui.transform_pixel_size.value())
+
+            show_info("Building CellList with localisations")
 
             cell_list = self.populate_cell_list(locs, pixel_size)
 
             if len(cell_list) == 0:
                 show_info("No cells found")
+                self.update_ui()
                 return
 
             celllist = CellList(cell_list)
 
             model = ModelCell(
                 length=cell_length,
-                width=cell_width,)
+                radius=cell_radius,)
 
             if hasattr(self, "celllist"):
                 del self.celllist
@@ -188,7 +193,6 @@ class _bactfit_utils:
             show_info(f"Transforming {n_locs} localisations within {n_cells} cells")
 
             try:
-                self.update_ui(init=True)
                 worker = Worker(self.transform_coordinates, celllist, model, method)
                 worker.signals.progress.connect(partial(self._Progresbar,
                         progressbar="transform_coordinates"))
@@ -236,9 +240,12 @@ class _bactfit_utils:
         self.plot_heatmap()
         self.update_ui()
 
-    def populate_cell_list(self, locs, pixel_size=100.0):
+    def populate_cell_list(self, locs=None, pixel_size=None):
 
         try:
+
+            if isinstance(locs, np.recarray):
+                locs = pd.DataFrame(locs)
 
             name_list = self.cellLayer.properties["name"].copy()
             name_list = list(set(name_list))
@@ -257,14 +264,18 @@ class _bactfit_utils:
                 if frame_index is None:
                     continue
 
-                frame_locs = locs[locs["frame"] == frame_index].copy()
-                frame_locs = frame_locs.to_records(index=False)
+                if locs is not None:
 
-                if len(frame_locs) == 0:
-                    continue
+                    frame_locs = locs[locs["frame"] == frame_index].copy()
+                    frame_locs = frame_locs.to_records(index=False)
 
-                cell.remove_locs_outside_cell(frame_locs)
-                cell_locs = cell.locs
+                    if len(frame_locs) == 0:
+                        continue
+
+                    cell.remove_locs_outside_cell(frame_locs)
+                    cell_locs = cell.locs
+                else:
+                    cell_locs = None
 
                 if cell_locs is None:
                     continue

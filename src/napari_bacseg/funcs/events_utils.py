@@ -10,6 +10,18 @@ from PyQt5.QtWidgets import (QApplication, QComboBox, QDoubleSpinBox, QFormLayou
 
 class _events_utils:
 
+    def export_picasso_export_options(self):
+
+        export_data = self.gui.picasso_export_data.currentText()
+
+        if export_data == "BactFit":
+            export_mode = [".h5"]
+        else:
+            export_mode = [".csv", "Picasso HDF5", ".pos.out"]
+
+        self.gui.picasso_export_mode.clear()
+        self.gui.picasso_export_mode.addItems(export_mode)
+
     def update_ui(self, init=False):
 
         try:

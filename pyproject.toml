@@ -20,6 +20,7 @@ dependencies = [
     "cellpose >= 3.0.1",
     "opencv-python",
     "picassosr == 0.6.5",
+    "bactfit >= 0.1.3",
     "numpy",
     "pyqt5",
     "pyqt6",

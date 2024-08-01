@@ -3,9 +3,9 @@ import pandas as pd
 import traceback
 import numpy as np
 from functools import partial
-from napari_bacseg.bactfit.preprocess import data_to_cells
-from napari_bacseg.bactfit.cell import CellList, ModelCell
-from napari_bacseg.bactfit.postprocess import remove_locs_outside_cell
+from bactfit.preprocess import data_to_cells
+from bactfit.cell import CellList, ModelCell
+from bactfit.postprocess import remove_locs_outside_cell
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import pyqtgraph as pg
@@ -96,6 +96,10 @@ class _heatmap_utils:
             min_length = self.gui.heatmap_min_length.value()
             max_length = self.gui.heatmap_max_length.value()
             symmetry = self.gui.render_symmetry.isChecked()
+            bins = self.heatmap_binning.value()
+            blur_method = self.heatmap_blur_method.currentText()
+            min_blur_width = self.heatmap_min_blur_width.value()
+            oversampling = self.heatmap_oversampling.value()
 
             self.heatmap_canvas.clear()
 
@@ -131,11 +135,25 @@ class _heatmap_utils:
             show_info(f"Generating Cell {heatmap_mode.lower()} with {n_locs} localisations from {n_cells} cells")
 
             if heatmap_mode == "Heatmap":
-                self.plot_cell_heatmap(celllocs, polygon_coords,
-                    colourmap_name, draw_outline)
+
+                heatmap = celllist.plot_heatmap(symmetry=symmetry, bins=bins,
+                    cmap=colourmap_name, draw_outline=draw_outline,
+                    show=False, save=False, path=None, dpi=500)
+
+                self.heatmap_image = heatmap
+                self.show_heatmap(heatmap)
+
             elif heatmap_mode == "Render":
-                self.plot_cell_render(celllocs, polygon_coords,
-                    colourmap_name, draw_outline)
+
+                render = celllist.plot_render(
+                    symmetry=symmetry, oversampling=oversampling,
+                    blur_method=blur_method, min_blur_width=min_blur_width,
+                    cmap=colourmap_name, draw_outline=draw_outline,
+                    show=False, save=False, path=None, dpi=500)
+
+                self.heatmap_image = render
+                self.show_heatmap(render)
+
             else:
                 pass
 
@@ -143,6 +161,24 @@ class _heatmap_utils:
 
         except:
             self.update_ui()
+            print(traceback.format_exc())
+            pass
+
+    def show_heatmap(self, image):
+
+        try:
+
+            image = np.rot90(image, k=3)
+            image = np.fliplr(image)
+
+            self.heatmap_canvas.clear()
+            self.heatmap_canvas.setImage(image)
+
+            self.heatmap_canvas.ui.histogram.hide()
+            self.heatmap_canvas.ui.roiBtn.hide()
+            self.heatmap_canvas.ui.menuBtn.hide()
+
+        except:
             print(traceback.format_exc())
             pass
 
@@ -173,8 +209,9 @@ class _heatmap_utils:
             cax.set_facecolor('black')
 
             buf = BytesIO()
-            plt.savefig(buf, format='png', bbox_inches='tight',
-                pad_inches=0, facecolor='black', dpi=500)
+            plt.savefig(buf, format='png',
+                bbox_inches='tight',pad_inches=0.1,
+                facecolor='black', dpi=500)
             buf.seek(0)
             heatmap = plt.imread(buf)
 
@@ -270,8 +307,9 @@ class _heatmap_utils:
             ax.axis('off')
 
             buf = BytesIO()
-            plt.savefig(buf, format='png', bbox_inches='tight',
-                pad_inches=0, facecolor='black', dpi=500)
+            plt.savefig(buf, format='png',
+                bbox_inches='tight', pad_inches=0.1,
+                facecolor='black', dpi=500)
             buf.seek(0)
             image = plt.imread(buf)
             plt.close(fig)

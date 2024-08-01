@@ -1,15 +1,15 @@
 import numpy as np
 import traceback
 from napari_bacseg.funcs.threading_utils import Worker
-from napari_bacseg.bactfit.preprocess import data_to_cells
-from napari_bacseg.bactfit.cell import Cell
+from bactfit.preprocess import data_to_cells
+from bactfit.cell import Cell
 from functools import partial
 from shapely.geometry import Polygon, LineString, Point
 import matplotlib.pyplot as plt
 import copy
 import random
 import string
-from napari_bacseg.bactfit.utils import manual_fit
+from bactfit.utils import manual_fit
 from napari.utils.notifications import show_info
 
 
@@ -251,7 +251,7 @@ class _cell_events:
                     self.cellLayer.events.data.disconnect(self.update_cells)
 
                     midline_coords = cell["midline_coords"]
-                    width = cell["width"]
+                    radius = cell["radius"]
                     frame_index = cell["frame_index"]
 
                     midline = LineString(midline_coords)
@@ -261,9 +261,9 @@ class _cell_events:
                     else:
                         buffer = -0.5
 
-                    width += buffer
+                    radius += buffer
 
-                    polygon = midline.buffer(width)
+                    polygon = midline.buffer(radius)
 
                     polygon_coords = np.array(polygon.exterior.coords)
                     polygon_coords = polygon_coords[:-1]
@@ -276,8 +276,8 @@ class _cell_events:
 
                     cell_shapes[polygon_index] = polygon_coords
                     cell_shapes[midline_index] = midline_coords
-                    properties["cell"][polygon_index]["width"] = width
-                    properties["cell"][midline_index]["width"] = width
+                    properties["cell"][polygon_index]["radius"] = radius
+                    properties["cell"][midline_index]["radius"] = radius
 
                     self.update_shapes(cell_shapes, properties=properties)
 
@@ -349,7 +349,7 @@ class _cell_events:
 
                         cell_properties["poly_params"] = list(cell_properties["poly_params"])
                         cell_properties["cell_poles"] = [list(pole) for pole in cell_properties["cell_poles"]]
-                        cell_properties["width"] = float(cell_properties["width"])
+                        cell_properties["radius"] = float(cell_properties["radius"])
 
                     cell_coords = {"midline_coords": midline_coords,
                                    "polygon_coords": polygon_coords,
@@ -486,7 +486,7 @@ class _cell_events:
 
                 midline_coords = cell["midline_coords"]
                 polygon_coords = cell["polygon_coords"]
-                width = cell["width"]
+                radius = cell["radius"]
                 midline_index = cell["midline_index"]
                 polygon_index = cell["polygon_index"]
 
@@ -496,8 +496,8 @@ class _cell_events:
                     frame_index = midline_coords[0, 0]
                     midline_coords = midline_coords[:, 1:]
 
-                fit = manual_fit(polygon_coords, midline_coords, width)
-                (polygon_fit_coords, midline_fit_coords, poly_params, cell_width,) = fit
+                fit = manual_fit(polygon_coords, midline_coords, radius)
+                (polygon_fit_coords, midline_fit_coords, poly_params, cell_radius,) = fit
 
                 if polygon_fit_coords is not None:
 
@@ -514,10 +514,10 @@ class _cell_events:
 
                     cell_poles = [midline_fit_coords[0], midline_fit_coords[-1], ]
                     properties["cell"][polygon_index]["poly_params"] = poly_params
-                    properties["cell"][polygon_index]["width"] = cell_width
+                    properties["cell"][polygon_index]["cell_radius"] = cell_radius
                     properties["cell"][polygon_index]["cell_poles"] = cell_poles
                     properties["cell"][midline_index]["poly_params"] = poly_params
-                    properties["cell"][midline_index]["width"] = cell_width
+                    properties["cell"][midline_index]["cell_radius"] = cell_radius
                     properties["cell"][midline_index]["cell_poles"] = cell_poles
 
                     self.update_shapes(shapes, shape_types, properties)
@@ -575,7 +575,7 @@ class _cell_events:
             print(traceback.format_exc())
             pass
 
-    def find_centerline(self, midline, width):
+    def find_centerline(self, midline, radius):
         try:
             def resample_line(line, num_points):
                 distances = np.linspace(0, line.length, num_points)
@@ -636,13 +636,13 @@ class _cell_events:
                     return LineString(cropped_coords)
                 return line
 
-            model = midline.buffer(width)
+            model = midline.buffer(radius)
 
             centerline = resample_line(midline, 1000)  # High resolution with 1000 points
 
             start_points, end_points = extract_end_points(centerline)
 
-            extension_distance = width * 3
+            extension_distance = radius * 3
 
             extended_start = extend_away(start_points, extension_distance)
             extended_end = extend_away(end_points, extension_distance)
@@ -665,7 +665,7 @@ class _cell_events:
 
         return centerline
 
-    def find_end_cap_centroid(self, midline, width):
+    def find_end_cap_centroid(self, midline, radius):
         try:
             def find_nearest_index(coords, point):
                 dist = np.linalg.norm(coords - point, axis=1)
@@ -688,11 +688,11 @@ class _cell_events:
                 return end_point
 
             # offset line
-            polygon = midline.buffer(width)
+            polygon = midline.buffer(radius)
             polygon_coords = np.array(polygon.exterior.coords)
 
-            left_line = midline.parallel_offset(width, side="left", join_style=2)
-            right_line = midline.parallel_offset(width, side="right", join_style=2)
+            left_line = midline.parallel_offset(radius, side="left", join_style=2)
+            right_line = midline.parallel_offset(radius, side="right", join_style=2)
 
             left_coords = np.array(left_line.coords)
             right_coords = np.array(right_line.coords)
@@ -719,7 +719,7 @@ class _cell_events:
 
             shapes = self.cellLayer.data.copy()
 
-            width = self.gui.default_cell_width.value()
+            radius = self.gui.default_cell_radius.value()
             properties = self.cellLayer.properties.copy()
             shape_types = self.cellLayer.shape_type.copy()
 
@@ -737,12 +737,12 @@ class _cell_events:
                 midline_coords = midline_coords[:, 1:]
 
             midline = LineString(midline_coords)
-            polygon = midline.buffer(width)
+            polygon = midline.buffer(radius)
 
             polygon_coords = np.array(polygon.exterior.coords)
 
-            fit = manual_fit(polygon_coords, midline_coords, width)
-            polygon_fit_coords, midline_fit_coords, poly_params, cell_width = (fit)
+            fit = manual_fit(polygon_coords, midline_coords, radius)
+            polygon_fit_coords, midline_fit_coords, poly_params, cell_radius = (fit)
 
             if ndim == 3:
                 polygon_fit_coords = np.vstack([np.ones(len(polygon_fit_coords))*frame_index, polygon_fit_coords.T]).T
@@ -750,7 +750,7 @@ class _cell_events:
 
             shapes[last_index] = midline_fit_coords
 
-            cell = {"name": name, "width": width, "poly_params": poly_params, "cell_poles": cell_poles, }
+            cell = {"name": name, "radius": radius, "poly_params": poly_params, "cell_poles": cell_poles, }
 
             if "name" not in properties.keys():
                 properties["name"] = [name]
@@ -764,7 +764,7 @@ class _cell_events:
             self.cellLayer.events.data.disconnect(self.update_cells)
             self.cellLayer.refresh()
 
-            cell = {"name": name, "width": width, "poly_params": poly_params, "cell_poles": cell_poles, }
+            cell = {"name": name, "radius": radius, "poly_params": poly_params, "cell_poles": cell_poles, }
 
             self.cellLayer.current_properties = {"name": name, "cell": cell}
             self.cellLayer.add_polygons(polygon_fit_coords)

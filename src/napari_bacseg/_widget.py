@@ -234,6 +234,8 @@ class QWidget(QWidget, gui, *sub_classes):
         self.gui.generate_heatmap.clicked.connect(self.plot_heatmap)
         self.gui.heatmap_length_reset.clicked.connect(self.update_render_length_range)
 
+        self.gui.picasso_export_data.currentIndexChanged.connect(self.export_picasso_export_options)
+
 
     def initialise_keybindings(self):
 

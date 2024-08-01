@@ -1806,7 +1806,7 @@
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>458</width>
+               <width>612</width>
                <height>14</height>
               </size>
              </property>
@@ -1928,8 +1928,8 @@
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>458</width>
-               <height>209</height>
+               <width>612</width>
+               <height>300</height>
               </size>
              </property>
             </spacer>
@@ -1987,12 +1987,12 @@
              <item row="0" column="0">
               <widget class="QLabel" name="label_53">
                <property name="text">
-                <string>Default Cell Width</string>
+                <string>Default Cell Radius</string>
                </property>
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QSpinBox" name="default_cell_width">
+              <widget class="QSpinBox" name="default_cell_radius">
                <property name="value">
                 <number>5</number>
                </property>
@@ -2673,7 +2673,7 @@
               </sizepolicy>
              </property>
              <property name="currentIndex">
-              <number>1</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="tab_28">
               <attribute name="title">
@@ -2758,12 +2758,18 @@
                    <property name="text">
                     <string>Draw Cell Outline</string>
                    </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
                   </widget>
                  </item>
                  <item row="0" column="1">
                   <widget class="QCheckBox" name="render_symmetry">
                    <property name="text">
                     <string>Horizonal/Vertical Symmetry</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
