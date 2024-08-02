@@ -338,7 +338,7 @@ class _import_utils:
                             nmasks=[], classes=[], metadata={i: meta}, )
                     else:
                         imported_images[channel]["images"].append(img)
-                        imported_images[channel]["metadata"][i] = meta
+                        imported_images[channel]["metadata"][img_index] = meta
 
             progress = int(((i + 1) / len(file_paths)) * 100)
 
@@ -350,12 +350,6 @@ class _import_utils:
         imported_data = dict(imported_images=imported_images)
 
         return imported_data
-
-
-
-
-
-
 
 
     def import_cellpose(self, progress_callback, file_paths):

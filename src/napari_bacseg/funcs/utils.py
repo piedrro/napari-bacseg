@@ -222,9 +222,12 @@ class _utils:
 
                 channel_metadata = metadata.copy()
                 channel_name = f"Channel{channel_index}"
+                base, ext = os.path.splitext(image_name)
+                channel_image_name = f"{base}_{channel_name}{ext}"
+                channel_image_path = os.path.join(os.path.dirname(path), channel_image_name)
 
                 if "image_name" not in channel_metadata.keys():
-                    channel_metadata["image_name"] = image_name
+                    channel_metadata["image_name"] = channel_image_name
                     channel_metadata["channel"] = channel_name
                     channel_metadata["modality"] = None
                     channel_metadata["stain"] = None
@@ -232,7 +235,7 @@ class _utils:
                     channel_metadata["light_source"] = None
                     channel_metadata["segmentation_file"] = None
                     channel_metadata["segmentation_channel"] = None
-                    channel_metadata["image_path"] = path
+                    channel_metadata["image_path"] = channel_image_path
                     channel_metadata["mask_name"] = None
                     channel_metadata["mask_path"] = None
                     channel_metadata["label_name"] = None

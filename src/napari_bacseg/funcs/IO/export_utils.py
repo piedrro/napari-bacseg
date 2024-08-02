@@ -193,6 +193,7 @@ class _export_utils:
 
     def export_stacks(self, progress_callback, mode):
         try:
+
             layer_names = [layer.name for layer in self.viewer.layers if layer.name not in ["Segmentations", "Nucleoid", "Classes", "center_lines", "Localisations"]]
 
             export_stack_channel = self.gui.export_stack_channel.currentText()
@@ -216,7 +217,7 @@ class _export_utils:
                 invert = self.gui.export_invert.isChecked()
                 autocontrast = self.gui.export_autocontrast.isChecked()
                 scalebar = self.gui.export_scalebar.isChecked()
-                cropzoom = self.gui.export_cropzoom.isChecked()
+                cropzoom = self.gui.export_crop_zoom.isChecked()
                 mask_background = self.gui.export_mask_background.isChecked()
 
                 for channel in export_channels:
@@ -226,9 +227,14 @@ class _export_utils:
                     dims = self.viewer.layers[channel].data.shape[0]
 
                     for dim in range(dims):
-                        progress_callback.emit(int((dim / (dims - 1)) * 100))
 
-                        image, mask, nmask, label, meta, mode = self.generate_export_image(channel, (dim,), normalise, invert, autocontrast, scalebar, cropzoom, mask_background, )
+                        try:
+                            progress_callback.emit(int((dim / (dims - 1)) * 100))
+                        except:
+                            pass
+
+                        image, mask, nmask, label, meta, mode = self.generate_export_image(channel, (dim,), normalise,
+                            invert, autocontrast, scalebar, cropzoom, mask_background, )
 
                         if len(image.shape) > 2:
                             image = image[0]
