@@ -233,7 +233,12 @@
           <widget class="QComboBox" name="import_mode">
            <item>
             <property name="text">
-             <string>Images</string>
+             <string>Images (ZXY)</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Images (ZCXY)</string>
             </property>
            </item>
            <item>
@@ -5830,8 +5835,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>485</width>
-            <height>407</height>
+            <width>419</width>
+            <height>168</height>
            </rect>
           </property>
           <attribute name="label">

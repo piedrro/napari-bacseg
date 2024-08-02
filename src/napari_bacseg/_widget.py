@@ -474,7 +474,8 @@ class QWidget(QWidget, gui, *sub_classes):
         multiframe_items = [self.gui.import_multiframe_mode.itemText(i) for i in range(self.gui.import_multiframe_mode.count())]
         mode = self.gui.import_mode.currentText()
 
-        if mode in ["Images", "NanoImager Data", "ImageJ files(s)"]:
+        if mode in ["Images (ZXY)", "Images (ZCXY)",
+                    "NanoImager Data", "ImageJ files(s)"]:
             if "Keep All Frames (BETA)" not in multiframe_items:
                 self.gui.import_multiframe_mode.addItem("Keep All Frames (BETA)")
         else:
@@ -993,7 +994,7 @@ class QWidget(QWidget, gui, *sub_classes):
 
         file_extension = "*.tif"
 
-        if import_mode == "Images":
+        if import_mode in ["Images (ZXY)", "Images (ZCXY)"]:
             file_extension = "*.tif *.png *.jpeg *.fits"
         if import_mode == "Cellpose (.npy) Segmentation(s)":
             file_extension = "*.npy"
@@ -1020,7 +1021,7 @@ class QWidget(QWidget, gui, *sub_classes):
                 show_info("No file/folder selected")
 
         else:
-            if import_mode == "Images":
+            if import_mode == "Images (ZXY)":
 
                 try:
 
@@ -1036,6 +1037,25 @@ class QWidget(QWidget, gui, *sub_classes):
                 except:
                     self.update_ui()
                     print(traceback.format_exc())
+
+            if import_mode == "Images (ZCXY)":
+
+                try:
+
+                    self.update_ui(init=True)
+
+                    worker = Worker(self.import_multichannel_images, file_paths=paths)
+                    worker.signals.result.connect(self._process_import)
+                    worker.signals.progress.connect(partial(self._Progresbar, progressbar="import"))
+                    worker.signals.finished.connect(self.update_ui)
+                    worker.signals.error.connect(self.update_ui)
+                    self.threadpool.start(worker)
+
+                except:
+                    self.update_ui()
+                    print(traceback.format_exc())
+
+
 
             if import_mode == "NanoImager Data":
 

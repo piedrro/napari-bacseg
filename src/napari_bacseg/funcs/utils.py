@@ -160,6 +160,104 @@ class _utils:
 
         return folder, parent_folder
 
+
+    def read_multiframe_file(self, path,
+            precision="native", multiframe_mode=0, crop_mode=0):
+
+        image_list = []
+        metadata_list = []
+
+        try:
+
+            path = os.path.abspath(path)
+            path = os.path.normpath(path)
+
+            image_name = os.path.basename(path)
+
+            if os.path.splitext(image_name)[1] == ".fits":
+                with fits.open(path, ignore_missing_simple=True) as hdul:
+                    image = hdul[0].data
+                    try:
+                        metadata = dict(hdul[0].header)
+
+                        unserializable_keys = [key for key, value in metadata.items() if type(value) not in [bool, int, float, str]]
+
+                        for key in unserializable_keys:
+                            metadata.pop(key)
+
+                    except:
+                        metadata = {}
+            else:
+                with tifffile.TiffFile(path) as tif:
+                    try:
+                        metadata = tif.pages[0].tags["ImageDescription"].value
+                        metadata = json.loads(metadata)
+                    except:
+                        metadata = {}
+
+                image = tifffile.imread(path)
+
+            ndim = len(image.shape)
+
+            channels = []
+
+            if ndim == 4:
+                n_channels = image.shape[1]
+                channels = np.array_split(image, n_channels, axis=1)
+                channels = [channel.squeeze() for channel in channels]
+
+            if ndim == 3:
+                channels = [image]
+
+            for channel_index, channel in enumerate(channels):
+
+                channel = self.crop_image(channel, crop_mode)
+
+                channel = self.get_frame(channel, multiframe_mode)
+
+                channel = self.rescale_image(channel, precision=precision)
+
+                folder = os.path.abspath(path).split(os.sep)[-2]
+                parent_folder = os.path.abspath(path).split(os.sep)[-3]
+
+                channel_metadata = metadata.copy()
+                channel_name = f"Channel{channel_index}"
+
+                if "image_name" not in channel_metadata.keys():
+                    channel_metadata["image_name"] = image_name
+                    channel_metadata["channel"] = channel_name
+                    channel_metadata["modality"] = None
+                    channel_metadata["stain"] = None
+                    channel_metadata["stain_target"] = None
+                    channel_metadata["light_source"] = None
+                    channel_metadata["segmentation_file"] = None
+                    channel_metadata["segmentation_channel"] = None
+                    channel_metadata["image_path"] = path
+                    channel_metadata["mask_name"] = None
+                    channel_metadata["mask_path"] = None
+                    channel_metadata["label_name"] = None
+                    channel_metadata["label_path"] = None
+                    channel_metadata["crop_mode"] = crop_mode
+                    channel_metadata["multiframe_mode"] = multiframe_mode
+                    channel_metadata["folder"] = folder
+                    channel_metadata["parent_folder"] = parent_folder
+                    channel_metadata["dims"] = [channel[0].shape[-1], channel[0].shape[-2]]
+                    channel_metadata["crop"] = [0, channel[0].shape[-2], 0, channel[0].shape[-1]]
+
+                image_list.append(channel)
+                metadata_list.append(channel_metadata)
+
+        except:
+            print(traceback.format_exc())
+
+        return image_list, metadata_list
+
+
+
+
+
+
+
     def read_image_file(self, path, precision="native", multiframe_mode=0, crop_mode=0):
 
         path = os.path.abspath(path)

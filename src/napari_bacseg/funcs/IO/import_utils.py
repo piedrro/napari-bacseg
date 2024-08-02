@@ -193,6 +193,7 @@ class _import_utils:
         return imported_data
 
     def import_images(self, progress_callback, file_paths):
+
         if os.path.isdir(file_paths[0]):
             file_paths = glob(file_paths[0] + r"**\*", recursive=True)
 
@@ -229,7 +230,8 @@ class _import_utils:
             multiframe_mode = self.gui.import_multiframe_mode.currentIndex()
             crop_mode = self.gui.import_crop_mode.currentIndex()
 
-            image_list, meta = self.read_image_file(file_path, import_precision, multiframe_mode, crop_mode)
+            image_list, meta = self.read_image_file(file_path,
+                import_precision, multiframe_mode, crop_mode)
 
             akseg_hash = self.get_hash(img_path=file_path)
 
@@ -277,6 +279,84 @@ class _import_utils:
         imported_data = dict(imported_images=imported_images)
 
         return imported_data
+
+    def import_multichannel_images(self, progress_callback, file_paths):
+
+        if os.path.isdir(file_paths[0]):
+            file_paths = glob(file_paths[0] + r"**\*", recursive=True)
+
+        image_formats = ["tif", "png", "jpeg", "fits"]
+
+        file_paths = [path for path in file_paths if path.split(".")[-1] in image_formats]
+
+        import_limit = self.gui.import_limit.currentText()
+
+        if import_limit != "None" and len(file_paths) > int(import_limit):
+            file_paths = file_paths[: int(import_limit)]
+
+        images = []
+        metadata = {}
+        imported_images = {}
+
+        img_index = 0
+
+        for i in range(len(file_paths)):
+
+            file_path = os.path.abspath(file_paths[i])
+            file_name = os.path.basename(file_path)
+
+            import_precision = self.gui.import_precision.currentText()
+            multiframe_mode = self.gui.import_multiframe_mode.currentIndex()
+            crop_mode = self.gui.import_crop_mode.currentIndex()
+
+            image_list, metadata_list = self.read_multiframe_file(file_path, import_precision,
+                multiframe_mode, crop_mode)
+
+            if len(image_list) == 0:
+                continue
+
+            for images, metadata in zip(image_list, metadata_list):
+
+                channel = metadata["channel"]
+
+                for img_index, img in enumerate(images):
+
+                    meta = metadata.copy()
+
+                    contrast_limit, alpha, beta, gamma = self.autocontrast_values(img)
+
+                    meta["import_mode"] = "BacSeg"
+                    meta["contrast_limit"] = contrast_limit
+                    meta["contrast_alpha"] = alpha
+                    meta["contrast_beta"] = beta
+                    meta["contrast_gamma"] = gamma
+                    meta["dims"] = [img.shape[0], img.shape[1]]
+                    meta["crop"] = [0, img.shape[1], 0, img.shape[0]]
+
+                    if channel not in imported_images.keys():
+                        imported_images[channel] = dict(images=[img], masks=[],
+                            nmasks=[], classes=[], metadata={i: meta}, )
+                    else:
+                        imported_images[channel]["images"].append(img)
+                        imported_images[channel]["metadata"][i] = meta
+
+            progress = int(((i + 1) / len(file_paths)) * 100)
+
+            try:
+                progress_callback.emit(progress)
+            except:
+                pass
+
+        imported_data = dict(imported_images=imported_images)
+
+        return imported_data
+
+
+
+
+
+
+
 
     def import_cellpose(self, progress_callback, file_paths):
         if os.path.isdir(file_paths[0]):

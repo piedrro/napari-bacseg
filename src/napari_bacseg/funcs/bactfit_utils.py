@@ -244,8 +244,8 @@ class _bactfit_utils:
 
         try:
 
-            if isinstance(locs, np.recarray):
-                locs = pd.DataFrame(locs)
+            if isinstance(locs, pd.DataFrame):
+                locs = locs.to_records(index=False)
 
             name_list = self.cellLayer.properties["name"].copy()
             name_list = list(set(name_list))
