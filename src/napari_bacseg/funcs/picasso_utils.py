@@ -569,7 +569,7 @@ class _picasso_utils:
             box_size = int(self.gui.picasso_box_size.currentText())
             min_net_gradient = self.gui.picasso_min_net_gradient.text()
 
-            camera_info = {"baseline": 100.0, "gain": 1, "sensitivity": 1.0, "qe": 0.9, }
+            camera_info = {"Baseline": 100.0, "Gain": 1, "Sensitivity": 1.0, "qe": 0.9, }
 
             # check min net gradient is a number
             if min_net_gradient.isdigit() and image_channel != "":
@@ -600,7 +600,7 @@ class _picasso_utils:
                 box_size = int(self.gui.picasso_box_size.currentText())
                 min_net_gradient = self.gui.picasso_min_net_gradient.text()
 
-                camera_info = {"baseline": 100.0, "gain": 1, "sensitivity": 1.0, "qe": 0.9, }
+                camera_info = {"Baseline": 100.0, "Gain": 1, "Sensitivity": 1.0, "qe": 0.9, }
 
                 # check min net gradient is a number
                 if min_net_gradient.isdigit() and image_channel != "":

@@ -17,9 +17,10 @@ requires-python = ">=3.9"
 dependencies = [
     "napari[all]==0.5.0",
     "torch",
-    "cellpose >= 3.0.1",
+    "torchvision",
+    "cellpose == 3.0.1",
     "opencv-python",
-    "picassosr == 0.6.5",
+    "picassosr==0.7.3",
     "bactfit >= 0.1.6",
     "numpy",
     "pyqt5",
